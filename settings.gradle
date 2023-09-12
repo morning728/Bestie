@@ -1,0 +1,5 @@
+rootProject.name = 'num-note'
+
+includeBuild 'eureka-server'
+includeBuild 'numApi'
+includeBuild 'api-gateway'

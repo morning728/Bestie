@@ -19,4 +19,8 @@ public interface RecordService {
 
     List<Record> findByUsernameSortedByDate(String username);
     List<Record> findByUsernameSortedByDateReversed(String username);
+
+    List<Record> findByCreatedBetweenAndUsername(Date created,
+                                                 Date created2,
+                                                 String username);
 }

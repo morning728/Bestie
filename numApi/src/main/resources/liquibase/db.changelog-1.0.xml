@@ -113,7 +113,7 @@
                 <constraints nullable="true" unique="false"/>
             </column>
 
-            <column name="money" type="INT">
+            <column name="income" type="INT">
                 <constraints nullable="true" unique="false"/>
             </column>
         </createTable>
@@ -194,7 +194,7 @@
             <column name="mood_mark" value="9"/>
             <column name="steps" value="9500"/>
             <column name="sheets" value="23"/>
-            <column name="money" value="-1500"/>
+            <column name="income" value="-1500"/>
         </insert>
 
         <insert tableName="record" schemaName="num_note">
@@ -206,7 +206,43 @@
             <column name="mood_mark" value="7"/>
             <column name="steps" value="9700"/>
             <column name="sheets" value="12"/>
-            <column name="money" value="12500"/>
+            <column name="income" value="12500"/>
+        </insert>
+
+        <insert tableName="record" schemaName="num_note">
+            <column name="username" value="user"/>
+            <column name="mark" value="1"/>
+            <column name="description" value="record desc3"/>
+            <column name="weight" value="-3"/>
+            <column name="height" value="183"/>
+            <column name="mood_mark" value="3"/>
+            <column name="steps" value="9703"/>
+            <column name="sheets" value="13"/>
+            <column name="income" value="12503"/>
+        </insert>
+
+        <insert tableName="record" schemaName="num_note">
+            <column name="username" value="user"/>
+            <column name="mark" value="4"/>
+            <column name="description" value="record desc4"/>
+            <column name="weight" value="-4"/>
+            <column name="height" value="184"/>
+            <column name="mood_mark" value="4"/>
+            <column name="steps" value="9704"/>
+            <column name="sheets" value="14"/>
+            <column name="income" value="12504"/>
+        </insert>
+
+        <insert tableName="record" schemaName="num_note">
+            <column name="username" value="user"/>
+            <column name="mark" value="5"/>
+            <column name="description" value="record desc5"/>
+            <column name="weight" value="-5"/>
+            <column name="height" value="185"/>
+            <column name="mood_mark" value="5"/>
+            <column name="steps" value="9705"/>
+            <column name="sheets" value="15"/>
+            <column name="income" value="12505"/>
         </insert>
     </changeSet>
 

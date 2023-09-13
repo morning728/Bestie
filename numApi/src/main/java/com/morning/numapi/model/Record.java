@@ -35,8 +35,8 @@ public class Record extends BaseEntity {
     @Column(name = "sheets")
     private Integer sheets;
 
-    @Column(name = "money")
-    private Integer money;
+    @Column(name = "income")
+    private Integer income;
 
 
 }

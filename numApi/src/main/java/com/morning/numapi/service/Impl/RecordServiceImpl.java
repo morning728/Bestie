@@ -66,7 +66,7 @@ public class RecordServiceImpl implements RecordService {
         toUpdate.setWeight(record.getWeight());
         toUpdate.setMark(record.getMark());
         toUpdate.setSheets(record.getSheets());
-        toUpdate.setMoney(record.getMoney());
+        toUpdate.setIncome(record.getIncome());
         toUpdate.setHeight(record.getHeight());
         toUpdate.setMoodMark(record.getMoodMark());
         toUpdate.setSteps(record.getSteps());
@@ -114,5 +114,19 @@ public class RecordServiceImpl implements RecordService {
                 .stream()
                 .sorted((o1, o2) -> {return o1.getCreated().compareTo(o2.getCreated()) > 0 ? -1 : 1;})
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Record> findByCreatedBetweenAndUsername(Date created, Date created2, String username) {
+        List<Record> records = recordRepository
+                .findByCreatedBetween(created, created2);
+        if(records.isEmpty()){
+            log.info(String.format("No one record was found from %s and between dates: %s and %s: ", username, created, created2));
+            return null;
+        }
+        log.info(String.format("All records (%s) from user %s and between dates: %s and %s were found",
+                String.valueOf(records.size()),
+                username, created, created2));
+        return records;
     }
 }

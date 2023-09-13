@@ -19,7 +19,7 @@ public class RecordDTO {
     private Integer moodMark;
     private Integer steps;
     private Integer sheets;
-    private Integer money;
+    private Integer income;
 
     public Record toRecord(){
         Record result = new Record();
@@ -33,7 +33,7 @@ public class RecordDTO {
         result.setMoodMark(moodMark == null ? 0 : moodMark);
         result.setSteps(steps == null ? 0 : steps);
         result.setSheets(sheets == null ? 0 : sheets);
-        result.setMoney(money == null ? 0 : money);
+        result.setIncome(income == null ? 0 : income);
         result.setCreated(new Date());
         result.setUpdated(new Date());
         result.setStatus(Status.ACTIVE);
@@ -53,7 +53,7 @@ public class RecordDTO {
         dto.setMoodMark(record.getMoodMark());
         dto.setSteps(record.getSteps());
         dto.setSheets(record.getSheets());
-        dto.setMoney(record.getMoney());
+        dto.setIncome(record.getIncome());
 
         return dto;
     }

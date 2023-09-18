@@ -10,6 +10,7 @@ import java.util.List;
 
 public interface RecordRepository extends JpaRepository<Record, Long> {
     List<Record> findByUsername(String name);
-    List<Record> findByCreatedBetween(Date created,
-                                                 Date created2);
+    List<Record> findByCreatedBetweenAndUsername(Date created,
+                                                 Date created2,
+                                                 String username);
 }

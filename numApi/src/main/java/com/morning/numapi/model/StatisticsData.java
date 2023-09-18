@@ -1,5 +1,8 @@
 package com.morning.numapi.model;
 
+import lombok.Data;
+
+@Data
 public class StatisticsData {
 
     private String username;
@@ -12,6 +15,6 @@ public class StatisticsData {
     private Float totalWeightDifference;
     private Float totalHeightDifference;
     private Integer totalSteps;
-    private Float totalSheets;
+    private Integer totalSheets;
     private Float totalIncome;
 }

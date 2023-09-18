@@ -117,16 +117,28 @@ public class RecordServiceImpl implements RecordService {
     }
 
     @Override
-    public List<Record> findByCreatedBetweenAndUsername(Date created, Date created2, String username) {
-        List<Record> records = recordRepository
-                .findByCreatedBetween(created, created2);
+    public List<Record> findByCreatedBetweenAndUsername(Date firstDate,
+                                                        Date secondDate,
+                                                        String username) {
+        List<Record> records;
+        if(firstDate.before(secondDate)) {
+            records = recordRepository
+                    .findByCreatedBetweenAndUsername(firstDate, secondDate, username);
+        }
+        else {
+            records = recordRepository
+                    .findByCreatedBetweenAndUsername(secondDate, firstDate, username);
+        }
         if(records.isEmpty()){
-            log.info(String.format("No one record was found from %s and between dates: %s and %s: ", username, created, created2));
+            log.info(String.format("No one record was found from %s and between dates: %s and %s: ",
+                    username,
+                    firstDate,
+                    secondDate));
             return null;
         }
         log.info(String.format("All records (%s) from user %s and between dates: %s and %s were found",
                 String.valueOf(records.size()),
-                username, created, created2));
+                username, firstDate, secondDate));
         return records;
     }
 }

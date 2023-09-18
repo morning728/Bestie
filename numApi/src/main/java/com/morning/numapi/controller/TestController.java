@@ -1,5 +1,6 @@
 package com.morning.numapi.controller;
 
+import com.morning.numapi.repository.RecordRepository;
 import com.morning.numapi.service.StatisticsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,10 +19,20 @@ import java.util.Date;
 @Slf4j
 public class TestController {
     private final StatisticsService statisticsService;
+    private final RecordRepository recordRepository;
 
     @GetMapping("")
     public ResponseEntity test() throws ParseException {
-        log.info(statisticsService.getStatisticsPerPeriod(new Date(2023, 9, 10), new Date(2023, 9, 12), "user").toString());
-        return (ResponseEntity) ResponseEntity.ok(200);
+        log.info(
+                recordRepository.findByCreatedBetweenAndUsername(
+                        new Date(1694299242000L),
+                        new Date(1694644842000L),
+                        "user").toString()
+                );
+        return (ResponseEntity) ResponseEntity.ok(statisticsService.getStatisticsPerPeriod(
+                new Date(1694299242000L),
+                new Date(1694644842000L),
+                "user")
+        );
     }
 }

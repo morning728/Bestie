@@ -1,6 +1,7 @@
 package com.morning.numapi.controller;
 
 
+import com.morning.numapi.exception.RecordNotFoundException;
 import com.morning.numapi.model.DTO.RecordDTO;
 import com.morning.numapi.model.Record;
 import com.morning.numapi.service.RecordService;
@@ -12,12 +13,14 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
 @Slf4j
 @RequestMapping("/api/v1/records")
 @RequiredArgsConstructor
+//@CrossOrigin("http://localhost:3000")
 public class RecordController {
 
     private final RecordService recordService;
@@ -33,7 +36,11 @@ public class RecordController {
 
     @GetMapping("/{id}")
     public ResponseEntity getRecordById(@PathVariable(name = "id") Long id) {
-        return new ResponseEntity<>(recordService.findById(id), HttpStatus.OK);
+        if (recordService.findById(id) != null) {
+            return new ResponseEntity<>(recordService.findById(id), HttpStatus.OK);
+        } else {
+            throw new RecordNotFoundException(id);
+        }
     }
 
     @GetMapping("")

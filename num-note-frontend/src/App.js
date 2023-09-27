@@ -4,6 +4,7 @@ import Navbar from './layout/Navbar';
 import Home from './pages/Home';
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import AddRecord from './records/AddRecord';
+import EditRecord from './records/EditRecord';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Routes>
           <Route exact path="/" element={<Home />} />
           <Route exact path="/addrecord" element={<AddRecord />} />
+          <Route exact path="/editRecord/:id" element={<EditRecord />} />
         </Routes>
       </Router>
     </div>

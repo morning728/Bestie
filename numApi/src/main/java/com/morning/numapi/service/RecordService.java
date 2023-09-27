@@ -23,4 +23,6 @@ public interface RecordService {
     List<Record> findByCreatedBetweenAndUsername(Date created,
                                                  Date created2,
                                                  String username);
+
+    Boolean existsById(Long id);
 }

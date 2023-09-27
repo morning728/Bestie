@@ -41,6 +41,11 @@ public class RecordDTO {
         return result;
     }
 
+    public Record toRecord(Long id){
+        this.setId(id);
+        return this.toRecord();
+    }
+
     public RecordDTO fromRecord(Record record){
         RecordDTO dto = new RecordDTO();
 

@@ -141,4 +141,9 @@ public class RecordServiceImpl implements RecordService {
                 username, firstDate, secondDate));
         return records;
     }
+
+    @Override
+    public Boolean existsById(Long id) {
+        return recordRepository.existsById(id);
+    }
 }

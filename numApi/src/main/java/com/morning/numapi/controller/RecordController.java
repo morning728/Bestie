@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -36,7 +37,7 @@ public class RecordController {
 
     @GetMapping("/{id}")
     public ResponseEntity getRecordById(@PathVariable(name = "id") Long id) {
-        if (recordService.findById(id) != null) {
+        if (recordService.existsById(id)) {
             return new ResponseEntity<>(recordService.findById(id), HttpStatus.OK);
         } else {
             throw new RecordNotFoundException(id);
@@ -62,22 +63,19 @@ public class RecordController {
 
     @PutMapping("/{id}")
     public ResponseEntity updateRecord(@PathVariable(name = "id") Long id, @RequestBody RecordDTO dto) {////////////////////////
-        try {
-            recordService.updateRecord(dto.toRecord());
-        } catch (Exception e){
-            return (ResponseEntity) ResponseEntity.of(ProblemDetail.forStatus(404)); // FIX
+        if(recordService.existsById(id)){
+            return ResponseEntity.ok(recordService.updateRecord(dto.toRecord(id)));
         }
-        return ResponseEntity.ok(dto);
+        throw new RecordNotFoundException(id);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity deleteRecord(@PathVariable(name = "id") Long id) {////////////////////////
-        try {
+        if(recordService.existsById(id)){
             recordService.deleteRecord(id);
-        } catch (Exception e){
-            return (ResponseEntity) ResponseEntity.of(ProblemDetail.forStatus(404)); // FIX
+            return ResponseEntity.ok(String.format("Record with id %s has been deleted successfully!", id));
         }
-        return ResponseEntity.ok(200);
+        throw new RecordNotFoundException(id);
     }
 
 }

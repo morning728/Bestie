@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import axios from "axios";
+import { Link, useParams } from "react-router-dom";
 
 
 export default function Home() {
@@ -14,6 +15,11 @@ export default function Home() {
         const result = await axios.get("http://localhost:8765/numapi/api/v1/records/sorted?username=user");
         setRecords(result.data);
     };
+
+    const deleteRecord = async (par)=>{
+        const result = await axios.delete(`http://localhost:8765/numapi/api/v1/records/${par}`);
+        loadRecords();
+    }
 
 
     return (
@@ -35,13 +41,16 @@ export default function Home() {
                             records.map((record, index) => (
                                 <tr>
                                     <th scope="row" key={index}>{index + 1}</th>
-                                    <td>{record.created.toString().substring(0,10)}</td>
+                                    <td>{record.created.toString().substring(0, 10)}</td>
                                     <td>{record.username}</td>
                                     <td>{record.description}</td>
                                     <td>
-                                        <button type="button" className="btn btn-outline-dark" style={{marginRight: ".5em"}}>View</button>
-                                        <button type="button" className="btn btn-outline-warning"  style={{marginRight: ".5em"}}>Edit</button>
-                                        <button type="button" className="btn btn-outline-danger">Delete</button>
+                                        <button type="button" className="btn btn-outline-dark" style={{ marginRight: ".5em" }}>View</button>
+                                        <Link type="button" className="btn btn-outline-warning" style={{ marginRight: ".5em" }}
+                                        to={`/editRecord/${record.id}`}>
+                                            Edit
+                                        </Link>
+                                        <button onClick={(e) => {deleteRecord(record.id)}} type="button" className="btn btn-outline-danger">Delete</button>
                                     </td>
                                 </tr>
                             ))

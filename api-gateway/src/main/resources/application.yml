@@ -1,6 +1,18 @@
 spring:
   cloud:
     gateway:
+      routes:
+        - id: numapi
+          uri: lb://NUM-API
+          predicates:
+            - Path=/api/**
+          filters:
+            - AuthenticationFilter
+
+        - id: security
+          uri: lb://SECURITY
+          predicates:
+            - Path=/security/**
       globalcors:
         cors-configurations:
           '[/**]':
@@ -12,12 +24,13 @@ spring:
               - DELETE
               - PUT
             allowedHeaders: '*'
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
+#      discovery:
+#        locator:
+#          enabled: true
+#          lower-case-service-id: true
+
   application:
-    name: api-gateway
+    name: API-GATEWAY
 eureka:
   client:
     service-url:
@@ -27,4 +40,8 @@ logging:
     console: "%C{1.} [%-5level] %d{HH:mm:ss} - %msg%n"
 server:
   port: 8765
+
+services:
+  path:
+    security-validate-user: http://localhost:9898/security/v1/validate/user
 

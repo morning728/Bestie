@@ -21,8 +21,12 @@ export default function AddRecord() {
 
     const onSubmit=async(e)=>{
         e.preventDefault();
-        await axios.post("http://localhost:8765/numapi/api/v1/records", record);
-        navigate("/");
+        try{
+            await axios.post("http://localhost:8765/api/v1/records", record);
+            navigate("/");
+        } catch(error){
+            navigate("/error");
+        }
     };
     return (
         <div className='container'>

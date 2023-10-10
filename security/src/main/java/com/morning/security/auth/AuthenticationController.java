@@ -15,7 +15,7 @@ public class AuthenticationController {
 
   private final AuthenticationService service;
 
-  @GetMapping("/validate-user")
+/*  @GetMapping("/validate-user")
   public String checkUser() {
     return "Access is allowed!";
   }
@@ -28,7 +28,7 @@ public class AuthenticationController {
   @GetMapping("/validate-manager")
   public String checkManager() {
     return "Access is allowed!";
-  }
+  }*/
 
   @PostMapping("/register")
   public ResponseEntity<AuthenticationResponse> register(

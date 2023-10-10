@@ -24,12 +24,20 @@ export default function AddRecord() {
 
     const onSubmit=async(e)=>{
         e.preventDefault();
-        await axios.put(`http://localhost:8765/numapi/api/v1/records/${id}`, record);
-        navigate("/");
+        try{
+            await axios.put(`http://localhost:8765/api/v1/records/${id}`, record);
+            navigate("/");
+        } catch(error){
+            navigate("/error");
+        }
     };
 
     const loadRecord = async () => {
-        setRecord((await axios.get(`http://localhost:8765/numapi/api/v1/records/${id}`)).data)
+        try{
+            setRecord((await axios.get(`http://localhost:8765/api/v1/records/${id}`)).data)
+        } catch(error){
+            navigate("/error");
+        }
     }
 
     useEffect(() => {

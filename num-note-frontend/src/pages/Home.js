@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import axios from "axios";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { doOrdinaryRequest, setToken, getToken, removeToken } from '../jwtLogic/SecurityFunctions.ts';
+axios.defaults.timeout = 1000;
 
 
 export default function Home() {
     const [records, setRecords] = useState([]);
+    let navigate = useNavigate();
 
 
     useEffect(() => {
@@ -12,13 +15,36 @@ export default function Home() {
     }, []);
 
     const loadRecords = async () => {
-        const result = await axios.get("http://localhost:8765/numapi/api/v1/records/sorted?username=user");
-        setRecords(result.data);
+        const url = "http://localhost:8765/api/v1/records/sorted?username=user";
+        //const result = await axios.get("http://localhost:8765/numapi/api/v1/records/sorted?username=user");
+        // result.then(
+        //     function (value) {
+        //         setRecords(value.data);
+        //     },
+        //     function (reason) {
+        //         navigate("/error");
+        //     },
+        //   );
+        try {
+            setToken('eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJBZG1pbiIsImlhdCI6MTY5Njk2NTIwMywiZXhwIjoxNjk3MDUxNjAzfQ.kuflRCJCSfCx3aKLMnR4cXE_W-PfZvTXjIGsMmYLXq4');
+            const response = await doOrdinaryRequest(url, null, "get"); 
+            setRecords(response.data);
+        } catch (error) {
+            if(error.message == 'invalid token'){
+                navigate("/login");
+            } else {
+                navigate("/error");
+            }
+        }
     };
 
     const deleteRecord = async (par)=>{
-        const result = await axios.delete(`http://localhost:8765/numapi/api/v1/records/${par}`);
-        loadRecords();
+        try{
+            const result = await axios.delete(`http://localhost:8765/api/v1/records/${par}`);
+            loadRecords();
+        } catch (error){
+            navigate("/error");
+        }
     }
 
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { doOrdinaryRequest } from '../jwtLogic/SecurityFunctions.ts';
 
 
 export default function AddRecord() {
@@ -21,11 +22,16 @@ export default function AddRecord() {
 
     const onSubmit=async(e)=>{
         e.preventDefault();
-        try{
-            await axios.post("http://localhost:8765/api/v1/records", record);
+        const url = "http://localhost:8765/api/v1/records";
+        try {
+            const response = await doOrdinaryRequest(url, record, "post");
             navigate("/");
-        } catch(error){
-            navigate("/error");
+        } catch (error) {
+            if (error.message == 'invalid token' || error.message == 'Request failed with status code 500') {
+                navigate("/login");
+            } else {
+                navigate("/error");
+            }
         }
     };
     return (

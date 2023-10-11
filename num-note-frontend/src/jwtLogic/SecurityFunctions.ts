@@ -77,6 +77,7 @@ const doOrdinaryRequest = async (url, body = null, type, par = null): Promise<Ax
       headers: headers
     });
   } else if (type = "delete") {
+    //headers['Content-Type'] = 'text/plain;charset=utf-8';
     if (par != null) {
       return await axios.delete(`${url}${par}`, {
         headers: headers

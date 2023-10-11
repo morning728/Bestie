@@ -26,7 +26,6 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
 
     @Autowired
     private RestTemplate template;
-    private JwtUtil jwtUtil;
     @Value("${services.path.security-validate-user}")
     private String userValidationPath;
 
@@ -43,15 +42,12 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                     throw new RuntimeException("Access Denied!");
                 }
 
-                String authHeader = exchange.getRequest().getHeaders().get(HttpHeaders.AUTHORIZATION).get(0);
+/*                String authHeader = exchange.getRequest().getHeaders().get(HttpHeaders.AUTHORIZATION).get(0);
                 if (authHeader != null && authHeader.startsWith("Bearer ")) {
                     authHeader = authHeader.substring(7);
-                }
+                }*/
+
                 try {
-//                    //REST call to AUTH service
-
-
-
                     HttpHeaders headers = new HttpHeaders();
                     headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
                     headers.add(
@@ -62,10 +58,6 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                     HttpEntity<String> entity = new HttpEntity<>("body", headers);
 
                     template.exchange(userValidationPath, HttpMethod.GET, entity, String.class);
-
-                    //template.getForObject("http://security//validate?token" + authHeader, String.class);
-                    //jwtUtil.validateToken(authHeader);
-
                 } catch (Exception e) {
                     System.out.println(e.toString());
                     return Mono.error(new HttpClientErrorException(HttpStatus.FORBIDDEN));

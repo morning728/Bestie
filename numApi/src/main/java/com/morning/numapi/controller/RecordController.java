@@ -4,10 +4,13 @@ package com.morning.numapi.controller;
 import com.morning.numapi.exception.RecordNotFoundException;
 import com.morning.numapi.model.DTO.RecordDTO;
 import com.morning.numapi.model.Record;
+import com.morning.numapi.service.JwtService;
 import com.morning.numapi.service.RecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.Request;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -21,17 +24,23 @@ import java.util.List;
 @Slf4j
 @RequestMapping("/api/v1/records")
 @RequiredArgsConstructor
-//@CrossOrigin("http://localhost:3000")
 public class RecordController {
 
     private final RecordService recordService;
+    private final JwtService jwtService;
 
     @GetMapping("/sorted")
-    public List<Record> getSortedRecords(@RequestParam(name = "username", required = true) String username){
+    public List<Record> getSortedRecords(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token){
+        String username = jwtService.extractUsername(
+                token.substring(7)
+        );
         return recordService.findByUsernameSortedByDate(username);
     }
     @GetMapping("/sorted-reversed")
-    public List<Record> getReversedSortedRecords(@RequestParam(name = "username", required = true) String username){
+    public List<Record> getReversedSortedRecords(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token){
+        String username = jwtService.extractUsername(
+                token.substring(7)
+        );
         return recordService.findByUsernameSortedByDateReversed(username);
     }
 
@@ -45,13 +54,19 @@ public class RecordController {
     }
 
     @GetMapping("")
-    public ResponseEntity getRecords(@RequestParam(name = "username", required = false) String username) {
-        if(username == null) return new ResponseEntity<>(recordService.findAll(), HttpStatus.OK);
-        return new ResponseEntity<>(recordService.findByUsername(username), HttpStatus.OK);
+    public ResponseEntity<List<Record>> getRecords(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
+        String username = jwtService.extractUsername(
+                token.substring(7)
+        );
+        return new ResponseEntity(recordService.findByUsername(username), HttpStatus.OK);
     }
 
     @PostMapping("")
-    public ResponseEntity addNewRecord(@RequestBody RecordDTO dto){
+    public ResponseEntity addNewRecord(
+            @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+            @RequestBody RecordDTO dto
+    ){
+        dto.setUsername(jwtService.extractUsername(token.substring(7)));
         try {
             recordService.addRecord(dto.toRecord());
         } catch (Exception e){
@@ -62,7 +77,11 @@ public class RecordController {
 
 
     @PutMapping("/{id}")
-    public ResponseEntity updateRecord(@PathVariable(name = "id") Long id, @RequestBody RecordDTO dto) {////////////////////////
+    public ResponseEntity updateRecord(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+                                       @PathVariable(name = "id") Long id,
+                                       @RequestBody RecordDTO dto
+    ) {
+        dto.setUsername(jwtService.extractUsername(token.substring(7)));
         if(recordService.existsById(id)){
             return ResponseEntity.ok(recordService.updateRecord(dto.toRecord(id)));
         }

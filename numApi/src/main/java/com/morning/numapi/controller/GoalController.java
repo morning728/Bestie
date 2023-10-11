@@ -4,9 +4,11 @@ import com.morning.numapi.model.DTO.GoalDTO;
 import com.morning.numapi.model.DTO.RecordDTO;
 import com.morning.numapi.model.Record;
 import com.morning.numapi.service.GoalService;
+import com.morning.numapi.service.JwtService;
 import com.morning.numapi.service.RecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +22,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GoalController {
     private final GoalService goalService;
+    private final JwtService jwtService;
 
     @GetMapping("")
-    public ResponseEntity getAllGoals(@RequestParam(name = "username") String username){
-        return new ResponseEntity<>(goalService.findByUsername(username), HttpStatus.OK);
+    public ResponseEntity getAllGoals(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token){
+
+        return new ResponseEntity<>(
+                goalService.findByUsername(jwtService.extractUsername(token.substring(7))),
+                HttpStatus.OK
+        );
     }
 
     @GetMapping("/{id}")
@@ -34,7 +41,9 @@ public class GoalController {
 
 
     @PostMapping("")
-    public ResponseEntity addNewGoal(@RequestBody GoalDTO dto){
+    public ResponseEntity addNewGoal(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+                                     @RequestBody GoalDTO dto){
+        dto.setUsername(jwtService.extractUsername(token.substring(7)));
         try {
             goalService.addGoal(dto.toGoal());
         } catch (Exception e){
@@ -45,7 +54,10 @@ public class GoalController {
 
 
     @PutMapping("/{id}")
-    public ResponseEntity updateGoal(@PathVariable(name = "id") Long id, @RequestBody GoalDTO dto) {////////////////////////
+    public ResponseEntity updateGoal(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+                                     @PathVariable(name = "id") Long id,
+                                     @RequestBody GoalDTO dto) {
+        dto.setUsername(jwtService.extractUsername(token.substring(7)));
         try {
             goalService.updateGoal(dto.toGoal());
         } catch (Exception e){

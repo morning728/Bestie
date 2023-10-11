@@ -62,6 +62,7 @@ public class RecordServiceImpl implements RecordService {
             log.error(String.format("The record with id = %s was not found", record.getId()));
             return null;
         }
+        toUpdate.setUsername(record.getUsername());
         toUpdate.setDescription(record.getDescription());
         toUpdate.setWeight(record.getWeight());
         toUpdate.setMark(record.getMark());

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { setToken } from '../../jwtLogic/SecurityFunctions.ts';
 
 
 export default function Registration() {
@@ -24,6 +25,7 @@ export default function Registration() {
         e.preventDefault();
         try {
             const { data: response } = await axios.post("http://localhost:8765/security/v1/auth/register", user);
+            setToken(response.access_token);
             //console.log(response.access_token);
             navigate("/");
         } catch (error) {

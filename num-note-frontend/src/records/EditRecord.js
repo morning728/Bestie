@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios';
 import { useNavigate, useParams  } from 'react-router-dom';
+import { doOrdinaryRequest } from '../jwtLogic/SecurityFunctions.ts';
 
 
 
@@ -24,19 +25,32 @@ export default function AddRecord() {
 
     const onSubmit=async(e)=>{
         e.preventDefault();
-        try{
-            await axios.put(`http://localhost:8765/api/v1/records/${id}`, record);
+        const url = `http://localhost:8765/api/v1/records/${id}`;
+        try {
+            const response = await doOrdinaryRequest(url, record, "put");
             navigate("/");
-        } catch(error){
-            navigate("/error");
+        } catch (error) {
+            if (error.message == 'invalid token' || error.message == 'Request failed with status code 500') {
+                navigate("/login");
+            } else {
+                navigate("/error");
+            }
         }
     };
 
     const loadRecord = async () => {
-        try{
-            setRecord((await axios.get(`http://localhost:8765/api/v1/records/${id}`)).data)
-        } catch(error){
-            navigate("/error");
+
+
+        const url = `http://localhost:8765/api/v1/records/${id}`;
+        try {
+            const response = await doOrdinaryRequest(url, null, "get");
+            setRecord(response.data);
+        } catch (error) {
+            if (error.message == 'invalid token' || error.message == 'Request failed with status code 500') {
+                navigate("/login");
+            } else {
+                navigate("/error");
+            }
         }
     }
 

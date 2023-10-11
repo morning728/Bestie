@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { setToken } from '../../jwtLogic/SecurityFunctions.ts';
 
 
 export default function Login() {
@@ -9,12 +10,10 @@ export default function Login() {
 
     const [user, setUser] = useState({
         username: "",
-        email: "",
         password: "",
-        role: "USER"
     });
 
-    const { username, email, password, role } = user;
+    const { username, password } = user;
 
     const onInputChange = (e) => {
         setUser({ ...user, [e.target.name]: e.target.value });
@@ -23,8 +22,9 @@ export default function Login() {
     const onSubmit = async (e) => {
         e.preventDefault();
         try {
-            const { data: response } = await axios.post("http://localhost:8765/security/v1/auth/register", user);
+            const { data: response } = await axios.post("http://localhost:8765/security/v1/auth/authenticate", user);
             //console.log(response.access_token);
+            setToken(response.access_token);
             navigate("/");
         } catch (error) {
             navigate("/error");
@@ -39,14 +39,10 @@ export default function Login() {
                     <input name="username" onChange={(e) => onInputChange(e)} value={username} type="text" className="form-control" id="exampleInputUsername" aria-describedby="" />
                 </div>
                 <div className="mb-3">
-                    <label htmlFor="exampleInputEmail1" className="form-label">мыло?</label>
-                    <input name="email" onChange={(e) => onInputChange(e)} value={email} type="text" className="form-control" id="exampleInputEmail1" aria-describedby="" />
-                </div>
-                <div className="mb-3">
                     <label htmlFor="exampleInputPassword1" className="form-label">password</label>
                     <input name="password" onChange={(e) => onInputChange(e)} value={password} type="text" className="form-control" id="exampleInputPassword1" />
                 </div>
-                <button type="submit" className="btn btn-primary">Register</button>
+                <button type="submit" className="btn btn-primary">Login</button>
             </form>
 
         </div>

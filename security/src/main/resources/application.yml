@@ -2,19 +2,26 @@ spring:
   application:
     name: SECURITY
   datasource:
-    url: jdbc:postgresql://localhost:5432/jwt_security
+    url: jdbc:postgresql://localhost:5432/postgres?serverTimezone=UTC
     username: postgres
     password: root
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: create
     show-sql: false
     properties:
       hibernate:
         format_sql: true
+        default_schema: num_note
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+  liquibase:
+    change-log: classpath:liquibase/db.changelog-master.xml
+    url: jdbc:postgresql://localhost:5432/postgres?serverTimezone=UTC
+    user: postgres
+    password: root
+    default-schema: num_note
 eureka:
   client:
     service-url:

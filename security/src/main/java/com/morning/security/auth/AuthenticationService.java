@@ -21,6 +21,11 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.Calendar;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +36,7 @@ public class AuthenticationService {
   private final JwtService jwtService;
   private final AuthenticationManager authenticationManager;
 
-  public AuthenticationResponse register(RegisterRequest request) {
+  public AuthenticationResponse register(RegisterRequest request) throws SQLException {
     var user = User.builder()
         .username(request.getUsername())
         .email(request.getEmail())
@@ -39,6 +44,23 @@ public class AuthenticationService {
         .role(request.getRole())
         .build();
     var savedUser = repository.save(user);
+
+    Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres?serverTimezone=UTC",
+            "postgres", "root");
+    String insertQuery = "INSERT INTO num_note.user(username, created, updated, status ) VALUES (?, ?, ?, ?)";
+    PreparedStatement statement = connection.prepareStatement(insertQuery);
+
+    statement.setString(1, request.getUsername());
+    statement.setDate(2, new java.sql.Date(Calendar.getInstance().getTime().getTime()));
+    statement.setDate(3,  new java.sql.Date(Calendar.getInstance().getTime().getTime()));
+    statement.setString(4, "ACTIVE");
+
+    int count = statement.executeUpdate();
+
+    if (count != 1) {
+      repository.delete(user);
+      throw new SQLException("User was not added");
+    }
     var jwtToken = jwtService.generateToken(user);
     var refreshToken = jwtService.generateRefreshToken(user);
     saveUserToken(savedUser, jwtToken);

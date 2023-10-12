@@ -1,0 +1,61 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+
+
+
+    <changeSet id="1.0.0" author="morning728">
+        <createTable tableName="auth_user" schemaName="num_note">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="true"/>
+            </column>
+
+            <column name="password" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="role" type="VARCHAR(25)" defaultValue="USER">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="username" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="1.0.1" author="morning728">
+        <createTable tableName="token" schemaName="num_note">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+
+            <column name="expired" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="revoked" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="auth_user_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_token_auth_user" references="auth_user(id)"/>
+            </column>
+
+            <column name="token" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="token_type" type="VARCHAR(30)" defaultValue="BEARER">
+                <constraints nullable="true" unique="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

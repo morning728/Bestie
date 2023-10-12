@@ -47,16 +47,13 @@ const getToken = (): StoredToken | null => {
 };
 
 const doOrdinaryRequest = async (url, body = null, type, par = null): Promise<AxiosResponse<any, any>> => {
-  const headers = {
-
-  }
+  const headers = {}
   const token = getToken();
   if(token != null && !isExpired(token.timeStamp)){
     headers['Authorization'] = 'Bearer ' + token.value
   } else {
     throw new Error("invalid token");
   }
-
 
   if (type == "get") {
     if (par != null) {
@@ -67,7 +64,7 @@ const doOrdinaryRequest = async (url, body = null, type, par = null): Promise<Ax
     return await axios.get(url, {
       headers: headers
     });
-  } else if (type = "post") {
+  } else if (type == "post") {
     if (par != null) {
       return await axios.post(`${url}${par}`, body, {
         headers: headers
@@ -76,7 +73,7 @@ const doOrdinaryRequest = async (url, body = null, type, par = null): Promise<Ax
     return await axios.post(url, body, {
       headers: headers
     });
-  } else if (type = "delete") {
+  } else if (type == "delete") {
     //headers['Content-Type'] = 'text/plain;charset=utf-8';
     if (par != null) {
       return await axios.delete(`${url}${par}`, {
@@ -86,7 +83,7 @@ const doOrdinaryRequest = async (url, body = null, type, par = null): Promise<Ax
     return await axios.delete(url, {
       headers: headers
     });
-  } else if (type = "put") {
+  } else if (type == "put") {
     if (par != null) {
       return await axios.put(`${url}${par}`, body, {
         headers: headers

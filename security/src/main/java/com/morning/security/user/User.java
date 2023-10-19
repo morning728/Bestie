@@ -23,7 +23,7 @@ public class User implements UserDetails {
 
   @Id
   @GeneratedValue
-  private Integer id;
+  private Long id;
   @Column(unique=true)
   private String username;
   @Column(unique=true)

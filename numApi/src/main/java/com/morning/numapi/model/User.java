@@ -24,13 +24,13 @@ public class User extends BaseEntity {
     private Date birthday;
 
     @Column(name = "weight")
-    private Integer weight;
+    private Float weight;
 
     @Column(name = "height")
-    private Integer height;
+    private Float height;
 
-    @Column(name = "telegram_id")
-    private String telegramId;
+//    @Column(name = "telegram_id")
+//    private String telegramId;
 
     @Column(name = "average_mark")
     private Float averageMark;

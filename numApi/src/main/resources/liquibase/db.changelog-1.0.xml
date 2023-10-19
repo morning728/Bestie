@@ -36,24 +36,20 @@
                 <constraints nullable="true" unique="false"/>
             </column>
 
-            <column name="email" type="VARCHAR(100)">
-                <constraints nullable="true" unique="true"/>
-            </column>
+<!--            <column name="email" type="VARCHAR(100)">-->
+<!--                <constraints nullable="true" unique="true"/>-->
+<!--            </column>-->
 
             <column name="birthday" type="TIMESTAMP">
                 <constraints nullable="true" unique="false"/>
             </column>
 
-            <column name="weight" type="INT">
+            <column name="weight" type="float">
                 <constraints nullable="true" unique="false"/>
             </column>
 
-            <column name="height" type="INT">
+            <column name="height" type="float">
                 <constraints nullable="true" unique="false"/>
-            </column>
-
-            <column name="telegram_id" type="VARCHAR(100)">
-                <constraints nullable="true" unique="true"/>
             </column>
 
             <column name="average_mark" type="float">
@@ -121,6 +117,7 @@
 
     <changeSet id="1.0.2" author="morning728">
         <createTable tableName="goal" schemaName="num_note">
+
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -149,7 +146,7 @@
                 <constraints nullable="true" unique="false"/>
             </column>
 
-            <column name="weight_difference_per_day" type="INT">
+            <column name="weight_difference_per_day" type="FLOAT">
                 <constraints nullable="true" unique="false"/>
             </column>
 

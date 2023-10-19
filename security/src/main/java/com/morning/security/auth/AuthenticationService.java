@@ -59,7 +59,7 @@ public class AuthenticationService {
 
     if (count != 1) {
       repository.delete(user);
-      throw new SQLException("User was not added");
+      throw new SQLException(("User") + " was not added");
     }
     var jwtToken = jwtService.generateToken(user);
     var refreshToken = jwtService.generateRefreshToken(user);

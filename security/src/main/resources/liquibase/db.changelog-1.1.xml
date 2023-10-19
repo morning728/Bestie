@@ -16,6 +16,10 @@
                 <constraints nullable="true"/>
             </column>
 
+            <column name="telegram_id" type="VARCHAR(100)">
+                <constraints nullable="true" unique="false"/>
+            </column>
+
             <column name="password" type="VARCHAR(255)">
                 <constraints nullable="false"/>
             </column>

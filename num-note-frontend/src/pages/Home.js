@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { doOrdinaryRequest } from '../jwtLogic/SecurityFunctions.ts';
+import { TESTTEST, sortByDate, sortByDateReversed, sortByDescription, sortByDescriptionReversed } from '../HomeLogic/HomeSortFunctions.ts';
 axios.defaults.timeout = 1000;
 
 
@@ -18,14 +19,25 @@ export default function Home() {
         const url = "http://localhost:8765/api/v1/records";
         try {
             const response = await doOrdinaryRequest(url, null, "get");
-            setRecords(response.data);
+            setRecords((response.data));
+
         } catch (error) {
             if (error.message == 'invalid token' || error.message == 'Request failed with status code 500') {
                 navigate("/login");
             } else {
-                navigate("/error");
+                console.log(error.message);
+                //navigate("/error");
             }
         }
+    };
+
+    const loadRecordstest = () => {
+        setRecords(sortByDescription(records));
+
+    };
+    const loadRecordstest2 = () => {
+        setRecords(sortByDescriptionReversed(records));
+
     };
 
     const deleteRecord = async (par) => {
@@ -43,6 +55,8 @@ export default function Home() {
     }
 
 
+
+
     return (
         <div className='container'>
             <div className='py-4'>
@@ -51,13 +65,13 @@ export default function Home() {
                     <thead>
                         <tr>
                             <th scope="col">#</th>
-                            <th scope="col">created</th>
-                            <th scope="col">username</th>
+                            <th scope="col" onClick={() => { loadRecordstest() }}>created</th>
+                            <th scope="col" onClick={() => { loadRecordstest2() }}>username</th>
                             <th scope="col">description</th>
                             <th scope="col">action</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id='records'>
                         {
                             Array.isArray(records) ? records.map((record, index) => (
                                 <tr>

@@ -26,7 +26,8 @@ public class SecurityApplication {
 	public CommandLineRunner commandLineRunner(
 			AuthenticationService service
 	) {
-		return args -> {
+		return null;
+		/*return args -> {
 			var admin = RegisterRequest.builder()
 					.username("Admin")
 					.email("admin@mail.com")
@@ -43,6 +44,6 @@ public class SecurityApplication {
 					.build();
 			System.out.println("Manager token: " + service.register(manager).getAccessToken());
 
-		};
+		};*/
 	}
 }

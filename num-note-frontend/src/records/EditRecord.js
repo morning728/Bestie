@@ -10,14 +10,19 @@ export default function AddRecord() {
     let navigate = useNavigate();
 
     const [record, setRecord] = useState({
-        username: "",
         description: "",
-        income: 0,
+        mark:"",
+        weight:"",
+        height:"",
+        moodMark:"",
+        steps:"",
+        sheets:"",
+        income: ""
     });
 
     const { id } = useParams();
 
-    const { username, description, income } = record;
+    const { description, mark, weight, height, steps, sheets, moodMark, income } = record;
 
     const onInputChange = (e) => {
         setRecord({...record, [e.target.name] :e.target.value});
@@ -63,13 +68,12 @@ export default function AddRecord() {
             <h1>Edit Record</h1>
             <form onSubmit={(e)=>onSubmit(e)}>
                 <div className="mb-3">
-                    <label htmlFor="exampleInputEmail1" className="form-label">Кто ты, воин?</label>
-                    <input name="username" onChange={(e) => onInputChange(e)} value={username} type="text" className="form-control" id="exampleInputEmail1" aria-describedby="" />
+                    <label htmlFor="inputDescription" className="form-label">Как ты, воин?</label>
+                    <textarea style={{
+                        width: "50%",
+                        marginLeft: "25%",
+                    }} name="description" onChange={(e) => onInputChange(e)} value={description} type="text" className="form-control" id="inputDescription" aria-describedby=""/>
                     <div id="emailHelp" className="form-text">We'll never share your secrets with anyone else.</div>
-                </div>
-                <div className="mb-3">
-                    <label htmlFor="exampleInputPassword1" className="form-label">Note</label>
-                    <input name="description" onChange={(e) => onInputChange(e)} value={description} type="text" className="form-control" id="exampleInputPassword1" />
                 </div>
                 <div className="mb-3">
                     <label htmlFor="income" className="form-label">Income</label>
@@ -77,11 +81,84 @@ export default function AddRecord() {
                         width: "15%",
                         marginLeft: "42.5%",
                         WebkitAppearance: "none",
-                        MozAppearance: "textfield"
+                        MozAppearance: "textfield",
+                        textAlign: "center"
                     }}
                         name="income" onChange={(e) => onInputChange(e)} value={income} type="number" className="form-control" id="income" aria-describedby="" />
                 </div>
-                <button type="submit" className="btn btn-primary">Edit</button>
+
+                <div className="mb-3">
+                    <label htmlFor="weight" className="form-label">Weight</label>
+                    <input style={{
+                        width: "15%",
+                        marginLeft: "42.5%",
+                        WebkitAppearance: "none",
+                        MozAppearance: "textfield",
+                        textAlign: "center"
+                    }}
+                        name="weight" onChange={(e) => onInputChange(e)} value={weight} type="number" className="form-control" id="weight" aria-describedby="" />
+                </div>
+
+                <div className="mb-3">
+                    <label htmlFor="height" className="form-label">Height</label>
+                    <input style={{
+                        width: "15%",
+                        marginLeft: "42.5%",
+                        WebkitAppearance: "none",
+                        MozAppearance: "textfield",
+                        textAlign: "center"
+                    }}
+                        name="height" onChange={(e) => onInputChange(e)} value={height} type="number" className="form-control" id="height" aria-describedby="" />
+                </div>
+
+                <div className="mb-3">
+                    <label htmlFor="steps" className="form-label">Steps</label>
+                    <input style={{
+                        width: "15%",
+                        marginLeft: "42.5%",
+                        WebkitAppearance: "none",
+                        MozAppearance: "textfield",
+                        textAlign: "center"
+                    }}
+                        name="steps" onChange={(e) => onInputChange(e)} value={steps} type="number" className="form-control" id="steps" aria-describedby="" />
+                </div>
+
+                <div className="mb-3">
+                    <label htmlFor="sheets" className="form-label">Sheets</label>
+                    <input style={{
+                        width: "15%",
+                        marginLeft: "42.5%",
+                        WebkitAppearance: "none",
+                        MozAppearance: "textfield",
+                        textAlign: "center"
+                    }}
+                        name="sheets" onChange={(e) => onInputChange(e)} value={sheets} type="number" className="form-control" id="sheets" aria-describedby=""  />
+                </div>
+
+                <div className="mb-3">
+                    <label htmlFor="moodMark" className="form-label">Mood Mark</label>
+                    <input style={{
+                        width: "15%",
+                        marginLeft: "42.5%",
+                        WebkitAppearance: "none",
+                        MozAppearance: "textfield",
+                        textAlign: "center"
+                    }}
+                        name="moodMark" onChange={(e) => onInputChange(e)} value={moodMark} type="number" className="form-control" id="moodMark" aria-describedby="" />
+                </div>
+
+                <div className="mb-3">
+                    <label htmlFor="mark" className="form-label">Mark</label>
+                    <input style={{
+                        width: "15%",
+                        marginLeft: "42.5%",
+                        WebkitAppearance: "none",
+                        MozAppearance: "textfield",
+                        textAlign: "center"
+                    }}
+                        name="mark" onChange={(e) => onInputChange(e)} value={mark} type="number" className="form-control" id="mark" aria-describedby="" />
+                </div>
+                <button type="submit" className="btn btn-primary">Create</button>
             </form>
 
         </div>

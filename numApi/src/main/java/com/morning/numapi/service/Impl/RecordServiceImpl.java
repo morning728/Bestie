@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -147,4 +148,13 @@ public class RecordServiceImpl implements RecordService {
     public Boolean existsById(Long id) {
         return recordRepository.existsById(id);
     }
+
+    @Override
+    public Record findLastRecordFromUser(String username) {
+        Optional<Record> record = recordRepository.findLastRecordFromUser(username);
+        log.info(record.toString());
+        return null;
+    }
+
+
 }

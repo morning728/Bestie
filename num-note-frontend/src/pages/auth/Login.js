@@ -30,6 +30,10 @@ export default function Login() {
             navigate("/error");
         }
     };
+    const navToRegistration = async (e) => {
+        navigate("/registration")
+
+    };
     return (
         <div className='container'>
             <h1>Login</h1>
@@ -43,6 +47,10 @@ export default function Login() {
                     <input name="password" onChange={(e) => onInputChange(e)} value={password} type="text" className="form-control" id="exampleInputPassword1" />
                 </div>
                 <button type="submit" className="btn btn-primary">Login</button>
+                <br/>
+                <br/>
+                <br/>
+                <button type="button" className="btn btn-primary" onClick={() => navToRegistration()}>Registration</button>
             </form>
 
         </div>

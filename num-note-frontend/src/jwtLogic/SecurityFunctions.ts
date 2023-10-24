@@ -78,7 +78,7 @@ const doOrdinaryRequest = async (url, body = null, type, par = null): Promise<Ax
     if (par != null) {
       return await axios.delete(`${url}${par}`, {
         headers: headers
-      });
+      });         
     }
     return await axios.delete(url, {
       headers: headers

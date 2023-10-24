@@ -25,4 +25,5 @@ public interface RecordService {
                                                  String username);
 
     Boolean existsById(Long id);
+    Record findLastRecordFromUser(String username);
 }

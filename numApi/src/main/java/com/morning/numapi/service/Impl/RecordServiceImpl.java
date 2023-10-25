@@ -33,6 +33,22 @@ public class RecordServiceImpl implements RecordService {
     }
 
     @Override
+    public List<Record> findByUsernameWithParam(String username, String param) {
+        List<Record> records = recordRepository.findByUsername(username);
+        records = records.stream().filter(record ->
+                    record.getDescription().contains(param) ||
+                    record.getCreated().toString().contains(param))
+                .toList();
+        if(records.isEmpty()){
+            log.info("No one record was found from username: " + username + " with parameter " + param);
+            return null;
+        }
+        log.info(String.format("All records (%s)" + " with parameter " + param +
+                " from user %s were found", String.valueOf(records.size()), username));
+        return records;
+    }
+
+    @Override
     public Record findById(Long id) {
         return recordRepository.findById(id).orElse(null);
     }

@@ -9,6 +9,7 @@ import java.util.List;
 
 public interface RecordService {
     List<Record> findByUsername(String username);
+    List<Record> findByUsernameWithParam(String username, String param);
 
     Record findById(Long id);
     List<Record> findAll();

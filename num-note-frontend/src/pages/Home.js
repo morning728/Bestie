@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { doOrdinaryRequest } from '../jwtLogic/SecurityFunctions.ts';
-import { TESTTEST, sortByDate, sortByDateReversed, sortByDescription, sortByDescriptionReversed } from '../HomeLogic/HomeSortFunctions.ts';
+import { TESTTEST, sortByDate, sortByDateReversed, sortByDescription, sortByDescriptionReversed, sortByMark } from '../HomeLogic/HomeSortFunctions.ts';
 axios.defaults.timeout = 1000;
 
 
@@ -10,13 +10,21 @@ export default function Home() {
     const [records, setRecords] = useState([]);
     let navigate = useNavigate();
 
+    //const [searchParams, setSearchParams] = useSearchParams();
+    const [findParam, setFindParam] = useState("");
 
     useEffect(() => {
-        loadRecords();
+        loadRecordsDefault();
     }, []);
 
-    const loadRecords = async () => {
-        const url = "http://localhost:8765/api/v1/records";
+    const loadRecordsDefault = async () => {
+        // if (searchParams.get("findRecord") != null) {
+        //     loadRecordsWithParams();
+        //     return;
+        // }
+        const url = findParam == "" ?
+         "http://localhost:8765/api/v1/records" :
+         `http://localhost:8765/api/v1/records?findRecord=${findParam}`;
         try {
             const response = await doOrdinaryRequest(url, null, "get");
             setRecords((response.data));
@@ -25,26 +33,33 @@ export default function Home() {
             if (error.message == 'invalid token' || error.message == 'Request failed with status code 500') {
                 navigate("/login");
             } else {
-                console.log(error.message);
-                //navigate("/error");
+                navigate("/error");
             }
         }
     };
 
-    const loadRecordstest = () => {
-        setRecords(sortByDescription(records));
+    // const loadRecordsWithParams = async () => {
+    //     const url = `http://localhost:8765/api/v1/records?findRecord=${searchParams.get("findRecord")}`;
+    //     try {
+    //         const response = await doOrdinaryRequest(url, null, "get");
+    //         setRecords((response.data));
 
-    };
-    const loadRecordstest2 = () => {
-        setRecords(sortByDescriptionReversed(records));
+    //     } catch (error) {
+    //         if (error.message == 'invalid token' || error.message == 'Request failed with status code 500') {
+    //             navigate("/login");
+    //         } else {
+    //             navigate("/error");
+    //         }
+    //     }
+    // };
 
-    };
+
 
     const deleteRecord = async (par) => {
         const url = `http://localhost:8765/api/v1/records/${par}`;
         try {
             await doOrdinaryRequest(url, null, "delete");
-            loadRecords();
+            loadRecordsDefault();
         } catch (error) {
             if (error.message == 'invalid token' || error.message == 'Request failed with status code 500') {
                 navigate("/login");
@@ -55,18 +70,36 @@ export default function Home() {
     }
 
 
+    const onInputChange = (e) => {
+        setFindParam(e.target.value);
+    };
 
+    const onClickForSearchForm = (e) => {
+        e.preventDefault();
+        loadRecordsDefault();
+    };
 
     return (
         <div className='container'>
+            <form>
+                <div>
+                    <input
+                        type="search"
+                        id="mySearch"
+                        name="findRecord"
+                        placeholder="Search the record…"
+                        onChange={(e) => onInputChange(e)} />
+                    <button onClick={e => onClickForSearchForm(e)}>{findParam == "" ? "Get All" : "Find"}</button>
+                </div>
+            </form>
             <div className='py-4'>
 
                 <table className="table table-dark table-striped-columns">
                     <thead>
                         <tr>
                             <th scope="col">#</th>
-                            <th scope="col" onClick={() => { loadRecordstest() }}>created</th>
-                            <th scope="col" onClick={() => { loadRecordstest2() }}>username</th>
+                            <th scope="col" onClick={() => { setRecords(sortByDateReversed(records)) }}>created</th>
+                            <th scope="col" onClick={() => { setRecords(sortByMark(records)) }}>Mark</th>
                             <th scope="col">description</th>
                             <th scope="col">action</th>
                         </tr>
@@ -77,7 +110,7 @@ export default function Home() {
                                 <tr>
                                     <th scope="row" key={index}>{index + 1}</th>
                                     <td>{record.created.toString().substring(0, 10)}</td>
-                                    <td>{record.username}</td>
+                                    <td>{record.mark}</td>
                                     <td>{record.description}</td>
                                     <td>
                                         <button type="button" className="btn btn-outline-dark" style={{ marginRight: ".5em" }}>View</button>

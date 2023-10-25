@@ -54,10 +54,14 @@ public class RecordController {
     }
 
     @GetMapping("")
-    public ResponseEntity<List<Record>> getRecords(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
+    public ResponseEntity<List<Record>> getRecords(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+                                                   @RequestParam(required = false, value = "findRecord") String findRecordParam) {
         String username = jwtService.extractUsername(
                 token.substring(7)
         );
+        if(findRecordParam != null){
+            return new ResponseEntity(recordService.findByUsernameWithParam(username, findRecordParam), HttpStatus.OK);
+        }
         return new ResponseEntity(recordService.findByUsername(username), HttpStatus.OK);
     }
 

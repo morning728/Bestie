@@ -2,7 +2,7 @@
 
 
 type Record = {
-    description: string, б
+    description: string, 
     username: string,
     mark: number,
     weight: number,
@@ -32,48 +32,8 @@ const sortByDescription = (records) => {
     return Array.from(sorted);
 };
 
-const TESTTEST = (records) => {
-    return [{
-        'created': "2023-10-23T20:06:06.427+00:00",
-        'description': "b",
-        'username': "test",
-        'mark': 0,
-        'weight': 0,
-        'height': 0,
-        'moodMark': 0,
-        'steps': 0,
-        'sheets': 0,
-        'income': 0,
-        'updated': "2023-10-23T20:06:06.427+00:00",
-        'status': "ACTIVE",
-        'id': 13,
-    },
-    {
-        'created': "2023-10-23T20:06:06.427+00:00",
-        'description': "a",
-        'username': "test",
-        'mark': 0,
-        'weight': 0,
-        'height': 0,
-        'moodMark': 0,
-        'steps': 0,
-        'sheets': 0,
-        'income': 0,
-        'updated': "2023-10-23T20:06:06.427+00:00",
-        'status': "ACTIVE",
-        'id': 13,
-    },].sort((a, b) => {
-        if (a.description > b.description) {
-            return 1;
-        }
-        else if (a.description < b.description) {
-            return -1;
-        }
-        return 0;
-    });
-};
 
-const sortByDescriptionReversed = (records: Record[]): Record[] => {
+const sortByDescriptionReversed = (records) => {
     return Array.from(records.sort((a, b) => {
         if (a.description > b.description) {
             return -1;
@@ -86,8 +46,7 @@ const sortByDescriptionReversed = (records: Record[]): Record[] => {
 };
 
 const sortByDate = (records) => {
-    console.log(records);
-    return records.sort((a, b) => {
+    return Array.from(records.sort((a, b) => {
         if (a.created > b.created) {
             return 1;
         }
@@ -95,12 +54,11 @@ const sortByDate = (records) => {
             return -1;
         }
         return 0;
-    });
+    }));
 };
 
-const sortByDateReversed = (records: Record[]): Record[] => {
-    console.log(records);
-    return records.sort((a, b) => {
+const sortByDateReversed = (records) => {
+    return Array.from(records.sort((a, b) => {
         if (a.created > b.created) {
             return -1;
         }
@@ -108,12 +66,25 @@ const sortByDateReversed = (records: Record[]): Record[] => {
             return 1;
         }
         return 0;
-    });
+    }));
+};
+
+const sortByMark = (records) => {
+    records = sortByDateReversed(records);
+    return Array.from(records.sort((a, b) => {
+        if (a.mark > b.mark) {
+            return -1;
+        }
+        else if (a.mark < b.mark) {
+            return 1;
+        }
+        return 0;
+    }));
 };
 
 
 
 
 
-export { TESTTEST, sortByDescription, sortByDescriptionReversed, sortByDate, sortByDateReversed };
+export {sortByMark, sortByDescription, sortByDescriptionReversed, sortByDate, sortByDateReversed };
 

@@ -6,10 +6,13 @@ import com.morning.numapi.repository.RecordRepository;
 
 import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
 
 public interface RecordService {
-    List<Record> findByUsername(String username);
-    List<Record> findByUsernameWithParam(String username, String param);
+    public <T> Double extractAverage(String username, Function<Record, T> recordResolver);
+
+    List<Record> findAllByUsername(String username);
+    List<Record> findAllByUsernameWithParam(String username, String param);
 
     Record findById(Long id);
     List<Record> findAll();
@@ -27,4 +30,9 @@ public interface RecordService {
 
     Boolean existsById(Long id);
     Record findLastRecordFromUser(String username);
+
+    Double extractAverageNumberOfSymbolsInDescription(String username);
+
+//    Double getAverageMark(String username);
+//    Double getAverageMoodMark(String username);
 }

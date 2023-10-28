@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { doOrdinaryRequest } from '../jwtLogic/SecurityFunctions.ts';
@@ -7,6 +7,10 @@ import { doOrdinaryRequest } from '../jwtLogic/SecurityFunctions.ts';
 export default function AddRecord() {
     
     let navigate = useNavigate();
+
+    useEffect(() => {
+        loadRecord();
+    }, []);
 
     const [record, setRecord] = useState({
         description: "",
@@ -21,6 +25,26 @@ export default function AddRecord() {
 
     const { description, mark, weight, height, steps, sheets, moodMark, income } = record;
 
+
+    const loadRecord = async () => {
+
+        const url = "http://localhost:8765/api/v1/records/last"
+        try {
+            const response = await doOrdinaryRequest(url, null, "get");
+            // record.weight = response.data.weight;
+            // record.height = response.data.height;
+            //console.log(record);
+            setRecord({...record, "weight" :response.data.weight == 0 ? "": response.data.weight, "height": response.data.height == 0 ? "": response.data.height});
+        } catch (error) {
+            if (error.message == 'invalid token' || error.message == 'Request failed with status code 500') {
+                navigate("/login");
+            } else {
+                console.log(error.message)
+                //navigate("/error");
+            }
+        }
+    };
+    
     const onInputChange = (e) => {
         setRecord({...record, [e.target.name] :e.target.value});
     };

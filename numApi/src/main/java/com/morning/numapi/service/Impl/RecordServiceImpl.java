@@ -1,9 +1,11 @@
 package com.morning.numapi.service.Impl;
 
+import com.morning.numapi.exception.RecordNotFoundException;
 import com.morning.numapi.model.Goal;
 import com.morning.numapi.model.Record;
 import com.morning.numapi.repository.RecordRepository;
 import com.morning.numapi.service.RecordService;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -21,9 +24,28 @@ public class RecordServiceImpl implements RecordService {
     private final RecordRepository recordRepository;
 
 
+    public <T> Double extractAverage(String username, Function<Record, T> recordResolver) {
+        List<Record> records = findAllByUsername(username);
+        return records
+                .stream()
+                .mapToDouble(record -> (double) (int)recordResolver.apply(record))
+                .average()
+                .orElse(Double.NaN);
+    }
+
     @Override
-    public List<Record> findByUsername(String username) {
-        List<Record> records = recordRepository.findByUsername(username);
+    public Double extractAverageNumberOfSymbolsInDescription(String username) {
+        List<Record> records = findAllByUsername(username);
+        return records
+                .stream()
+                .mapToDouble(record -> record.getDescription().length())
+                .average()
+                .orElse(Double.NaN);
+    }
+
+    @Override
+    public List<Record> findAllByUsername(String username) {
+        List<Record> records = recordRepository.findAllByUsername(username);
         if(records.isEmpty()){
             log.info("No one record was found from username: " + username);
             return null;
@@ -33,8 +55,8 @@ public class RecordServiceImpl implements RecordService {
     }
 
     @Override
-    public List<Record> findByUsernameWithParam(String username, String param) {
-        List<Record> records = recordRepository.findByUsername(username);
+    public List<Record> findAllByUsernameWithParam(String username, String param) {
+        List<Record> records = recordRepository.findAllByUsername(username);
         records = records.stream().filter(record ->
                     record.getDescription().contains(param) ||
                     record.getCreated().toString().contains(param))
@@ -120,7 +142,7 @@ public class RecordServiceImpl implements RecordService {
 
     @Override
     public List<Record> findByUsernameSortedByDate(String username) {
-        return recordRepository.findByUsername(username)
+        return recordRepository.findAllByUsername(username)
                 .stream()
                 .sorted((o1, o2) -> {return o1.getCreated().compareTo(o2.getCreated());})
                 .collect(Collectors.toList());
@@ -128,7 +150,7 @@ public class RecordServiceImpl implements RecordService {
 
     @Override
     public List<Record> findByUsernameSortedByDateReversed(String username) {
-        return recordRepository.findByUsername(username)
+        return recordRepository.findAllByUsername(username)
                 .stream()
                 .sorted((o1, o2) -> {return o1.getCreated().compareTo(o2.getCreated()) > 0 ? -1 : 1;})
                 .collect(Collectors.toList());
@@ -168,9 +190,34 @@ public class RecordServiceImpl implements RecordService {
     @Override
     public Record findLastRecordFromUser(String username) {
         Optional<Record> record = recordRepository.findLastRecordFromUser(username);
-        log.info(record.toString());
-        return null;
+        if(record.isEmpty()){
+            log.info("The last record was not found from user " + username);
+            throw new RecordNotFoundException("The last record was not found from user " + username);
+        }
+        log.info("The last record was found from user " + username);
+        return record.get();
     }
+
+
+//    @Override
+//    public Double getAverageMark(String username) {
+//        List<Record> records = findAllByUsername(username);
+//        return records
+//                .stream()
+//                .mapToDouble(record -> Double.valueOf(record.getMark()))
+//                .average()
+//                .orElse(Double.NaN);
+//    }
+//
+//    @Override
+//    public Double getAverageMoodMark(String username) {
+//        List<Record> records = findAllByUsername(username);
+//        return records
+//                .stream()
+//                .mapToDouble(record -> Double.valueOf(record.getMoodMark()))
+//                .average()
+//                .orElse(Double.NaN);
+//    }
 
 
 }

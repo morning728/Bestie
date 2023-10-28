@@ -50,6 +50,7 @@ export default function AddRecord() {
         try {
             const response = await doOrdinaryRequest(url, null, "get");
             setRecord(response.data);
+            console.log(record);
         } catch (error) {
             if (error.message == 'invalid token' || error.message == 'Request failed with status code 500') {
                 navigate("/login");

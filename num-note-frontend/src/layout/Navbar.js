@@ -42,9 +42,9 @@ export default function Navbar() {
                             <button onClick={e => onClickForSearchForm(e)}>{findParam == "" ? "Get All" : "Find"}</button>
                         </div>
                     </form> */}
-
-                    <button type="button" className="btn btn-secondary btn-sm" onClick={() => logout()}>Logout</button>
+                    <Link type="button" className="btn btn-secondary btn-sm" to="/profile">Profile</Link>
                     <Link type="button" className="btn btn-secondary btn-sm" to="/addrecord">Add Record</Link>
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={() => logout()}>Logout</button>
                 </div>
             </nav>
 

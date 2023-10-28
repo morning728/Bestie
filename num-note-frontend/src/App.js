@@ -8,6 +8,7 @@ import EditRecord from './records/EditRecord';
 import DefaultError from './pages/errorPages/DefaultError';
 import Registration from './pages/auth/Registration';
 import Login from './pages/auth/Login';
+import Profile from './pages/profile/Profile';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route exact path="/editRecord/:id" element={<EditRecord />} />
           <Route exact path="/error" element={<DefaultError />} />
 
+          <Route exact path="/profile" element={<Profile />} />
           <Route exact path="/registration" element={<Registration />} />
           <Route exact path="/login" element={<Login />} />
         </Routes>

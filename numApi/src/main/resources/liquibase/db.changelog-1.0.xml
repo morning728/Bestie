@@ -44,17 +44,17 @@
                 <constraints nullable="true" unique="false"/>
             </column>
 
-            <column name="weight" type="float">
-                <constraints nullable="true" unique="false"/>
-            </column>
+<!--            <column name="weight" type="float">-->
+<!--                <constraints nullable="true" unique="false"/>-->
+<!--            </column>-->
 
-            <column name="height" type="float">
-                <constraints nullable="true" unique="false"/>
-            </column>
+<!--            <column name="height" type="float">-->
+<!--                <constraints nullable="true" unique="false"/>-->
+<!--            </column>-->
 
-            <column name="average_mark" type="float">
-                <constraints nullable="true" unique="false"/>
-            </column>
+<!--            <column name="average_mark" type="float">-->
+<!--                <constraints nullable="true" unique="false"/>-->
+<!--            </column>-->
 
         </createTable>
     </changeSet>
@@ -167,9 +167,8 @@
     <changeSet id="1.0.3" author="morning728">
         <insert tableName="user" schemaName="num_note">
             <column name="username" value="user"/>
-            <column name="weight" value="65"/>
-            <column name="average_mark" value="6"/>
-            <column name="height" value="180"/>
+<!--            <column name="weight" value="65"/>-->
+<!--            <column name="height" value="180"/>-->
         </insert>
 
         <insert tableName="goal" schemaName="num_note">

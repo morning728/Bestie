@@ -23,15 +23,15 @@ public class User extends BaseEntity {
     @Column(name = "birthday")
     private Date birthday;
 
-    @Column(name = "weight")
-    private Float weight;
-
-    @Column(name = "height")
-    private Float height;
+//    @Column(name = "weight")
+//    private Float weight;
+//
+//    @Column(name = "height")
+//    private Float height;
 
 //    @Column(name = "telegram_id")
 //    private String telegramId;
 
-    @Column(name = "average_mark")
-    private Float averageMark;
+//    @Column(name = "average_mark")
+//    private Float averageMark;
 }

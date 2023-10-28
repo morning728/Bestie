@@ -81,7 +81,7 @@ export default function Home() {
 
     return (
         <div className='container'>
-            <form>
+            <form style={{"marginTop": "1em"}}>
                 <div>
                     <input
                         type="search"

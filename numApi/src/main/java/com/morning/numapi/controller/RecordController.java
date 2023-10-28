@@ -10,10 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.Request;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -60,9 +57,9 @@ public class RecordController {
                 token.substring(7)
         );
         if(findRecordParam != null){
-            return new ResponseEntity(recordService.findByUsernameWithParam(username, findRecordParam), HttpStatus.OK);
+            return new ResponseEntity(recordService.findAllByUsernameWithParam(username, findRecordParam), HttpStatus.OK);
         }
-        return new ResponseEntity(recordService.findByUsername(username), HttpStatus.OK);
+        return new ResponseEntity(recordService.findAllByUsername(username), HttpStatus.OK);
     }
 
     @PostMapping("")
@@ -99,6 +96,14 @@ public class RecordController {
             return ResponseEntity.ok(String.format("Record with id %s has been deleted successfully!", id));
         }
         throw new RecordNotFoundException(id);
+    }
+
+    @GetMapping("/last")
+    public ResponseEntity getLastFromUser(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token){
+        String username = jwtService.extractUsername(
+                token.substring(7)
+        );
+        return new ResponseEntity<>(recordService.findLastRecordFromUser(username), HttpStatusCode.valueOf(200));
     }
 
 }

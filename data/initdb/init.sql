@@ -1,0 +1,4 @@
+CREATE DATABASE IF NOT EXISTS postgres OWNER postgres;
+
+CREATE SCHEMA IF NOT EXISTS num_note
+    AUTHORIZATION postgres;

@@ -1,0 +1,83 @@
+version: '3'
+services:
+  security:
+    container_name: security
+    image: morning728/security:0.0.1
+    restart: always
+    ports:
+      - 9898:9898
+    networks:
+      - app-network
+    healthcheck:
+      test: "exit 0"
+    environment:
+      - spring.datasource.url=jdbc:postgresql://postgre:5432/postgres?serverTimezone=UTC
+      - spring.liquibase.url=jdbc:postgresql://postgre:5432/postgres?serverTimezone=UTC
+      - eureka.client.service-url.defaultZone=http://eureka-server:8761/eureka
+    depends_on:
+      - postgre
+  numapi:
+    container_name: numapi
+    image: morning728/numapi:0.0.1
+    ports:
+      - 54321:54321
+    restart: always
+    networks:
+      - app-network
+    healthcheck:
+      test: "exit 0"
+    environment:
+      - spring.datasource.url=jdbc:postgresql://postgre:5432/postgres?serverTimezone=UTC
+      - spring.liquibase.url=jdbc:postgresql://postgre:5432/postgres?serverTimezone=UTC
+      - eureka.client.service-url.defaultZone=http://eureka-server:8761/eureka
+    depends_on:
+      - postgre
+  postgre:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: "postgres"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "root"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data/pgdata
+      - ./data/initdb:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 15s
+      timeout: 10s
+      retries: 7
+      start_period: 12s
+    restart: unless-stopped
+  gateway:
+    container_name: gateway
+    image: morning728/api-gateway:0.0.1
+    ports:
+      - 8765:8765
+    restart: always
+    networks:
+      - app-network
+    healthcheck:
+      test: "exit 0"
+    environment:
+      - eureka.client.service-url.defaultZone=http://eureka-server:8761/eureka
+      - services.path.security-validate-user=http://security:9898/security/v1/validate/user
+  eureka-server:
+    container_name: eureka-server
+    image: morning728/eureka-server:0.0.1
+    ports:
+      - 8761:8761
+    restart: always
+    networks:
+      - app-network
+    healthcheck:
+      test: "exit 0"
+    environment:
+      - eureka.client.service-url.defaultZone=http://eureka-server:8761/eureka
+networks:
+  app-network:
+    driver: bridge

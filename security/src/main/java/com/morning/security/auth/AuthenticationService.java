@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -36,6 +37,9 @@ public class AuthenticationService {
   private final JwtService jwtService;
   private final AuthenticationManager authenticationManager;
 
+  @Value("${spring.datasource.url}")
+  private String dbUrl;
+
   public AuthenticationResponse register(RegisterRequest request) throws SQLException {
     var user = User.builder()
         .username(request.getUsername())
@@ -45,7 +49,7 @@ public class AuthenticationService {
         .build();
     var savedUser = repository.save(user);
 
-    Connection connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres?serverTimezone=UTC",
+    Connection connection = DriverManager.getConnection(dbUrl,
             "postgres", "root");
     String insertQuery = "INSERT INTO num_note.user(username, created, updated, status ) VALUES (?, ?, ?, ?)";
     PreparedStatement statement = connection.prepareStatement(insertQuery);

@@ -49,3 +49,14 @@ dependencyManagement {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+
+//task customFatJar(type: Jar) {
+//	manifest {
+//		attributes 'Main-Class': 'com.morning.numapi.NumApiApplication'
+//	}
+//	archiveBaseName = project.name
+//	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+//	from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+//	with jar
+//}

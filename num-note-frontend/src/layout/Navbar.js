@@ -43,6 +43,7 @@ export default function Navbar() {
                         </div>
                     </form> */}
                     <Link type="button" className="btn btn-secondary btn-sm" to="/profile">Profile</Link>
+                    <Link type="button" className="btn btn-secondary btn-sm" to="/stat">Statistics</Link>
                     <Link type="button" className="btn btn-secondary btn-sm" to="/addrecord">Add Record</Link>
                     <button type="button" className="btn btn-secondary btn-sm" onClick={() => logout()}>Logout</button>
                 </div>

@@ -4,3 +4,5 @@ includeBuild 'eureka-server'
 includeBuild 'numApi'
 includeBuild 'api-gateway'
 includeBuild 'security'
+includeBuild 'statistics-api'
+

@@ -35,21 +35,24 @@ public class UserServiceImpl implements UserService {
         result.setFirstName(user.getFirstName());
         result.setLastName(user.getLastName());
         result.setBirthday(user.getBirthday());
-        result.setWeight(recordService
-                .findLastRecordFromUser(username)
-                .getWeight()
-        );
-        result.setHeight(recordService.
-                findLastRecordFromUser(username)
-                .getHeight()
-        );
-        result.setAverageMark(recordService.extractAverage(username, Record::getMark));
-        result.setAverageMoodMark(recordService.extractAverage(username, Record::getMoodMark));
-        result.setAverageIncomePerDay(recordService.extractAverage(username, Record::getIncome));
-        result.setAverageStepsPerDay(recordService.extractAverage(username, Record::getSteps));
-        result.setAverageSheetsPerDay(recordService.extractAverage(username, Record::getSheets));
-        result.setAverageSymbolsPerDescription(recordService.extractAverageNumberOfSymbolsInDescription(username));
-
+        try {
+            result.setWeight(recordService
+                    .findLastRecordFromUser(username)
+                    .getWeight()
+            );
+            result.setHeight(recordService.
+                    findLastRecordFromUser(username)
+                    .getHeight()
+            );
+            result.setAverageMark(recordService.extractAverage(username, Record::getMark));
+            result.setAverageMoodMark(recordService.extractAverage(username, Record::getMoodMark));
+            result.setAverageIncomePerDay(recordService.extractAverage(username, Record::getIncome));
+            result.setAverageStepsPerDay(recordService.extractAverage(username, Record::getSteps));
+            result.setAverageSheetsPerDay(recordService.extractAverage(username, Record::getSheets));
+            result.setAverageSymbolsPerDescription(recordService.extractAverageNumberOfSymbolsInDescription(username));
+        } catch (Exception e){
+            log.info(e.getMessage());
+        }
         return result;
     }
 

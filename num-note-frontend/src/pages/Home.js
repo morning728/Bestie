@@ -3,12 +3,15 @@ import axios from "axios";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { doOrdinaryRequest } from '../jwtLogic/SecurityFunctions.ts';
 import { TESTTEST, sortByDate, sortByDateReversed, sortByDescription, sortByDescriptionReversed, sortByMark } from '../HomeLogic/HomeSortFunctions.ts';
-axios.defaults.timeout = 1000;
+axios.defaults.timeout = 5000;
 
 
 export default function Home() {
     const [records, setRecords] = useState([]);
     let navigate = useNavigate();
+
+    const mainURL = process.env.REACT_APP_API_URL != null ? process.env.REACT_APP_API_URL : "http://localhost:8765";
+
 
     //const [searchParams, setSearchParams] = useSearchParams();
     const [findParam, setFindParam] = useState("");
@@ -23,8 +26,8 @@ export default function Home() {
         //     return;
         // }
         const url = findParam == "" ?
-         "http://localhost:8765/api/v1/records" :
-         `http://localhost:8765/api/v1/records?findRecord=${findParam}`;
+         mainURL + "/api/v1/records" :
+         mainURL + `/api/v1/records?findRecord=${findParam}`;
         try {
             const response = await doOrdinaryRequest(url, null, "get");
             setRecords((response.data));
@@ -56,7 +59,7 @@ export default function Home() {
 
 
     const deleteRecord = async (par) => {
-        const url = `http://localhost:8765/api/v1/records/${par}`;
+        const url = mainURL + `/api/v1/records/${par}`;
         try {
             await doOrdinaryRequest(url, null, "delete");
             loadRecordsDefault();

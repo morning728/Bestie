@@ -8,6 +8,8 @@ import { doOrdinaryRequest } from '../jwtLogic/SecurityFunctions.ts';
 export default function AddRecord() {
     
     let navigate = useNavigate();
+    const mainURL = process.env.REACT_APP_API_URL != null ? process.env.REACT_APP_API_URL : "http://localhost:8765";
+
 
     const [record, setRecord] = useState({
         description: "",
@@ -30,7 +32,7 @@ export default function AddRecord() {
 
     const onSubmit=async(e)=>{
         e.preventDefault();
-        const url = `http://localhost:8765/api/v1/records/${id}`;
+        const url = mainURL + `/api/v1/records/${id}`;
         try {
             const response = await doOrdinaryRequest(url, record, "put");
             navigate("/");
@@ -46,7 +48,7 @@ export default function AddRecord() {
     const loadRecord = async () => {
 
 
-        const url = `http://localhost:8765/api/v1/records/${id}`;
+        const url = mainURL + `/api/v1/records/${id}`;
         try {
             const response = await doOrdinaryRequest(url, null, "get");
             setRecord(response.data);

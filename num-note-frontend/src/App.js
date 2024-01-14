@@ -9,16 +9,22 @@ import DefaultError from './pages/errorPages/DefaultError';
 import Registration from './pages/auth/Registration';
 import Login from './pages/auth/Login';
 import Profile from './pages/profile/Profile';
+import TestStat from './pages/statistics/TestStat';
 
 function App() {
+  const mainURL = process.env.REACT_APP_API_URL != null ? process.env.REACT_APP_API_URL : "http://localhost:8765";
   return (
     <div className="App">
       <Router>
+        <p>API_URL: {mainURL}</p>
         <Navbar />
         <Routes>
           <Route exact path="/" element={<Home />} />
           <Route exact path="/addrecord" element={<AddRecord />} />
           <Route exact path="/editRecord/:id" element={<EditRecord />} />
+
+          <Route exact path="/stat" element={<TestStat />} />
+
           <Route exact path="/error" element={<DefaultError />} />
 
           <Route exact path="/profile" element={<Profile />} />

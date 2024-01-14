@@ -8,6 +8,9 @@ export default function Registration() {
 
     let navigate = useNavigate();
 
+    const mainURL = process.env.REACT_APP_API_URL != null ? process.env.REACT_APP_API_URL : "http://localhost:8765";
+
+
     const [user, setUser] = useState({
         username: "",
         email: "",
@@ -24,11 +27,12 @@ export default function Registration() {
     const onSubmit = async (e) => {
         e.preventDefault();
         try {
-            const { data: response } = await axios.post("http://localhost:8765/security/v1/auth/register", user);
+            const { data: response } = await axios.post(mainURL + "/security/v1/auth/register", user);
             setToken(response.access_token);
             //console.log(response.access_token);
             navigate("/");
         } catch (error) {
+            //console.log(error.message);
             navigate("/error");
         }
     };

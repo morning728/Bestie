@@ -8,6 +8,8 @@ export default function Login() {
 
     let navigate = useNavigate();
 
+    const mainURL = process.env.REACT_APP_API_URL != null ? process.env.REACT_APP_API_URL : "http://localhost:8765";
+
     const [user, setUser] = useState({
         username: "",
         password: "",
@@ -22,7 +24,7 @@ export default function Login() {
     const onSubmit = async (e) => {
         e.preventDefault();
         try {
-            const { data: response } = await axios.post("http://localhost:8765/security/v1/auth/authenticate", user);
+            const { data: response } = await axios.post(mainURL + "/security/v1/auth/authenticate", user);
             //console.log(response.access_token);
             setToken(response.access_token);
             navigate("/");

@@ -8,6 +8,8 @@ import { doOrdinaryRequest } from '../../jwtLogic/SecurityFunctions.ts';
 export default function Profile() {
 
     let navigate = useNavigate();
+    const mainURL = process.env.REACT_APP_API_URL != null ? process.env.REACT_APP_API_URL : "http://localhost:8765";
+
 
     const [profile, setProfile] = useState({
         username: null,
@@ -44,16 +46,17 @@ export default function Profile() {
     }, []);
 
     const loadProfile = async () => {
-        const url = `http://localhost:8765/api/v1/profile`;
+        const url = mainURL + `/api/v1/profile`;
         try {
             const response = await doOrdinaryRequest(url, null, "get");
             setProfile(response.data);
-            console.log(profile);
-            console.log(response.data);
+            // console.log(profile);
+            // console.log(response.data);
         } catch (error) {
             if (error.message === 'invalid token' || error.message === 'Request failed with status code 500') {
                 navigate("/login");
             } else {
+                //console.log(error.message)
                 navigate("/error");
             }
         }

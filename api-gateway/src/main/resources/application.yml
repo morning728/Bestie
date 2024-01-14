@@ -13,6 +13,15 @@ spring:
           uri: lb://SECURITY
           predicates:
             - Path=/security/**
+
+        - id: statistics-api
+          uri: lb://STATISTICS-API
+          predicates:
+            - Path=/statistics/**
+          filters:
+            - AuthenticationFilter
+
+
       globalcors:
         cors-configurations:
           '[/**]':

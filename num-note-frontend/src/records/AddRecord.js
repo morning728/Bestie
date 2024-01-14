@@ -7,6 +7,8 @@ import { doOrdinaryRequest } from '../jwtLogic/SecurityFunctions.ts';
 export default function AddRecord() {
     
     let navigate = useNavigate();
+    const mainURL = process.env.REACT_APP_API_URL != null ? process.env.REACT_APP_API_URL : "http://localhost:8765";
+
 
     useEffect(() => {
         loadRecord();
@@ -28,7 +30,7 @@ export default function AddRecord() {
 
     const loadRecord = async () => {
 
-        const url = "http://localhost:8765/api/v1/records/last"
+        const url = mainURL + "/api/v1/records/last"
         try {
             const response = await doOrdinaryRequest(url, null, "get");
             // record.weight = response.data.weight;
@@ -51,7 +53,7 @@ export default function AddRecord() {
 
     const onSubmit=async(e)=>{
         e.preventDefault();
-        const url = "http://localhost:8765/api/v1/records";
+        const url = mainURL + "/api/v1/records";
         try {
             const response = await doOrdinaryRequest(url, record, "post");
             navigate("/");

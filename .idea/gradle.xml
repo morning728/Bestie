@@ -27,6 +27,11 @@
                   <project path="$PROJECT_DIR$/security" />
                 </projects>
               </build>
+              <build path="$PROJECT_DIR$/statistics-api" name="statistics-api">
+                <projects>
+                  <project path="$PROJECT_DIR$/statistics-api" />
+                </projects>
+              </build>
             </builds>
           </compositeBuild>
         </compositeConfiguration>
@@ -39,6 +44,7 @@
             <option value="$PROJECT_DIR$/eureka-server" />
             <option value="$PROJECT_DIR$/numApi" />
             <option value="$PROJECT_DIR$/security" />
+            <option value="$PROJECT_DIR$/statistics-api" />
           </set>
         </option>
       </GradleProjectSettings>
@@ -75,6 +81,15 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$/security" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/statistics-api" />
+        <option name="gradleJvm" value="#JAVA_HOME" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/statistics-api" />
           </set>
         </option>
       </GradleProjectSettings>

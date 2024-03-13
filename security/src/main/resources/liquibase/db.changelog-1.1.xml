@@ -7,7 +7,7 @@
 
 
     <changeSet id="1.0.0" author="morning728">
-        <createTable tableName="auth_user" schemaName="num_note">
+        <createTable tableName="auth_user" >
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -35,7 +35,7 @@
     </changeSet>
 
     <changeSet id="1.0.1" author="morning728">
-        <createTable tableName="token" schemaName="num_note">
+        <createTable tableName="token" >
             <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>

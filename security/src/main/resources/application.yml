@@ -2,7 +2,7 @@ spring:
   application:
     name: SECURITY
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres?serverTimezone=UTC
+    url: jdbc:postgresql://localhost:5432/security?serverTimezone=UTC
     username: postgres
     password: root
     driver-class-name: org.postgresql.Driver
@@ -13,15 +13,13 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        default_schema: num_note
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   liquibase:
     change-log: classpath:liquibase/db.changelog-master.xml
-    url: jdbc:postgresql://localhost:5432/postgres?serverTimezone=UTC
+    url: jdbc:postgresql://localhost:5432/security?serverTimezone=UTC
     user: postgres
     password: root
-    default-schema: num_note
 eureka:
   client:
     service-url:
@@ -35,3 +33,5 @@ application:
       expiration: 86400000 # a day
       refresh-token:
         expiration: 604800000 # 7 days
+  task-api:
+    db-url: jdbc:postgresql://localhost:5432/task_api_db?serverTimezone=UTC

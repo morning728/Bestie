@@ -2,10 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/api-gateway.main.iml" filepath="$PROJECT_DIR$/.idea/modules/api-gateway.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/numApi.main.iml" filepath="$PROJECT_DIR$/.idea/modules/numApi.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/security.main.iml" filepath="$PROJECT_DIR$/.idea/modules/security.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/statistics-api.main.iml" filepath="$PROJECT_DIR$/.idea/modules/statistics-api.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/task-api-main.main.iml" filepath="$PROJECT_DIR$/.idea/modules/task-api-main.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/testtest.main.iml" filepath="$PROJECT_DIR$/.idea/modules/testtest.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/testtest.test.iml" filepath="$PROJECT_DIR$/.idea/modules/testtest.test.iml" />
     </modules>
   </component>
 </project>

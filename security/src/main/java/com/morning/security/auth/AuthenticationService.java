@@ -27,6 +27,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +39,7 @@ public class AuthenticationService {
   private final JwtService jwtService;
   private final AuthenticationManager authenticationManager;
 
-  @Value("${spring.datasource.url}")
+  @Value("${application.task-api.db-url}")
   private String dbUrl;
 
   public AuthenticationResponse register(RegisterRequest request) throws SQLException {
@@ -51,7 +53,7 @@ public class AuthenticationService {
 
     Connection connection = DriverManager.getConnection(dbUrl,
             "postgres", "root");
-    String insertQuery = "INSERT INTO num_note.user(username, created, updated, status ) VALUES (?, ?, ?, ?)";
+    String insertQuery = "INSERT INTO \"users\" (username, created_at, updated_at, status ) VALUES (?, ?, ?, ?)";
     PreparedStatement statement = connection.prepareStatement(insertQuery);
 
     statement.setString(1, request.getUsername());
@@ -65,7 +67,7 @@ public class AuthenticationService {
       repository.delete(user);
       throw new SQLException(("User") + " was not added");
     }
-    var jwtToken = jwtService.generateToken(user);
+    var jwtToken = jwtService.generateToken(Map.of("role", "USER"),user);
     var refreshToken = jwtService.generateRefreshToken(user);
     saveUserToken(savedUser, jwtToken);
     return AuthenticationResponse.builder()
@@ -83,7 +85,7 @@ public class AuthenticationService {
     );
     var user = repository.findByUsername(request.getUsername())
         .orElseThrow();
-    var jwtToken = jwtService.generateToken(user);
+    var jwtToken = jwtService.generateToken(Map.of("role", user.getRole()),user);
     var refreshToken = jwtService.generateRefreshToken(user);
     revokeAllUserTokens(user);
     saveUserToken(user, jwtToken);
@@ -131,7 +133,7 @@ public class AuthenticationService {
       var user = this.repository.findByUsername(username)
               .orElseThrow();
       if (jwtService.isTokenValid(refreshToken, user)) {
-        var accessToken = jwtService.generateToken(user);
+        var accessToken = jwtService.generateToken(Map.of("role", user.getRole()),user);
         revokeAllUserTokens(user);
         saveUserToken(user, accessToken);
         var authResponse = AuthenticationResponse.builder()

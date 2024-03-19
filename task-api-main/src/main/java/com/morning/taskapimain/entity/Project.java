@@ -28,13 +28,12 @@ public class Project {
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_project",
             joinColumns = @JoinColumn(name = "project_id", referencedColumnName="id"),
             inverseJoinColumns = @JoinColumn(name = "user_id", referencedColumnName="id"))
-    Set<User> connectedUsers;
+    private Set<User> connectedUsers;
 
     public static Mono<Project> fromMap(Map<String, Object> map){
         return Mono.just(Project

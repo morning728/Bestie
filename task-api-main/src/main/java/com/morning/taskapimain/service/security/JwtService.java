@@ -38,12 +38,16 @@ public class JwtService {
                 .parser()
                 .setSigningKey(getSignInKey())
                 .build()
-                .parseClaimsJws(token.substring(7))
+                .parseClaimsJws(validateToken(token))
                 .getBody();
     }
 
     private Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    private String validateToken(String token){
+        return token.contains("Bearer ") ? token.substring(7) : token;
     }
 }

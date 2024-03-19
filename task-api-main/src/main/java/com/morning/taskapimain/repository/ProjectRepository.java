@@ -11,6 +11,5 @@ import reactor.core.publisher.Mono;
 
 public interface ProjectRepository  extends R2dbcRepository<Project, Long> {
 
-
-
+    Mono<Project> findById(Long id);
 }

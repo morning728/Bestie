@@ -47,7 +47,7 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    private String validateToken(String token){
+    public String validateToken(String token){
         return token.contains("Bearer ") ? token.substring(7) : token;
     }
 }

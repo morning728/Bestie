@@ -39,6 +39,14 @@ public class ProjectService{
                 .flatMap(Project::fromMap);
     }
 
+    public Flux<Project> findAllByUsername(String username) {
+        String query = String.format("%s WHERE users.username = %s", SELECT_QUERY, username);
+        return client.sql(query)
+                .fetch()
+                .all()
+                .flatMap(Project::fromMap);
+    }
+
     public Mono<Project> findById(Long id){
         return projectRepository.findById(id);
     }

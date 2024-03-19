@@ -1,18 +1,23 @@
 package com.morning.security.user;
 
+import com.morning.security.config.JwtService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
 
     private final PasswordEncoder passwordEncoder;
     private final UserRepository repository;
+    private final JwtService jwtService;
     public void changePassword(ChangePasswordRequest request, Principal connectedUser) {
 
         var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
@@ -31,5 +36,18 @@ public class UserService {
 
         // save the new password
         repository.save(user);
+    }
+
+    public ProfileInfoDTO getUserInfo(String token){
+        User user = repository.findByUsername(jwtService.extractUsername(token.substring(7))).get();
+        if(user == null){
+            log.error(String.format("User (%s) was not found", jwtService.extractUsername(token)));
+            throw new RuntimeException(String.format("User (%s) was not found", jwtService.extractUsername(token)));
+        }
+        return ProfileInfoDTO.builder()
+                .telegramId(user.getTelegramId())
+                .email(user.getEmail())
+                .username(user.getUsername())
+                .build();
     }
 }

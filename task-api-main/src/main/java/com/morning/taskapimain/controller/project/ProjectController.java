@@ -8,15 +8,13 @@ import com.morning.taskapimain.repository.UserRepository;
 import com.morning.taskapimain.service.ProjectService;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/project")
+@RequestMapping("api/v1/projects")
 @RequiredArgsConstructor
 public class ProjectController {
 
@@ -33,9 +31,21 @@ public class ProjectController {
 //        return map;
 //    }
 
-    @GetMapping("/test2")
-    public Flux<ProjectDTO> getProjectsByUserId(@RequestBody UserProjectsRequest request) {
-        Long id = request.getUserId();
-        return projectService.findAllByUserId(id).map(mapper::map);
+//    @GetMapping("")
+//    public Flux<ProjectDTO> getProjectsByUserId(@RequestBody UserProjectsRequest request) {
+//        Long id = request.getUserId();
+//        return projectService.findAllByUserId(id).map(mapper::map);
+//    }
+
+    @GetMapping("")
+    public Flux<ProjectDTO> getProjectsByUsername(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token){
+        return projectService.findAllByUsername(jwtService.extractUsername(token)).map(mapper::map);
+    }
+
+    @GetMapping("/{id}")
+    public Mono<ProjectDTO> getProjectById(@RequestHeader(name = HttpHeaders.AUTHORIZATION,required = false) String token, @PathVariable String id) {
+        return token == null ?
+                projectService.findByIdAndVisibility(Long.valueOf(id)).map(mapper::map) :
+                projectService.findByIdAndVisibility(Long.valueOf(id), token).map(mapper::map);
     }
 }

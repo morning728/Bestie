@@ -26,6 +26,7 @@ public class Project {
     private String name;
     private String description;
     private String status;
+    private String visibility;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     @ManyToMany(fetch = FetchType.EAGER)
@@ -44,6 +45,7 @@ public class Project {
                         .updatedAt((LocalDateTime) map.get("updated_at"))
                         .status((String) map.get("status"))
                         .description((String) map.get("description"))
+                        .visibility((String) map.get("visibility"))
                 .build());
     }
 }

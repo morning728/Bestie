@@ -2,6 +2,7 @@ package com.morning.taskapimain.service;
 
 import com.morning.taskapimain.entity.Project;
 import com.morning.taskapimain.repository.ProjectRepository;
+import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
@@ -14,8 +15,9 @@ public class ProjectService{
 
     private final DatabaseClient client;
     private final ProjectRepository projectRepository;
+    private final JwtService jwtService;
     private static final String SELECT_QUERY =     """
-    select p.id, p.name, p.description, p.status, p.created_at, p.updated_at from project  as p
+    select p.id, p.name, p.description, p.status, p.created_at, p.updated_at, p.visibility from project  as p
     join user_project on p.id=user_project.project_id
     join users on user_project.user_id=users.id
     """;
@@ -32,7 +34,7 @@ public class ProjectService{
 
 
     public Flux<Project> findAllByUserId(Long id) {
-        String query = String.format("%s WHERE users.id = %s", SELECT_QUERY, id);
+        String query = String.format("%s WHERE users.id =%s", SELECT_QUERY, id);
         return client.sql(query)
                 .fetch()
                 .all()
@@ -40,15 +42,47 @@ public class ProjectService{
     }
 
     public Flux<Project> findAllByUsername(String username) {
-        String query = String.format("%s WHERE users.username = %s", SELECT_QUERY, username);
+        String query = String.format("%s WHERE users.username = '%s'", SELECT_QUERY, username);
         return client.sql(query)
                 .fetch()
                 .all()
                 .flatMap(Project::fromMap);
     }
 
+    public Mono<Project> findByUsernameAndId(String username, Long id) {
+        String query = String.format("%s WHERE users.username = '%s' AND p.id = %s", SELECT_QUERY, username, id);
+        return client.sql(query)
+                .fetch()
+                .first()
+                .flatMap(Project::fromMap);
+    }
+
+//    public Mono<Project> findById(Long id){
+//        String query = String.format("%s WHERE p.id = %s", SELECT_QUERY, id);
+//        return client.sql(query)
+//                .fetch()
+//                .first()
+//                .flatMap(Project::fromMap);
+//    }
+
+
     public Mono<Project> findById(Long id){
         return projectRepository.findById(id);
+    }
+
+    public Mono<Project> findByIdAndVisibility(Long id, String token){
+        return findById(id).flatMap(project -> {
+            return project.getVisibility() == "OPEN" ?
+                    Mono.just(project) :
+                    findByUsernameAndId(jwtService.extractUsername(token), id);
+        });
+    }
+
+    public Mono<Project> findByIdAndVisibility(Long id){
+        return findById(id).flatMap(project -> {
+            return project.getVisibility().equals("OPEN") ? Mono.just(project) : Mono.empty();
+        });
+
     }
 
 }

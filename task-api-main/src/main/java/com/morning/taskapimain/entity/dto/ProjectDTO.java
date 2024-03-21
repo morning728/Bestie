@@ -18,6 +18,7 @@ public class ProjectDTO {
     private Long id;
     private String name;
     private String description;
+    private String visibility;
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

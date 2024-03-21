@@ -5,8 +5,10 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -33,5 +35,18 @@ public class User {
     @ToString.Include(name = "password")
     private String maskPassword() {
         return "********";
+    }
+
+    public static Mono<User> fromMap(Map<String, Object> map){
+        return Mono.just(User
+                .builder()
+                .id(Long.valueOf(map.get("id").toString()))
+                .username((String) map.get("username"))
+                .createdAt((LocalDateTime) map.get("created_at"))
+                .updatedAt((LocalDateTime) map.get("updated_at"))
+                .status((String) map.get("status"))
+                .firstName((String) map.get("first_name"))
+                .lastName((String) map.get("last_name"))
+                .build());
     }
 }

@@ -26,6 +26,6 @@ public class ProfileController {
 
     @GetMapping("")
     public Mono<ProfileDTO> getUserProfile(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token){
-        return userService.getProfileByUsername(jwtService.extractUsername(token), (token));
+        return userService.getProfileByUsername(token);
     }
 }

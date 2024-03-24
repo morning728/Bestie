@@ -1,6 +1,8 @@
 package com.morning.taskapimain.service;
 
+import com.morning.taskapimain.entity.Field;
 import com.morning.taskapimain.entity.Project;
+import com.morning.taskapimain.repository.FieldRepository;
 import com.morning.taskapimain.repository.ProjectRepository;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ public class ProjectService{
 
     private final DatabaseClient client;
     private final ProjectRepository projectRepository;
+    private final FieldRepository fieldRepository;
     private final JwtService jwtService;
     private static final String SELECT_QUERY =     """
     select p.id, p.name, p.description, p.status, p.created_at, p.updated_at, p.visibility from project  as p
@@ -57,13 +60,15 @@ public class ProjectService{
                 .flatMap(Project::fromMap);
     }
 
-//    public Mono<Project> findById(Long id){
-//        String query = String.format("%s WHERE p.id = %s", SELECT_QUERY, id);
-//        return client.sql(query)
-//                .fetch()
-//                .first()
-//                .flatMap(Project::fromMap);
-//    }
+    public Mono<Boolean> isFieldBelongsToProject(Long fieldId, Long projectId){
+        Mono<Field> fieldMono = fieldRepository.findById(fieldId);
+        return fieldMono.flatMap(field -> {
+            if(field.getProjectId() == projectId){
+                return Mono.just(true);
+            }
+            return Mono.just(false);
+        });
+    }
 
 
     public Mono<Project> findById(Long id){

@@ -62,8 +62,10 @@ public class ProjectService{
 
     public Mono<Boolean> isFieldBelongsToProject(Long fieldId, Long projectId){
         Mono<Field> fieldMono = fieldRepository.findById(fieldId);
-        return fieldMono.flatMap(field -> {
-            if(field.getProjectId() == projectId){
+        return fieldMono
+                .defaultIfEmpty(Field.defaultIfEmpty())
+                .flatMap(field -> {
+            if(field.getId() != -1L && field.getProjectId() == projectId){
                 return Mono.just(true);
             }
             return Mono.just(false);

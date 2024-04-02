@@ -43,4 +43,11 @@ public class Task {
                 .fieldId(Long.valueOf(map.get("field_id").toString()))
                 .build());
     }
+
+    public static Task defaultIfEmpty() {
+        return Task
+                .builder()
+                .status("EMPTY")
+                .build();
+    }
 }

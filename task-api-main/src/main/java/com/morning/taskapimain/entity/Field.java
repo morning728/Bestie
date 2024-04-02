@@ -32,4 +32,11 @@ public class Field {
                 .projectId(Long.valueOf(map.get("project_id").toString()))
                 .build());
     }
+
+    public static Field defaultIfEmpty() {
+        return Field
+                .builder()
+                .id(-1L)
+                .build();
+    }
 }

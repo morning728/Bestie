@@ -2,8 +2,7 @@ package com.morning.taskapimain.service;
 
 import com.morning.taskapimain.entity.Project;
 import com.morning.taskapimain.entity.Task;
-import com.morning.taskapimain.entity.dto.TaskInsertDTO;
-import com.morning.taskapimain.repository.ProjectRepository;
+import com.morning.taskapimain.entity.dto.TaskDTO;
 import com.morning.taskapimain.repository.TaskRepository;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +10,8 @@ import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +45,27 @@ public class TaskService {
                 .first()
                 .flatMap(Task::fromMap);
     }
+
+    public Flux<Task> getAllTasksByToken(String token){
+        String username = jwtService.extractUsername(token);
+        String query = String.format("%s WHERE users.username = '%s'", FULL_SELECT_QUERY,username);
+        return client.sql(query)
+                .fetch()
+                .all()
+                .flatMap(Task::fromMap);
+    }
+    /*Метод получения таски: если существует таска, включенная в проект, создателям которого является пользователь,
+    * от которого поступил запрос, то она возвращается*/
+    public Mono<Task> getTaskByIdAndUsername(Long id, String username) {
+        String query = String.format("%s WHERE t.id = %s AND users.username = '%s'", FULL_SELECT_QUERY, id, username);
+        return client.sql(query)
+                .fetch()
+                .first()
+                .flatMap(Task::fromMap);
+    }
+
+    /*Метод получения таски: если таска открыта для всех, то выдается без проверок
+    * Если открыта только создателю, то выдается только в случае, если запрос от создателя*/
     public Mono<Task> getTaskByIdCheckingOwner(Long id, String token) {
         String username = token != null ?
                 jwtService.extractUsername(token) :
@@ -62,7 +84,7 @@ public class TaskService {
         });
     }
 
-    public Mono<Task> addTask(TaskInsertDTO dto, String token){
+    public Mono<Task> addTask(TaskDTO dto, String token){
         String username = jwtService.extractUsername(token);
         Mono<Boolean> belongsToProject = projectService.isFieldBelongsToProject(dto.getFieldId(), dto.getProjectId());
         Flux<Long> longFlux = projectService.findAllByUsername(username).map(Project::getId)
@@ -71,7 +93,7 @@ public class TaskService {
             if(aBoolean){
                 return longFlux.singleOrEmpty().flatMap(userProjectsId -> {
                     if(userProjectsId.equals(dto.getProjectId())){
-                        return taskRepository.save(dto.toTask());
+                        return taskRepository.save(dto.toInsertTask());
                     }
                     return Mono.error(new RuntimeException("U r not project owner or invalid data!"));
                 });
@@ -90,6 +112,37 @@ public class TaskService {
                             Mono.just(true) :
                             Mono.just(false);
                 });
+    }
+
+    /*Метод обновления таски: если у пользователя, отправившего запрос, есть такая таска, то обновляем ее*/
+    public Mono<Task> updateTask(TaskDTO dto, String token){
+        String username = jwtService.extractUsername(token);
+        return getTaskByIdAndUsername(dto.getId(), username)
+                .defaultIfEmpty(Task.defaultIfEmpty())
+                .flatMap(task -> {
+            if(!task.getStatus().equals("EMPTY")){
+                task.setUpdatedAt(LocalDateTime.now());
+                task.setName(dto.getName() == null ? task.getName() : dto.getName());
+                task.setStatus(dto.getStatus() == null ? task.getStatus() : dto.getStatus());
+                task.setDescription(dto.getDescription() == null ? task.getDescription() : dto.getDescription());
+                task.setFieldId(dto.getFieldId() == null ? task.getFieldId() : dto.getFieldId());
+                task.setProjectId(dto.getProjectId() == null ? task.getProjectId() : dto.getProjectId());
+                return taskRepository.save(task);
+            }
+            return Mono.error(new RuntimeException("No such task!"));
+        });
+    }
+
+    public Mono<Void> deleteTaskByToken(Long id, String token){
+        String username = jwtService.extractUsername(token);
+        return getTaskByIdAndUsername(id, username)
+                .defaultIfEmpty(Task.defaultIfEmpty())
+                .flatMap(task -> {
+                    if(!task.getStatus().equals("EMPTY")){
+                        return taskRepository.deleteById(id);
+                    }
+                    return Mono.error(new RuntimeException("No such task!"));
+        });
     }
 
 

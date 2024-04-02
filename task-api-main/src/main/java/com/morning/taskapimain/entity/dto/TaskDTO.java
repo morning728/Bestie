@@ -1,41 +1,24 @@
 package com.morning.taskapimain.entity.dto;
 
 import com.morning.taskapimain.entity.Task;
-import lombok.Data;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 
+@SuperBuilder(toBuilder = true)
+@AllArgsConstructor
 @Data
-public class TaskDTO {
-    private Long id;
-    private String name;
-    private String description;
-    private Long projectId;
-    private Long fieldId;
-    private String status;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-
+@EqualsAndHashCode(callSuper=false)
+public class TaskDTO extends Task{
     public Task toInsertTask(){
         return Task.builder()
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
-                .name(name)
-                .description(description)
-                .projectId(projectId)
-                .fieldId(fieldId)
-                .build();
-    }
-    public Task toUpdateTask(){
-        return Task.builder()
-                .id(id)
-                .createdAt(createdAt)
-                .updatedAt(LocalDateTime.now())
-                .name(name)
-                .description(description)
-                .projectId(projectId)
-                .fieldId(fieldId)
-                .status(status)
+                .name(this.getName())
+                .description(this.getDescription())
+                .projectId(this.getProjectId())
+                .fieldId(this.getFieldId())
                 .build();
     }
 }

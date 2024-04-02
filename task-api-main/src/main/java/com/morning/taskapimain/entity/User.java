@@ -26,11 +26,12 @@ public class User {
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+/*    Реактивщина ругается
     @ManyToMany(mappedBy = "connectedUsers", fetch = FetchType.EAGER)
     @JoinTable(name="user_project",
             joinColumns=  @JoinColumn(name="user_id", referencedColumnName="id"),
             inverseJoinColumns= @JoinColumn(name="project_id", referencedColumnName="id") )
-    Set<Project> projects;
+    Set<Project> projects;*/
 
     @ToString.Include(name = "password")
     private String maskPassword() {

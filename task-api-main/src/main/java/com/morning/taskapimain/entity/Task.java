@@ -1,10 +1,12 @@
 package com.morning.taskapimain.entity;
 
+import com.morning.taskapimain.entity.dto.TaskDTO;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 import reactor.core.publisher.Mono;
@@ -14,7 +16,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Data
-@Builder(toBuilder = true)
+@SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Table("task")
@@ -42,6 +44,15 @@ public class Task {
                 .projectId(Long.valueOf(map.get("project_id").toString()))
                 .fieldId(Long.valueOf(map.get("field_id").toString()))
                 .build());
+    }
+
+    public <T extends Task> void update(T from){
+        this.setUpdatedAt(LocalDateTime.now());
+        this.setName(from.getName() == null ? name : from.getName());
+        this.setStatus(from.getStatus() == null ? status : from.getStatus());
+        this.setDescription(from.getDescription() == null ? description : from.getDescription());
+        this.setFieldId(from.getFieldId() == null ? this.getFieldId() : from.getFieldId());
+        this.setProjectId(from.getProjectId() == null ? this.getProjectId() : from.getProjectId());
     }
 
     public static Task defaultIfEmpty() {

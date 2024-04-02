@@ -47,7 +47,7 @@ public class TaskController {
     public Mono<ResponseEntity<String>> deleteTask(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
                                            @PathVariable(value = "id") Long id){
 
-        return taskService.deleteTaskByToken(id, token)
+        return taskService.deleteTaskById(id, token)
                 .thenReturn(new ResponseEntity<>("Task was successfully deleted!", HttpStatus.OK))
                 .onErrorReturn(new ResponseEntity<>("Task was not found!", HttpStatus.NOT_FOUND));
     }

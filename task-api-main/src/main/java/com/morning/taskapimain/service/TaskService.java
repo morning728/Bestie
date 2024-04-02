@@ -56,7 +56,7 @@ public class TaskService {
     }
     /*Метод получения таски: если существует таска, включенная в проект, создателям которого является пользователь,
     * от которого поступил запрос, то она возвращается*/
-    public Mono<Task> getTaskByIdAndUsername(Long id, String username) {
+    public Mono<Task> findByIdAndUsername(Long id, String username) {
         String query = String.format("%s WHERE t.id = %s AND users.username = '%s'", FULL_SELECT_QUERY, id, username);
         return client.sql(query)
                 .fetch()
@@ -117,25 +117,20 @@ public class TaskService {
     /*Метод обновления таски: если у пользователя, отправившего запрос, есть такая таска, то обновляем ее*/
     public Mono<Task> updateTask(TaskDTO dto, String token){
         String username = jwtService.extractUsername(token);
-        return getTaskByIdAndUsername(dto.getId(), username)
+        return findByIdAndUsername(dto.getId(), username)
                 .defaultIfEmpty(Task.defaultIfEmpty())
                 .flatMap(task -> {
             if(!task.getStatus().equals("EMPTY")){
-                task.setUpdatedAt(LocalDateTime.now());
-                task.setName(dto.getName() == null ? task.getName() : dto.getName());
-                task.setStatus(dto.getStatus() == null ? task.getStatus() : dto.getStatus());
-                task.setDescription(dto.getDescription() == null ? task.getDescription() : dto.getDescription());
-                task.setFieldId(dto.getFieldId() == null ? task.getFieldId() : dto.getFieldId());
-                task.setProjectId(dto.getProjectId() == null ? task.getProjectId() : dto.getProjectId());
+                task.update(dto);
                 return taskRepository.save(task);
             }
             return Mono.error(new RuntimeException("No such task!"));
         });
     }
 
-    public Mono<Void> deleteTaskByToken(Long id, String token){
+    public Mono<Void> deleteTaskById(Long id, String token){
         String username = jwtService.extractUsername(token);
-        return getTaskByIdAndUsername(id, username)
+        return findByIdAndUsername(id, username)
                 .defaultIfEmpty(Task.defaultIfEmpty())
                 .flatMap(task -> {
                     if(!task.getStatus().equals("EMPTY")){

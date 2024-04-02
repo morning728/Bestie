@@ -1,7 +1,9 @@
 package com.morning.taskapimain.controller.project;
 
 import com.morning.taskapimain.entity.Project;
+import com.morning.taskapimain.entity.Task;
 import com.morning.taskapimain.entity.dto.ProjectDTO;
+import com.morning.taskapimain.entity.dto.TaskDTO;
 import com.morning.taskapimain.entity.dto.UserProjectsRequest;
 import com.morning.taskapimain.mapper.ProjectMapper;
 import com.morning.taskapimain.repository.UserRepository;
@@ -9,6 +11,8 @@ import com.morning.taskapimain.service.ProjectService;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -47,5 +51,27 @@ public class ProjectController {
         return token == null ?
                 projectService.findByIdAndVisibility(Long.valueOf(id)).map(mapper::map) :
                 projectService.findByIdAndVisibility(Long.valueOf(id), token).map(mapper::map);
+    }
+
+    @PostMapping("")
+    public Mono<ResponseEntity<String>> addProject(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token, @RequestBody ProjectDTO dto){
+        return projectService.addProject(dto, token)
+                .thenReturn(new ResponseEntity<>("Project was successfully added!", HttpStatus.OK))
+                .onErrorReturn(new ResponseEntity<>("Project was not added, invalid data!", HttpStatus.BAD_REQUEST));
+    }
+    @PutMapping("/{id}")
+    public Mono<Project> updateProject(@RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String token,
+                                 @RequestBody ProjectDTO dto,
+                                 @PathVariable(value = "id") Long id){
+        return projectService.updateProject(dto, token);
+    }
+
+    @DeleteMapping("/{id}")
+    public Mono<ResponseEntity<String>> deleteProject(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+                                                   @PathVariable(value = "id") Long id){
+
+        return projectService.deleteProjectById(id, token)
+                .thenReturn(new ResponseEntity<>("Project was successfully deleted!", HttpStatus.OK))
+                .onErrorReturn(new ResponseEntity<>("Project was not found!", HttpStatus.NOT_FOUND));
     }
 }

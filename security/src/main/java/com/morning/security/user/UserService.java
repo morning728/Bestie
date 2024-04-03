@@ -50,4 +50,24 @@ public class UserService {
                 .username(user.getUsername())
                 .build();
     }
+
+    public ProfileInfoDTO updateUserInfo(String token, ProfileInfoDTO dto){
+        User user = repository.findByUsername(jwtService.extractUsername(token.substring(7))).get();
+        if(user == null){
+            log.error(String.format("User (%s) was not found", jwtService.extractUsername(token)));
+            throw new RuntimeException(String.format("User (%s) was not found", jwtService.extractUsername(token)));
+        }
+        user.setEmail(dto.getEmail() == null ? user.getEmail() : dto.getEmail());
+        user.setTelegramId(dto.getTelegramId() != null ? dto.getTelegramId() : user.getTelegramId());
+        try {
+            repository.save(user);
+            return ProfileInfoDTO.builder()
+                    .telegramId(user.getTelegramId())
+                    .email(user.getEmail())
+                    .username(user.getUsername())
+                    .build();
+        } catch (Exception e) {
+            throw new RuntimeException("Exception, saving updated user!");
+        }
+    }
 }

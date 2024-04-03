@@ -1,6 +1,7 @@
 package com.morning.taskapimain.entity;
 
 
+import com.morning.taskapimain.entity.dto.ProfileDTO;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -49,5 +50,19 @@ public class User {
                 .firstName((String) map.get("first_name"))
                 .lastName((String) map.get("last_name"))
                 .build());
+    }
+
+    public static User defaultIfEmpty(){
+        return User
+                .builder()
+                .status("EMPTY")
+                .build();
+    }
+
+    public void updateByProfileDTO(ProfileDTO dto){
+        this.setUpdatedAt(LocalDateTime.now());
+        this.setStatus(dto.getStatus() != null ? dto.getStatus() : status);
+        this.setFirstName(dto.getFirstName() != null ? dto.getFirstName() : firstName);
+        this.setLastName(dto.getLastName() != null ? dto.getLastName() : lastName);
     }
 }

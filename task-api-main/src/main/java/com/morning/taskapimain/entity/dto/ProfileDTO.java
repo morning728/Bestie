@@ -19,6 +19,7 @@ public class ProfileDTO {
     private String email;
     private String telegramId;
     private String password;
+    private String status;
     private LocalDateTime createdAt;
 
     public ProfileDTO(Long id, String username, String firstName, String lastName, LocalDateTime createdAt) {

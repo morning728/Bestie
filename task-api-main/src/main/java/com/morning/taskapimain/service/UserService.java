@@ -1,6 +1,7 @@
 package com.morning.taskapimain.service;
 
-import com.morning.taskapimain.entity.Project;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.morning.taskapimain.entity.User;
 import com.morning.taskapimain.entity.dto.ProfileDTO;
 import com.morning.taskapimain.repository.UserRepository;
@@ -15,11 +16,8 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import reactor.core.publisher.Mono;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.util.Calendar;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -36,11 +34,11 @@ public class UserService {
     select u.id, u.username, u.first_name,u.last_name, u.status, u.created_at, u.updated_at from users  as u
     """;
 
-    public Mono<User> getUserById(Long id) {
+    public Mono<User> findUserById(Long id) {
         return userRepository.findById(id);
     }
 
-    public Mono<User> getUserByUsername(String username) {
+    public Mono<User> findUserByUsername(String username) {
         String query = String.format("%s WHERE u.username = '%s'", SELECT_QUERY, username);
         return client.sql(query)
                 .fetch()
@@ -48,7 +46,7 @@ public class UserService {
                 .flatMap(User::fromMap);
     }
 
-    public Mono<ProfileDTO> getProfileByUsername(String token){
+    public Mono<ProfileDTO> findProfileByUsername(String token){
         String username = jwtService.extractUsername(token);
         ResponseEntity<String> profileInfo;
         try {
@@ -66,11 +64,54 @@ public class UserService {
             return Mono.error(new HttpClientErrorException(HttpStatus.FORBIDDEN));
 //                    throw new RuntimeException("Access Denied!");
         }
-        return getUserByUsername(username).flatMap(user1 -> Mono.just(new ProfileDTO(user1.getId(),
+        return findUserByUsername(username).flatMap(user1 -> Mono.just(new ProfileDTO(user1.getId(),
                 user1.getUsername(),
                 user1.getFirstName(),
                 user1.getLastName(),
                 user1.getCreatedAt())
                 .getProfileInfoFromSecurityResponse(profileInfo.getBody())));
+    }
+
+    public Mono<User> updateProfileByToken(String token, ProfileDTO dto){
+        String username = jwtService.extractUsername(token);
+        ResponseEntity<String> profileInfo;
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+            headers.add(
+                    HttpHeaders.AUTHORIZATION,
+                    token
+            );
+            //HttpEntity<String> entity = createHttpEntity(dto, headers);
+            HttpEntity<ProfileDTO> entity = new HttpEntity<>(dto, headers);
+
+            profileInfo = template.exchange(userInfoPath, HttpMethod.PUT, entity, String.class);
+        } catch (Exception e) {
+            return Mono.error(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+//                    throw new RuntimeException("Access Denied!");
+        }
+        return findUserByUsername(username).defaultIfEmpty(User.defaultIfEmpty())
+                .flatMap(user -> {
+                    if(!user.getStatus().equals("EMPTY")){
+                        user.updateByProfileDTO(dto);
+                        return userRepository.save(user);
+                    }
+                    return Mono.error(new RuntimeException("User was not updated!"));
+                });
+    }
+    private HttpEntity<String> createHttpEntity(ProfileDTO dto, HttpHeaders headers) throws JsonProcessingException {
+        HashMap<String, String> map = new HashMap<>();
+        if(dto.getUsername() != null){
+            map.put("username", dto.getUsername());
+        }
+        if(dto.getEmail() != null){
+            map.put("email", dto.getEmail());
+        }
+        if(dto.getTelegramId() != null){
+            map.put("telegramId", dto.getTelegramId());
+        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jacksonData = objectMapper.writeValueAsString(map);
+        return new HttpEntity<>((jacksonData), headers);
     }
 }

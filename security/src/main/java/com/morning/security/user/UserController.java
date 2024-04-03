@@ -28,4 +28,10 @@ public class UserController {
     public ResponseEntity<?> getProfileInfo(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
         return new ResponseEntity(service.getUserInfo(token), HttpStatusCode.valueOf(200));
     }
+
+    @PutMapping("/info")
+    public ResponseEntity<?> updateProfileInfo(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+                                               @RequestBody ProfileInfoDTO dto){
+        return new ResponseEntity(service.updateUserInfo(token, dto), HttpStatusCode.valueOf(200));
+    }
 }

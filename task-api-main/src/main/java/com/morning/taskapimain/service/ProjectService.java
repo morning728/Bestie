@@ -2,9 +2,7 @@ package com.morning.taskapimain.service;
 
 import com.morning.taskapimain.entity.Field;
 import com.morning.taskapimain.entity.Project;
-import com.morning.taskapimain.entity.Task;
 import com.morning.taskapimain.entity.dto.ProjectDTO;
-import com.morning.taskapimain.entity.dto.TaskDTO;
 import com.morning.taskapimain.mapper.ProjectMapper;
 import com.morning.taskapimain.repository.FieldRepository;
 import com.morning.taskapimain.repository.ProjectRepository;
@@ -15,8 +13,6 @@ import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -109,7 +105,7 @@ public class ProjectService{
     public Mono<Project> addProject(ProjectDTO dto, String token){
         String username = jwtService.extractUsername(token);
         return projectRepository.save(dto.toInsertProject()).flatMap(project -> {
-            return userService.getUserByUsername(username).flatMap(user -> {
+            return userService.findUserByUsername(username).flatMap(user -> {
                 String query = String.format(INSERT_PROJECT_USER_QUERY, project.getId(),user.getId());
                 return client.sql(query)
                         .fetch()

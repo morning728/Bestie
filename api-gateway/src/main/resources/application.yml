@@ -2,8 +2,15 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: numapi
-          uri: lb://NUM-API
+#        - id: numapi
+#          uri: lb://NUM-API
+#          predicates:
+#            - Path=/api/**
+#          filters:
+#            - AuthenticationFilter
+
+        - id: task-tracker-main
+          uri: lb://TASK-API-MAIN
           predicates:
             - Path=/api/**
           filters:

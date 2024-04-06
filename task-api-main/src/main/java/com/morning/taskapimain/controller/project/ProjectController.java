@@ -47,7 +47,7 @@ public class ProjectController {
     }
 
     @GetMapping("/{id}")
-    public Mono<ProjectDTO> getProjectById(@RequestHeader(name = HttpHeaders.AUTHORIZATION,required = false) String token, @PathVariable String id) {
+    public Mono<?> getProjectById(@RequestHeader(name = HttpHeaders.AUTHORIZATION,required = false) String token, @PathVariable String id) {
         return token == null ?
                 projectService.findByIdAndVisibility(Long.valueOf(id)).map(mapper::map) :
                 projectService.findByIdAndVisibility(Long.valueOf(id), token).map(mapper::map);

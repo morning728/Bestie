@@ -25,9 +25,9 @@ export default function Home() {
         //     loadRecordsWithParams();
         //     return;
         // }
-        const url = findParam == "" ?
-         mainURL + "/api/v1/records" :
-         mainURL + `/api/v1/records?findRecord=${findParam}`;
+        const url =      mainURL + "/api/v1/projects"                  //findParam == "" ?
+         // :
+        // mainURL + `/api/v1/records?findRecord=${findParam}`;
         try {
             const response = await doOrdinaryRequest(url, null, "get");
             setRecords((response.data));
@@ -59,7 +59,7 @@ export default function Home() {
 
 
     const deleteRecord = async (par) => {
-        const url = mainURL + `/api/v1/records/${par}`;
+        const url = mainURL + `/api/v1/projects/${par}`;
         try {
             await doOrdinaryRequest(url, null, "delete");
             loadRecordsDefault();
@@ -112,8 +112,8 @@ export default function Home() {
                             Array.isArray(records) ? records.map((record, index) => (
                                 <tr>
                                     <th scope="row" key={index}>{index + 1}</th>
-                                    <td>{record.created.toString().substring(0, 10)}</td>
-                                    <td>{record.mark}</td>
+                                    <td>{record.created_at.toString().substring(0, 10)}</td>
+                                    <td>{record.name}</td>
                                     <td>{record.description}</td>
                                     <td>
                                         <button type="button" className="btn btn-outline-dark" style={{ marginRight: ".5em" }}>View</button>

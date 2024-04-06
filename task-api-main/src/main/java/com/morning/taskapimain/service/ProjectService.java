@@ -87,7 +87,9 @@ public class ProjectService{
     }
 
     public Mono<Project> findByIdAndVisibility(Long id, String token){
-        return findById(id).flatMap(project -> {
+        return findById(id).defaultIfEmpty(Project.defaultIfEmpty()).flatMap(project -> {
+            if(project.isEmpty())
+                return Mono.error(new RuntimeException("Project was not found!"));
             return project.getVisibility() == "OPEN" ?
                     Mono.just(project) :
                     findByUsernameAndId(jwtService.extractUsername(token), id);

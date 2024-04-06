@@ -10,21 +10,17 @@ export default function AddRecord() {
     let navigate = useNavigate();
     const mainURL = process.env.REACT_APP_API_URL != null ? process.env.REACT_APP_API_URL : "http://localhost:8765";
 
-
-    const [record, setRecord] = useState({
-        description: "",
-        mark:"",
-        weight:"",
-        height:"",
-        moodMark:"",
-        steps:"",
-        sheets:"",
-        income: ""
-    });
-
     const { id } = useParams();
 
-    const { description, mark, weight, height, steps, sheets, moodMark, income } = record;
+    const [record, setRecord] = useState({
+        id: id,
+        description: "",
+        name: "",
+        visibility: ""
+    });
+
+
+    const {  description,name, visibility } = record;
 
     const onInputChange = (e) => {
         setRecord({...record, [e.target.name] :e.target.value});
@@ -32,7 +28,7 @@ export default function AddRecord() {
 
     const onSubmit=async(e)=>{
         e.preventDefault();
-        const url = mainURL + `/api/v1/records/${id}`;
+        const url = mainURL + `/api/v1/projects/${id}`;
         try {
             const response = await doOrdinaryRequest(url, record, "put");
             navigate("/");
@@ -48,7 +44,7 @@ export default function AddRecord() {
     const loadRecord = async () => {
 
 
-        const url = mainURL + `/api/v1/records/${id}`;
+        const url = mainURL + `/api/v1/projects/${id}`;
         try {
             const response = await doOrdinaryRequest(url, null, "get");
             setRecord(response.data);
@@ -70,95 +66,24 @@ export default function AddRecord() {
             <h1>Edit Record</h1>
             <form onSubmit={(e)=>onSubmit(e)}>
                 <div className="mb-3">
-                    <label htmlFor="inputDescription" className="form-label">Как ты, воин?</label>
+                    <label htmlFor="name" className="form-label">Как ты, воин?</label>
                     <textarea style={{
                         width: "50%",
                         marginLeft: "25%",
-                    }} name="description" onChange={(e) => onInputChange(e)} value={description} type="text" className="form-control" id="inputDescription" aria-describedby=""/>
+                    }} name="name" onChange={(e) => onInputChange(e)} value={name} type="text" className="form-control" id="name" aria-describedby=""/>
                     <div id="emailHelp" className="form-text">We'll never share your secrets with anyone else.</div>
                 </div>
                 <div className="mb-3">
-                    <label htmlFor="income" className="form-label">Income</label>
-                    <input style={{
-                        width: "15%",
-                        marginLeft: "42.5%",
-                        WebkitAppearance: "none",
-                        MozAppearance: "textfield",
-                        textAlign: "center"
-                    }}
-                        name="income" onChange={(e) => onInputChange(e)} value={income} type="number" className="form-control" id="income" aria-describedby="" />
+                    <textarea style={{
+                        width: "50%",
+                        marginLeft: "25%",
+                    }} name="description" onChange={(e) => onInputChange(e)} value={description} type="text" className="form-control" id="description" aria-describedby=""/>
                 </div>
-
                 <div className="mb-3">
-                    <label htmlFor="weight" className="form-label">Weight</label>
-                    <input style={{
-                        width: "15%",
-                        marginLeft: "42.5%",
-                        WebkitAppearance: "none",
-                        MozAppearance: "textfield",
-                        textAlign: "center"
-                    }}
-                        name="weight" onChange={(e) => onInputChange(e)} value={weight} type="number" className="form-control" id="weight" aria-describedby="" />
-                </div>
-
-                <div className="mb-3">
-                    <label htmlFor="height" className="form-label">Height</label>
-                    <input style={{
-                        width: "15%",
-                        marginLeft: "42.5%",
-                        WebkitAppearance: "none",
-                        MozAppearance: "textfield",
-                        textAlign: "center"
-                    }}
-                        name="height" onChange={(e) => onInputChange(e)} value={height} type="number" className="form-control" id="height" aria-describedby="" />
-                </div>
-
-                <div className="mb-3">
-                    <label htmlFor="steps" className="form-label">Steps</label>
-                    <input style={{
-                        width: "15%",
-                        marginLeft: "42.5%",
-                        WebkitAppearance: "none",
-                        MozAppearance: "textfield",
-                        textAlign: "center"
-                    }}
-                        name="steps" onChange={(e) => onInputChange(e)} value={steps} type="number" className="form-control" id="steps" aria-describedby="" />
-                </div>
-
-                <div className="mb-3">
-                    <label htmlFor="sheets" className="form-label">Sheets</label>
-                    <input style={{
-                        width: "15%",
-                        marginLeft: "42.5%",
-                        WebkitAppearance: "none",
-                        MozAppearance: "textfield",
-                        textAlign: "center"
-                    }}
-                        name="sheets" onChange={(e) => onInputChange(e)} value={sheets} type="number" className="form-control" id="sheets" aria-describedby=""  />
-                </div>
-
-                <div className="mb-3">
-                    <label htmlFor="moodMark" className="form-label">Mood Mark</label>
-                    <input style={{
-                        width: "15%",
-                        marginLeft: "42.5%",
-                        WebkitAppearance: "none",
-                        MozAppearance: "textfield",
-                        textAlign: "center"
-                    }}
-                        name="moodMark" onChange={(e) => onInputChange(e)} value={moodMark} type="number" className="form-control" id="moodMark" aria-describedby="" />
-                </div>
-
-                <div className="mb-3">
-                    <label htmlFor="mark" className="form-label">Mark</label>
-                    <input style={{
-                        width: "15%",
-                        marginLeft: "42.5%",
-                        WebkitAppearance: "none",
-                        MozAppearance: "textfield",
-                        textAlign: "center"
-                    }}
-                        name="mark" onChange={(e) => onInputChange(e)} value={mark} type="number" className="form-control" id="mark" aria-describedby="" />
+                    <textarea style={{
+                        width: "50%",
+                        marginLeft: "25%",
+                    }} name="visibility" onChange={(e) => onInputChange(e)} value={visibility} type="text" className="form-control" id="visibility" aria-describedby=""/>
                 </div>
                 <button type="submit" className="btn btn-primary">Create</button>
             </form>

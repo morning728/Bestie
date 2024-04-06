@@ -10,42 +10,37 @@ export default function AddRecord() {
     const mainURL = process.env.REACT_APP_API_URL != null ? process.env.REACT_APP_API_URL : "http://localhost:8765";
 
 
-    useEffect(() => {
-        loadRecord();
-    }, []);
+    // useEffect(() => {
+    //     loadRecord();
+    // }, []);
 
     const [record, setRecord] = useState({
         description: "",
-        mark:"",
-        weight:"",
-        height:"",
-        moodMark:"",
-        steps:"",
-        sheets:"",
-        income: ""
+        name: "",
+        visibility: ""
     });
 
-    const { description, mark, weight, height, steps, sheets, moodMark, income } = record;
+    const { description,name, visibility } = record;
 
 
-    const loadRecord = async () => {
+    // const loadRecord = async () => {
 
-        const url = mainURL + "/api/v1/records/last"
-        try {
-            const response = await doOrdinaryRequest(url, null, "get");
-            // record.weight = response.data.weight;
-            // record.height = response.data.height;
-            //console.log(record);
-            setRecord({...record, "weight" :response.data.weight == 0 ? "": response.data.weight, "height": response.data.height == 0 ? "": response.data.height});
-        } catch (error) {
-            if (error.message == 'invalid token' || error.message == 'Request failed with status code 500') {
-                navigate("/login");
-            } else {
-                console.log(error.message)
-                //navigate("/error");
-            }
-        }
-    };
+    //     const url = mainURL + "/api/v1/records/last"
+    //     try {
+    //         const response = await doOrdinaryRequest(url, null, "get");
+    //         // record.weight = response.data.weight;
+    //         // record.height = response.data.height;
+    //         //console.log(record);
+    //         setRecord({...record, "weight" :response.data.weight == 0 ? "": response.data.weight, "height": response.data.height == 0 ? "": response.data.height});
+    //     } catch (error) {
+    //         if (error.message == 'invalid token' || error.message == 'Request failed with status code 500') {
+    //             navigate("/login");
+    //         } else {
+    //             console.log(error.message)
+    //             //navigate("/error");
+    //         }
+    //     }
+    // };
     
     const onInputChange = (e) => {
         setRecord({...record, [e.target.name] :e.target.value});
@@ -53,7 +48,7 @@ export default function AddRecord() {
 
     const onSubmit=async(e)=>{
         e.preventDefault();
-        const url = mainURL + "/api/v1/records";
+        const url = mainURL + "/api/v1/projects";
         try {
             const response = await doOrdinaryRequest(url, record, "post");
             navigate("/");
@@ -70,26 +65,27 @@ export default function AddRecord() {
             <h1>Add Record</h1>
             <form onSubmit={(e)=>onSubmit(e)}>
                 <div className="mb-3">
-                    <label htmlFor="inputDescription" className="form-label">Как ты, воин?</label>
+                    <label htmlFor="name" className="form-label">Как ты, воин?</label>
                     <textarea style={{
                         width: "50%",
                         marginLeft: "25%",
-                    }} name="description" onChange={(e) => onInputChange(e)} value={description} type="text" className="form-control" id="inputDescription" aria-describedby=""/>
+                    }} name="name" onChange={(e) => onInputChange(e)} value={name} type="text" className="form-control" id="name" aria-describedby=""/>
                     <div id="emailHelp" className="form-text">We'll never share your secrets with anyone else.</div>
                 </div>
                 <div className="mb-3">
-                    <label htmlFor="income" className="form-label">Income</label>
-                    <input style={{
-                        width: "15%",
-                        marginLeft: "42.5%",
-                        WebkitAppearance: "none",
-                        MozAppearance: "textfield",
-                        textAlign: "center"
-                    }}
-                        name="income" onChange={(e) => onInputChange(e)} value={income} type="number" className="form-control" id="income" aria-describedby="" />
+                    <textarea style={{
+                        width: "50%",
+                        marginLeft: "25%",
+                    }} name="description" onChange={(e) => onInputChange(e)} value={description} type="text" className="form-control" id="description" aria-describedby=""/>
+                </div>
+                <div className="mb-3">
+                    <textarea style={{
+                        width: "50%",
+                        marginLeft: "25%",
+                    }} name="visibility" onChange={(e) => onInputChange(e)} value={visibility} type="text" className="form-control" id="visibility" aria-describedby=""/>
                 </div>
 
-                <div className="mb-3">
+                {/* <div className="mb-3">
                     <label htmlFor="weight" className="form-label">Weight</label>
                     <input style={{
                         width: "15%",
@@ -159,7 +155,7 @@ export default function AddRecord() {
                         textAlign: "center"
                     }}
                         name="mark" onChange={(e) => onInputChange(e)} value={mark} type="number" className="form-control" id="mark" aria-describedby="" />
-                </div>
+                </div> */}
                 <button type="submit" className="btn btn-primary">Create</button>
             </form>
 

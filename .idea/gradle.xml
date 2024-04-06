@@ -22,14 +22,9 @@
                   <project path="$PROJECT_DIR$/security" />
                 </projects>
               </build>
-              <build path="$PROJECT_DIR$/task-api" name="task-api">
+              <build path="$PROJECT_DIR$/task-api-main" name="task-api-main">
                 <projects>
-                  <project path="$PROJECT_DIR$/task-api" />
-                </projects>
-              </build>
-              <build path="$PROJECT_DIR$/test" name="test">
-                <projects>
-                  <project path="$PROJECT_DIR$/test" />
+                  <project path="$PROJECT_DIR$/task-api-main" />
                 </projects>
               </build>
             </builds>
@@ -43,8 +38,7 @@
             <option value="$PROJECT_DIR$/api-gateway" />
             <option value="$PROJECT_DIR$/eureka-server" />
             <option value="$PROJECT_DIR$/security" />
-            <option value="$PROJECT_DIR$/task-api" />
-            <option value="$PROJECT_DIR$/test" />
+            <option value="$PROJECT_DIR$/task-api-main" />
           </set>
         </option>
       </GradleProjectSettings>

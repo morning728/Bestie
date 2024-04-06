@@ -68,4 +68,7 @@ public class Project {
                 .status("EMPTY")
                 .build();
     }
+    public boolean isEmpty(){
+        return status == "EMPTY";
+    }
 }

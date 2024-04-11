@@ -5,6 +5,8 @@ import com.morning.taskapimain.entity.Task;
 import com.morning.taskapimain.entity.dto.ProjectDTO;
 import com.morning.taskapimain.entity.dto.TaskDTO;
 import com.morning.taskapimain.entity.dto.UserProjectsRequest;
+import com.morning.taskapimain.exception.annotation.AccessExceptionHandler;
+import com.morning.taskapimain.exception.annotation.CrudExceptionHandler;
 import com.morning.taskapimain.mapper.ProjectMapper;
 import com.morning.taskapimain.repository.UserRepository;
 import com.morning.taskapimain.service.ProjectService;
@@ -20,6 +22,8 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("api/v1/projects")
 @RequiredArgsConstructor
+@CrudExceptionHandler
+@AccessExceptionHandler
 public class ProjectController {
 
     private final JwtService jwtService;

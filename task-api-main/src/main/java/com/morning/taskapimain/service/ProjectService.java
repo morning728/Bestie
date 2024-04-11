@@ -3,6 +3,7 @@ package com.morning.taskapimain.service;
 import com.morning.taskapimain.entity.Field;
 import com.morning.taskapimain.entity.Project;
 import com.morning.taskapimain.entity.dto.ProjectDTO;
+import com.morning.taskapimain.exception.NotFoundException;
 import com.morning.taskapimain.mapper.ProjectMapper;
 import com.morning.taskapimain.repository.FieldRepository;
 import com.morning.taskapimain.repository.ProjectRepository;
@@ -58,7 +59,9 @@ public class ProjectService{
         return client.sql(query)
                 .fetch()
                 .all()
-                .flatMap(Project::fromMap);
+                .flatMap(Project::fromMap)
+                .defaultIfEmpty(Project.defaultIfEmpty())
+                .flatMap(project -> project.isEmpty() ? Mono.error(new NotFoundException("No one project was found!")) : Mono.just(project));
     }
 
     public Mono<Project> findByUsernameAndId(String username, Long id) {
@@ -66,7 +69,9 @@ public class ProjectService{
         return client.sql(query)
                 .fetch()
                 .first()
-                .flatMap(Project::fromMap);
+                .flatMap(Project::fromMap)
+                .defaultIfEmpty(Project.defaultIfEmpty())
+                .flatMap(project -> project.isEmpty() ? Mono.error(new NotFoundException("Such project was not found!")) : Mono.just(project));
     }
 
     public Mono<Boolean> isFieldBelongsToProject(Long fieldId, Long projectId){
@@ -83,13 +88,15 @@ public class ProjectService{
 
 
     public Mono<Project> findById(Long id){
-        return projectRepository.findById(id);
+        return projectRepository.findById(id)
+                .defaultIfEmpty(Project.defaultIfEmpty())
+                .flatMap(project -> project.isEmpty() ? Mono.error(new NotFoundException("Project was not found!")) : Mono.just(project));
     }
 
     public Mono<Project> findByIdAndVisibility(Long id, String token){
         return findById(id).defaultIfEmpty(Project.defaultIfEmpty()).flatMap(project -> {
             if(project.isEmpty())
-                return Mono.error(new RuntimeException("Project was not found!"));
+                return Mono.error(new NotFoundException("Project was not found!"));
             return project.getVisibility() == "OPEN" ?
                     Mono.just(project) :
                     findByUsernameAndId(jwtService.extractUsername(token), id);
@@ -98,9 +105,11 @@ public class ProjectService{
 
     public Mono<Project> findByIdAndVisibility(Long id){
         return findById(id).flatMap(project -> {
-            return project.getVisibility().equals("OPEN") ? Mono.just(project) : Mono.empty();
+            if(!project.isEmpty()){
+                return Mono.just(project);
+            }
+            return Mono.error(new NotFoundException("Project was not found!"));
         });
-
     }
 
     /*Добавляет проект в бд, а также привязывает проект к юзеру, который отправил запрос на создание*/
@@ -122,10 +131,10 @@ public class ProjectService{
         return findByUsernameAndId(username, id)
                 .defaultIfEmpty(Project.defaultIfEmpty())
                 .flatMap(project -> {
-                    if(!project.getStatus().equals("EMPTY")){
+                    if(!project.isEmpty()){
                         return projectRepository.deleteById(id);
                     }
-                    return Mono.error(new RuntimeException("No such project!"));
+                    return Mono.error(new NotFoundException("Project was not found!"));
                 });
     }
 
@@ -135,11 +144,11 @@ public class ProjectService{
         return findByUsernameAndId(username, dto.getId())
                 .defaultIfEmpty(Project.defaultIfEmpty())
                 .flatMap(project -> {
-                    if(!project.getStatus().equals("EMPTY")){
+                    if(!project.isEmpty()){
                         project.update(dto);
                         return projectRepository.save(project);
                     }
-                    return Mono.error(new RuntimeException("No such task!"));
+                    return Mono.error(new NotFoundException("Project was not found!"));
                 });
     }
 

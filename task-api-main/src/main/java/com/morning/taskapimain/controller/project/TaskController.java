@@ -2,6 +2,8 @@ package com.morning.taskapimain.controller.project;
 
 import com.morning.taskapimain.entity.Task;
 import com.morning.taskapimain.entity.dto.TaskDTO;
+import com.morning.taskapimain.exception.annotation.AccessExceptionHandler;
+import com.morning.taskapimain.exception.annotation.CrudExceptionHandler;
 import com.morning.taskapimain.service.ProjectService;
 import com.morning.taskapimain.service.TaskService;
 import com.morning.taskapimain.service.security.JwtService;
@@ -16,6 +18,8 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/api/v1/tasks")
 @RequiredArgsConstructor
+@CrudExceptionHandler
+@AccessExceptionHandler
 public class TaskController {
     private final JwtService jwtService;
     private final ProjectService projectService;
@@ -26,7 +30,7 @@ public class TaskController {
         return taskService.getAllTasksByToken(token);
     }
     @GetMapping("/{id}")
-    public Mono<Task> getTaskById(@RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String token, @PathVariable String id){
+    public Mono<?> getTaskById(@RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String token, @PathVariable String id){
         return taskService.getTaskByIdCheckingOwner(Long.valueOf(id), token);
     }
 

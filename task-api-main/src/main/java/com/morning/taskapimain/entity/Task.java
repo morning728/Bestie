@@ -1,6 +1,7 @@
 package com.morning.taskapimain.entity;
 
 import com.morning.taskapimain.entity.dto.TaskDTO;
+import com.morning.taskapimain.exception.NotFoundException;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -60,5 +61,18 @@ public class Task {
                 .builder()
                 .status("EMPTY")
                 .build();
+    }
+
+    public boolean isEmpty(){
+        return status.equals("EMPTY");
+    }
+
+    public Mono<Task> returnExceptionIfEmpty(){
+        {
+            if(this.isEmpty()){
+                return Mono.error(new NotFoundException("Task was not found!"));
+            }
+            return Mono.just(this);
+        }
     }
 }

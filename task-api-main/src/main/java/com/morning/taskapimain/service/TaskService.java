@@ -3,6 +3,8 @@ package com.morning.taskapimain.service;
 import com.morning.taskapimain.entity.Project;
 import com.morning.taskapimain.entity.Task;
 import com.morning.taskapimain.entity.dto.TaskDTO;
+import com.morning.taskapimain.exception.AccessException;
+import com.morning.taskapimain.exception.NotFoundException;
 import com.morning.taskapimain.repository.TaskRepository;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +14,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -43,7 +46,9 @@ public class TaskService {
         return client.sql(query)
                 .fetch()
                 .first()
-                .flatMap(Task::fromMap);
+                .flatMap(Task::fromMap)
+                .defaultIfEmpty(Task.defaultIfEmpty())
+                .flatMap(Task::returnExceptionIfEmpty);
     }
 
     public Flux<Task> getAllTasksByToken(String token){
@@ -52,7 +57,9 @@ public class TaskService {
         return client.sql(query)
                 .fetch()
                 .all()
-                .flatMap(Task::fromMap);
+                .flatMap(Task::fromMap)
+                .defaultIfEmpty(Task.defaultIfEmpty())
+                .flatMap(task -> task.isEmpty() ? Mono.error(new NotFoundException("No one task was found!")) : Mono.just(task));
     }
     /*Метод получения таски: если существует таска, включенная в проект, создателям которого является пользователь,
     * от которого поступил запрос, то она возвращается*/
@@ -61,7 +68,9 @@ public class TaskService {
         return client.sql(query)
                 .fetch()
                 .first()
-                .flatMap(Task::fromMap);
+                .flatMap(Task::fromMap)
+                .defaultIfEmpty(Task.defaultIfEmpty())
+                .flatMap(task -> task.isEmpty() ? Mono.error(new NotFoundException("Task was found!")) : Mono.just(task));
     }
 
     /*Метод получения таски: если таска открыта для всех, то выдается без проверок
@@ -72,7 +81,7 @@ public class TaskService {
                 "";
         return isOpenTaskById(id).flatMap(aBoolean -> {
             if(aBoolean){
-                return getTaskById(id);
+                return getTaskById(id).defaultIfEmpty(Task.defaultIfEmpty()).flatMap(Task::returnExceptionIfEmpty);
             }
             String query = String.format(
                     "%s WHERE t.id = %s AND users.username = '%s'",
@@ -80,7 +89,9 @@ public class TaskService {
             return client.sql(query)
                     .fetch()
                     .first()
-                    .flatMap(Task::fromMap);
+                    .flatMap(Task::fromMap)
+                    .defaultIfEmpty(Task.defaultIfEmpty())
+                    .flatMap(Task::returnExceptionIfEmpty);
         });
     }
 
@@ -95,10 +106,10 @@ public class TaskService {
                     if(userProjectsId.equals(dto.getProjectId())){
                         return taskRepository.save(dto.toInsertTask());
                     }
-                    return Mono.error(new RuntimeException("U r not project owner or invalid data!"));
+                    return Mono.error(new AccessException("U r not project owner!"));
                 });
             }
-            return Mono.error(new RuntimeException("U r not project owner or invalid data!"));
+            return Mono.error(new RuntimeException("U r not project owner!"));
         });
     }
 
@@ -107,7 +118,9 @@ public class TaskService {
         return client.sql(query)
                 .fetch()
                 .first()
+                .defaultIfEmpty(new HashMap<>())
                 .flatMap(stringObjectMap -> {
+                    if(stringObjectMap.isEmpty()) return Mono.error(new NotFoundException("Task was not found!"));
                     return stringObjectMap.get("visibility").equals("OPEN") ?
                             Mono.just(true) :
                             Mono.just(false);
@@ -120,11 +133,11 @@ public class TaskService {
         return findByIdAndUsername(dto.getId(), username)
                 .defaultIfEmpty(Task.defaultIfEmpty())
                 .flatMap(task -> {
-            if(!task.getStatus().equals("EMPTY")){
+            if(!task.isEmpty()){
                 task.update(dto);
                 return taskRepository.save(task);
             }
-            return Mono.error(new RuntimeException("No such task!"));
+            return Mono.error(new NotFoundException("Task was not found!"));
         });
     }
 
@@ -133,10 +146,10 @@ public class TaskService {
         return findByIdAndUsername(id, username)
                 .defaultIfEmpty(Task.defaultIfEmpty())
                 .flatMap(task -> {
-                    if(!task.getStatus().equals("EMPTY")){
+                    if(!task.isEmpty()){
                         return taskRepository.deleteById(id);
                     }
-                    return Mono.error(new RuntimeException("No such task!"));
+                    return Mono.error(new NotFoundException("Task was not found!"));
         });
     }
 

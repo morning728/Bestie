@@ -1,7 +1,9 @@
 package com.morning.taskapimain.controller.project;
 
+import com.morning.taskapimain.entity.Field;
 import com.morning.taskapimain.entity.Project;
 import com.morning.taskapimain.entity.Task;
+import com.morning.taskapimain.entity.dto.FieldDTO;
 import com.morning.taskapimain.entity.dto.ProjectDTO;
 import com.morning.taskapimain.entity.dto.TaskDTO;
 import com.morning.taskapimain.entity.dto.UserProjectsRequest;
@@ -58,13 +60,11 @@ public class ProjectController {
     }
 
     @PostMapping("")
-    public Mono<ResponseEntity<String>> addProject(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token, @RequestBody ProjectDTO dto){
-        return projectService.addProject(dto, token)
-                .thenReturn(new ResponseEntity<>("Project was successfully added!", HttpStatus.OK))
-                .onErrorReturn(new ResponseEntity<>("Project was not added, invalid data!", HttpStatus.BAD_REQUEST));
+    public Mono<Project> addProject(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token, @RequestBody ProjectDTO dto){
+        return projectService.addProject(dto, token);
     }
     @PutMapping("/{id}")
-    public Mono<Project> updateProject(@RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String token,
+    public Mono<Project> updateProject(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
                                  @RequestBody ProjectDTO dto,
                                  @PathVariable(value = "id") Long id){
         return projectService.updateProject(dto, token);
@@ -75,7 +75,35 @@ public class ProjectController {
                                                    @PathVariable(value = "id") Long id){
 
         return projectService.deleteProjectById(id, token)
-                .thenReturn(new ResponseEntity<>("Project was successfully deleted!", HttpStatus.OK))
-                .onErrorReturn(new ResponseEntity<>("Project was not found!", HttpStatus.NOT_FOUND));
+                .thenReturn(new ResponseEntity<>("Project was successfully deleted!", HttpStatus.OK));
+    }
+
+    @GetMapping("/{id}/fields")
+    public Flux<Field> getProjectFields(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+                                        @PathVariable(value = "id") Long projectId){
+        return projectService.findProjectFieldsByProjectId(projectId, token);
+    }
+
+    @PutMapping("/{id}/fields/{fieldId}")
+    public Mono<Field> updateField(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+                                       @RequestBody FieldDTO dto,
+                                       @PathVariable(value = "id") Long id,
+                                   @PathVariable(value = "fieldId") Long fieldId){
+        return projectService.updateField(dto, token);
+    }
+
+    @PostMapping("/{id}/fields")
+    public Mono<Field> addField(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+                                   @RequestBody FieldDTO dto,
+                                   @PathVariable(value = "id") Long id){
+        return projectService.addField(dto, token);
+    }
+
+    @DeleteMapping("/{id}/fields/{fieldId}")
+    public Mono<ResponseEntity<String>> deleteField(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+                                   @PathVariable(value = "id") Long id,
+                                   @PathVariable(value = "fieldId") Long fieldId){
+        return projectService.deleteFieldById(fieldId, token)
+                .thenReturn(new ResponseEntity<>("Field was successfully deleted!", HttpStatus.OK));
     }
 }

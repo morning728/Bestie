@@ -2,14 +2,18 @@ package com.morning.taskapimain.service;
 
 import com.morning.taskapimain.entity.Field;
 import com.morning.taskapimain.entity.Project;
+import com.morning.taskapimain.entity.dto.FieldDTO;
 import com.morning.taskapimain.entity.dto.ProjectDTO;
+import com.morning.taskapimain.exception.AccessException;
 import com.morning.taskapimain.exception.NotFoundException;
+import com.morning.taskapimain.mapper.FieldMapper;
 import com.morning.taskapimain.mapper.ProjectMapper;
 import com.morning.taskapimain.repository.FieldRepository;
 import com.morning.taskapimain.repository.ProjectRepository;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.flywaydb.core.internal.util.BooleanEvaluator;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -25,7 +29,8 @@ public class ProjectService{
     private final FieldRepository fieldRepository;
     private final UserService userService;
     private final JwtService jwtService;
-    private final ProjectMapper mapper;
+    private final ProjectMapper projectMapper;
+
     private static final String SELECT_QUERY =     """
     select p.id, p.name, p.description, p.status, p.created_at, p.updated_at, p.visibility from project  as p
     join user_project on p.id=user_project.project_id
@@ -34,6 +39,7 @@ public class ProjectService{
     private static final String INSERT_PROJECT_USER_QUERY =     """
     INSERT INTO public.user_project (project_id, user_id) VALUES (%s, %s)
     """;
+
 //    """
 //            SELECT d.id d_id, d.name d_name, m.id m_id, m.first_name m_firstName, m.last_name m_lastName,
 //                m.position m_position, m.is_full_time m_isFullTime, e.id e_id, e.first_name e_firstName,
@@ -45,7 +51,35 @@ public class ProjectService{
 //            LEFT JOIN employees e ON e.id = de.employee_id
 //            """;
 
+    /*Проверяет, является ли запрашивающий юзер участником проекта*/
+    private Mono<Boolean> isOwnerOfProjectOrError(Long projectId, String token){
+        String username = jwtService.extractUsername(token);
+        String query = String.format("%s WHERE users.username = '%s' AND p.id = %s", SELECT_QUERY, username, projectId);
+        return client.sql(query)
+                .fetch()
+                .first()
+                .flatMap(Project::fromMap)
+                .defaultIfEmpty(Project.defaultIfEmpty())
+                .flatMap(project -> project.isEmpty() ?
+                        Mono.error(new AccessException("You are not owner of project!")) :
+                        Mono.just(true));
+    }
 
+    /*Проверяет, имеет ли запрашивающий доступи к проекту*/
+    private Mono<Boolean> hasAccessToProjectOrError(Long projectId, String token){
+        return findById(projectId).defaultIfEmpty(Project.defaultIfEmpty()).flatMap(project -> {
+            if(project.isEmpty())
+                return Mono.error(new NotFoundException("Project was not found!"));
+            return project.getVisibility() == "OPEN" ?
+                    Mono.just(true) :
+                    findByUsernameAndId(jwtService.extractUsername(token), projectId)
+                            .defaultIfEmpty(Project.defaultIfEmpty())
+                            .onErrorReturn(Project.defaultIfEmpty())
+                            .flatMap(project1 -> project1.isEmpty() ?
+                                    Mono.error(new AccessException("You have not access to project!")) :
+                                    Mono.just(true));
+        });
+    }
     public Flux<Project> findAllByUserId(Long id) {
         String query = String.format("%s WHERE users.id =%s", SELECT_QUERY, id);
         return client.sql(query)
@@ -93,6 +127,7 @@ public class ProjectService{
                 .flatMap(project -> project.isEmpty() ? Mono.error(new NotFoundException("Project was not found!")) : Mono.just(project));
     }
 
+    /*Выдает проект всем, если он открыт и только участникам в противном случае*/
     public Mono<Project> findByIdAndVisibility(Long id, String token){
         return findById(id).defaultIfEmpty(Project.defaultIfEmpty()).flatMap(project -> {
             if(project.isEmpty())
@@ -149,6 +184,42 @@ public class ProjectService{
                         return projectRepository.save(project);
                     }
                     return Mono.error(new NotFoundException("Project was not found!"));
+                });
+    }
+
+    public Flux<Field> findProjectFieldsByProjectId(Long projectId, String token){
+        return hasAccessToProjectOrError(projectId, token)
+                .thenMany(fieldRepository.findByProjectId(projectId));
+    }
+
+    public Mono<Field> addField(FieldDTO dto, String token){
+        String username = jwtService.extractUsername(token);
+        isOwnerOfProjectOrError(dto.getProjectId(), token);
+        return fieldRepository.save(dto.map());
+    }
+
+        public Mono<Field> updateField(FieldDTO dto, String token){
+        isOwnerOfProjectOrError(dto.getProjectId(), token);
+        return fieldRepository.findById(dto.getId())
+                .defaultIfEmpty(Field.defaultIfEmpty())
+                .flatMap(field -> {
+                    if(!field.isEmpty()){
+                        return isOwnerOfProjectOrError(dto.getProjectId(), token)
+                                .then(fieldRepository.save(dto.map()));
+                    }
+                    return Mono.error(new NotFoundException("Field was not found!"));
+                });
+    }
+
+        public Mono<Void> deleteFieldById(Long fieldId, String token){
+        return fieldRepository.findById(fieldId)
+                .defaultIfEmpty(Field.defaultIfEmpty())
+                .flatMap(field -> {
+                    if(!field.isEmpty()){
+                        return isOwnerOfProjectOrError(field.getProjectId(), token)
+                                .then(fieldRepository.deleteById(fieldId));
+                    }
+                    return Mono.error(new NotFoundException("Field was not found!"));
                 });
     }
 

@@ -26,7 +26,6 @@ export default function Login() {
         e.preventDefault();
         try {
             const { data: response } = await axios.post(mainURL + "/security/v1/auth/authenticate", user);
-            //console.log(response.access_token);
             setToken(response.access_token);
             navigate("/");
         } catch (error) {

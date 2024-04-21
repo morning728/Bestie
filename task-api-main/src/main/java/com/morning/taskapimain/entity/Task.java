@@ -1,5 +1,7 @@
 package com.morning.taskapimain.entity;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.morning.taskapimain.entity.dto.TaskDTO;
 import com.morning.taskapimain.exception.NotFoundException;
 import jakarta.persistence.*;
@@ -17,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Data
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
@@ -47,13 +50,16 @@ public class Task {
                 .build());
     }
 
-    public <T extends Task> void update(T from){
+    public <T extends Task> Task toUpdate(T from){
+        this.setId(from.getId());
         this.setUpdatedAt(LocalDateTime.now());
+        this.setCreatedAt(from.getCreatedAt() == null ? getCreatedAt() : from.getCreatedAt());
         this.setName(from.getName() == null ? name : from.getName());
         this.setStatus(from.getStatus() == null ? status : from.getStatus());
         this.setDescription(from.getDescription() == null ? description : from.getDescription());
         this.setFieldId(from.getFieldId() == null ? this.getFieldId() : from.getFieldId());
         this.setProjectId(from.getProjectId() == null ? this.getProjectId() : from.getProjectId());
+        return this;
     }
 
     public static Task defaultIfEmpty() {
@@ -64,7 +70,9 @@ public class Task {
     }
 
     public boolean isEmpty(){
-        return status.equals("EMPTY");
+        if(status != null)
+            return status.equals("EMPTY");
+        return false;
     }
 
     public Mono<Task> returnExceptionIfEmpty(){

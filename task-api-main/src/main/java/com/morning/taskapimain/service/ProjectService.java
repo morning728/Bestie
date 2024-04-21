@@ -52,7 +52,7 @@ public class ProjectService{
 //            """;
 
     /*Проверяет, является ли запрашивающий юзер участником проекта*/
-    private Mono<Boolean> isOwnerOfProjectOrError(Long projectId, String token){
+    public Mono<Boolean> isOwnerOfProjectOrError(Long projectId, String token){
         String username = jwtService.extractUsername(token);
         String query = String.format("%s WHERE users.username = '%s' AND p.id = %s", SELECT_QUERY, username, projectId);
         return client.sql(query)
@@ -66,7 +66,7 @@ public class ProjectService{
     }
 
     /*Проверяет, имеет ли запрашивающий доступи к проекту*/
-    private Mono<Boolean> hasAccessToProjectOrError(Long projectId, String token){
+    public Mono<Boolean> hasAccessToProjectOrError(Long projectId, String token){
         return findById(projectId).defaultIfEmpty(Project.defaultIfEmpty()).flatMap(project -> {
             if(project.isEmpty())
                 return Mono.error(new NotFoundException("Project was not found!"));
@@ -189,7 +189,7 @@ public class ProjectService{
 
     public Flux<Field> findProjectFieldsByProjectId(Long projectId, String token){
         return hasAccessToProjectOrError(projectId, token)
-                .thenMany(fieldRepository.findByProjectId(projectId));
+                .thenMany(fieldRepository.findByProjectIdOrderById(projectId));
     }
 
     public Mono<Field> addField(FieldDTO dto, String token){

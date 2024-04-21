@@ -9,4 +9,5 @@ import reactor.core.publisher.Mono;
 
 public interface FieldRepository extends R2dbcRepository<Field, Long> {
     Flux<Field> findByProjectId(Long id);
+    Flux<Field> findByProjectIdOrderById(Long id);
 }

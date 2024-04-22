@@ -59,6 +59,10 @@ public class User {
                 .build();
     }
 
+    public boolean isEmpty(){
+        return (status != null && status.equals("EMPTY"));
+    }
+
     public void updateByProfileDTO(ProfileDTO dto){
         this.setUpdatedAt(LocalDateTime.now());
         this.setStatus(dto.getStatus() != null ? dto.getStatus() : status);

@@ -14,9 +14,11 @@ import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,6 +46,11 @@ public class UserService {
                 .fetch()
                 .first()
                 .flatMap(User::fromMap);
+    }
+
+    public Flux<User> findUsersByUsernameContains(String substring){
+        return userRepository.findUserByUsernameContains(substring)
+                .sort(Comparator.comparingInt(o -> o.getUsername().length()));
     }
 
     public Mono<ProfileDTO> findProfileByUsername(String token){

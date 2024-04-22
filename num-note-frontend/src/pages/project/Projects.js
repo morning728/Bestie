@@ -1,14 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { doOrdinaryRequest } from '../jwtLogic/SecurityFunctions.ts';
-import { TESTTEST, sortByDate, sortByDateReversed, sortByDescription, sortByDescriptionReversed, sortByMark } from '../HomeLogic/HomeSortFunctions.ts';
+import { doOrdinaryRequest } from '../../jwtLogic/SecurityFunctions.ts';
 import axios from 'axios';
-import '../styles/homeStyle.css';
+import '../../styles/homeStyle.css';
 axios.defaults.timeout = 5000;
 
 
-export default function Home() {
+export default function Projects() {
     const [projects, setProjects] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [addFormData, setAddFormData] = useState({

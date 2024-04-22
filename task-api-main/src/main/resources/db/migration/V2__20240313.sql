@@ -15,6 +15,10 @@ CREATE TABLE user_project (
       FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+
+
+
+
 INSERT INTO project (name, description, status, created_at, updated_at, visibility)
     VALUES ('test_project', 'test project description', 'ACTIVE',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP, 'OPEN'),
            ('test_project2', 'test project description2', 'ACTIVE',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP, 'CLOSE');

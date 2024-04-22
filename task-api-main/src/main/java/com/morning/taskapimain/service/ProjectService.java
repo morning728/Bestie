@@ -2,18 +2,18 @@ package com.morning.taskapimain.service;
 
 import com.morning.taskapimain.entity.Field;
 import com.morning.taskapimain.entity.Project;
+import com.morning.taskapimain.entity.User;
 import com.morning.taskapimain.entity.dto.FieldDTO;
 import com.morning.taskapimain.entity.dto.ProjectDTO;
 import com.morning.taskapimain.exception.AccessException;
+import com.morning.taskapimain.exception.BadRequestException;
 import com.morning.taskapimain.exception.NotFoundException;
-import com.morning.taskapimain.mapper.FieldMapper;
 import com.morning.taskapimain.mapper.ProjectMapper;
 import com.morning.taskapimain.repository.FieldRepository;
 import com.morning.taskapimain.repository.ProjectRepository;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.flywaydb.core.internal.util.BooleanEvaluator;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -35,6 +35,20 @@ public class ProjectService{
     select p.id, p.name, p.description, p.status, p.created_at, p.updated_at, p.visibility from project  as p
     join user_project on p.id=user_project.project_id
     join users on user_project.user_id=users.id
+    """;
+
+    private static final String SELECT_USERS_BY_PROJECT_ID_QUERY =     """
+    select users.id, users.username, users.first_name,users.last_name, users.status, users.created_at, users.updated_at
+     from project  as p
+    join user_project on p.id=user_project.project_id
+    join users on user_project.user_id=users.id
+    """;
+
+    private static final String ADD_USER_TO_PROJECT =     """
+    INSERT INTO public.user_project (project_id, user_id) VALUES (%s, %s)
+    """;
+    private static final String DELETE_USER_FROM_PROJECT =     """
+    DELETE FROM public.user_project WHERE project_id = %s AND user_id = %s
     """;
     private static final String INSERT_PROJECT_USER_QUERY =     """
     INSERT INTO public.user_project (project_id, user_id) VALUES (%s, %s)
@@ -192,10 +206,10 @@ public class ProjectService{
                 .thenMany(fieldRepository.findByProjectIdOrderById(projectId));
     }
 
-    public Mono<Field> addField(FieldDTO dto, String token){
+    public Mono<Field> addField(FieldDTO dto, String token){ /////////////////////////////////////test
         String username = jwtService.extractUsername(token);
-        isOwnerOfProjectOrError(dto.getProjectId(), token);
-        return fieldRepository.save(dto.map());
+        return isOwnerOfProjectOrError(dto.getProjectId(), token)
+                .then(fieldRepository.save(dto.map()));
     }
 
         public Mono<Field> updateField(FieldDTO dto, String token){
@@ -211,16 +225,49 @@ public class ProjectService{
                 });
     }
 
-        public Mono<Void> deleteFieldById(Long fieldId, String token){
-        return fieldRepository.findById(fieldId)
-                .defaultIfEmpty(Field.defaultIfEmpty())
-                .flatMap(field -> {
-                    if(!field.isEmpty()){
-                        return isOwnerOfProjectOrError(field.getProjectId(), token)
-                                .then(fieldRepository.deleteById(fieldId));
-                    }
-                    return Mono.error(new NotFoundException("Field was not found!"));
-                });
+    public Mono<Void> deleteFieldById(Long fieldId, String token){
+    return fieldRepository.findById(fieldId)
+            .defaultIfEmpty(Field.defaultIfEmpty())
+            .flatMap(field -> {
+                if(!field.isEmpty()){
+                    return isOwnerOfProjectOrError(field.getProjectId(), token)
+                            .then(fieldRepository.deleteById(fieldId));
+                }
+                return Mono.error(new NotFoundException("Field was not found!"));
+            });
+    }
+
+    public Flux<User> findUsersByProjectId(Long projectId, String token){
+        String query =  String.format("%s WHERE p.id = '%s' order by users.id", SELECT_USERS_BY_PROJECT_ID_QUERY, projectId);
+        return hasAccessToProjectOrError(projectId, token)
+                .thenMany(
+                    client.sql(query)
+                            .fetch()
+                            .all()
+                            .flatMap(User::fromMap)
+                );
+    }
+
+    public Flux<User> addUserToProject(Long projectId, Long userId, String token) {
+        String query =  String.format(ADD_USER_TO_PROJECT, projectId, userId);
+        return isOwnerOfProjectOrError(projectId, token).thenMany(
+                client.sql(query)
+                        .fetch()
+                        .first()
+                        .onErrorResume(e -> Mono.error(new BadRequestException("Bad Request!")))
+                        .thenMany(findUsersByProjectId(projectId, token))
+        );
+    }
+
+    public Flux<User> deleteUserFromProject(Long projectId, Long userId, String token) {
+        String query =  String.format(DELETE_USER_FROM_PROJECT, projectId, userId);
+        return isOwnerOfProjectOrError(projectId, token).thenMany(
+                client.sql(query)
+                        .fetch()
+                        .first()
+                        .onErrorResume(e -> Mono.error(new BadRequestException("Bad Request!")))
+                        .thenMany(findUsersByProjectId(projectId, token))
+        );
     }
 
 }

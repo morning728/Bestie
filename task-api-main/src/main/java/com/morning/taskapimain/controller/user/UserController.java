@@ -27,10 +27,11 @@ public class UserController {
     private final ProjectMapper projectMapper;
     private final JwtService jwtService;
 
+
     @GetMapping("")
-    public Mono<UserDTO> getUser(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token){
-        String username = jwtService.extractUsername(token);
-        return userService.findUserByUsername(username).map(userMapper::map);
+    public Flux<UserDTO> getUserByUsernameContains(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+                                 @RequestParam(name = "contains", required = true) String substring){
+        return userService.findUsersByUsernameContains(substring).map(userMapper::map);
     }
 
     @GetMapping("/projects")

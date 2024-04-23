@@ -30,8 +30,13 @@ public class UserController {
 
     @GetMapping("")
     public Flux<UserDTO> getUserByUsernameContains(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
-                                 @RequestParam(name = "contains", required = true) String substring){
+                                 @RequestParam(name = "contains", required = false) String substring){
         return userService.findUsersByUsernameContains(substring).map(userMapper::map);
+    }
+
+    @GetMapping("/me")
+    public Mono<UserDTO> getUserByUsernameContains(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token){
+        return userService.getUserByToken(token).map(userMapper::map);
     }
 
     @GetMapping("/projects")

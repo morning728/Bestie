@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams,Link } from 'react-router-dom';
 import { doOrdinaryRequest } from '../../jwtLogic/SecurityFunctions.ts';
 import '../../styles/mainProjectPage.css';
 //import '../../styles/insideProject/mainForMenu.css';
@@ -120,27 +120,6 @@ const MainProjectPage = () => {
         }
     };
 
-
-    // const handleEditTask = async () => {
-    //     try {
-    //         await doOrdinaryRequest(`${mainURL}/api/v1/projects/${id}/tasks/${selectedTask.id}`, editedTask, "put");
-    //         loadTasksForFields(fields); 
-    //         setSelectedTask(null);
-    //         setEditedTask(null);
-    //     } catch (error) {
-    //         handleErrors(error);
-    //     }
-    // };
-
-    // const handleDeleteTask = async (taskId) => {
-    //     try {
-    //         await doOrdinaryRequest(`${mainURL}/api/v1/projects/${id}/tasks/${taskId}`, null, "delete");
-    //         loadTasksForFields(fields); 
-    //         setSelectedTask(null);
-    //     } catch (error) {
-    //         handleErrors(error);
-    //     }
-    // };
     const handleTaskClick = (task) => {
         setSelectedTask(task);
         setEditedTask({ ...task });
@@ -177,12 +156,13 @@ const MainProjectPage = () => {
             <nav className="nav">
                 <label for="nav-toggle" className="nav-toggle" onclick></label>
                 <div className="project-info">
-                    <div className="project-name">{project.name}</div>
+                    <div className="project-name" href="">{project.name}</div>
                     <div className="project-description">{project.description}</div>
                 </div>
                 <ul>
+                
                     <li><a href="#1">Основная информация</a></li>
-                    <li><a href="#2">Участники</a></li>
+                    <li><Link to={`/projects/${id}/users`} className="">Участники</Link></li>
                 </ul>
             </nav>
             {/* Конец боковой панели */}

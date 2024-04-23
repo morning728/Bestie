@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.morning.taskapimain.entity.User;
 import com.morning.taskapimain.entity.dto.ProfileDTO;
+import com.morning.taskapimain.exception.NotFoundException;
 import com.morning.taskapimain.repository.UserRepository;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -49,10 +50,21 @@ public class UserService {
     }
 
     public Flux<User> findUsersByUsernameContains(String substring){
-        return userRepository.findUserByUsernameContains(substring)
+        return userRepository.findUserByUsernameContainsIgnoreCase(substring)
                 .sort(Comparator.comparingInt(o -> o.getUsername().length()));
     }
 
+    public Mono<User> getUserByToken(String token){
+        return userRepository.findByUsername(jwtService.extractUsername(token))
+                .defaultIfEmpty(User.defaultIfEmpty())
+                .onErrorReturn(User.defaultIfEmpty())
+                .flatMap(user -> {
+                    if(!user.isEmpty()){
+                        return Mono.just(user);
+                    }
+                    return Mono.error(new NotFoundException("User was not found!"));
+                });
+    }
     public Mono<ProfileDTO> findProfileByUsername(String token){
         String username = jwtService.extractUsername(token);
         ResponseEntity<String> profileInfo;

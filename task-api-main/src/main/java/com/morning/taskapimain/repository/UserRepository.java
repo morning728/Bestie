@@ -9,7 +9,7 @@ import reactor.core.publisher.Mono;
 public interface UserRepository extends R2dbcRepository<User, Long> {
     Mono<User> findByUsername(String username);
 
-    Flux<User> findUserByUsernameContains(String substring);
+    Flux<User> findUserByUsernameContainsIgnoreCase(String substring);
 
 
 }

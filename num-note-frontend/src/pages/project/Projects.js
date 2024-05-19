@@ -33,7 +33,10 @@ export default function Projects() {
             const response = await doOrdinaryRequest(`${mainURL}/api/v1/projects`, null, "get");// await axios.get(`${mainURL}/api/v1/projects?search=${searchTerm}`);
             setProjects(response.data);
         } catch (error) {
-            handleErrors(error);
+            if(error.response.status !== 404){
+                handleErrors(error);
+            }
+            
         }
     };
 
@@ -219,7 +222,9 @@ export default function Projects() {
                                 <td>{project.description}</td>
                                 <td>
                                     <button className="btn btn-danger me-2" onClick={() => deleteProject(project.id)}>Delete</button>
+                                    <button className="btn btn-info me-2"  onClick={() => navigate(`/projects/${project.id}`)}>More</button>
                                 </td>
+                                
                             </tr>
                         ))}
                     </tbody>

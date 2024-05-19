@@ -17,7 +17,8 @@ CREATE TABLE user_project (
 
 
 
-
+INSERT INTO "users" (username, first_name,last_name,status, created_at, updated_at)
+VALUES ('admin', 'AdminName','AdminLastname', 'ACTIVE',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP);
 
 INSERT INTO project (name, description, status, created_at, updated_at, visibility)
     VALUES ('test_project', 'test project description', 'ACTIVE',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP, 'OPEN'),

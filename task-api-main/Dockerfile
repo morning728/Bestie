@@ -1,6 +1,6 @@
 FROM openjdk:17
 
-EXPOSE 54321
+EXPOSE 8085
 
 RUN mkdir /app
 

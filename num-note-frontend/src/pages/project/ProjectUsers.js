@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faHeart, faHeartBroken, faCat,faCircleUser } from '@fortawesome/free-solid-svg-icons';
+import { faTimes, faHeart, faHeartBroken, faCat, faCircleUser, faReply } from '@fortawesome/free-solid-svg-icons';
 import { doOrdinaryRequest } from '../../jwtLogic/SecurityFunctions.ts';
 //import '../../styles/projectUsers/mainPageStyle.css';
 
@@ -106,7 +106,13 @@ const ProjectUsers = () => {
         <div className="container" style={{ minHeight: "90vh" }}>
             <h2 className="text-center" style={{ color: "#34d0ba" }}>Пользователи проекта</h2>
             <div className="row justify-content-between align-items-center mb-2">
-                <p className="col-auto" style={{ color: "#aaa" }}>Проект: {project.name}</p>
+                <div className="col-auto" style={{ display: "flex", alignItems: "center" }}>
+                    <p className="col-auto" style={{ color: "#aaa" }}>Проект: {project.name}</p>
+
+                    <span className="input-group-text" style={{ backgroundColor: "transparent", border: "none", cursor: "pointer", color: "red" }} onClick={() => { navigate(`/projects/${id}`) }}>
+                        <FontAwesomeIcon icon={faReply} style={{ fontSize: "1em", marginBottom: ".7rem" }} />
+                    </span>
+                </div>
                 <div className="col-auto">
                     <div className="input-group" style={{ position: "relative" }}>
                         <input
@@ -127,7 +133,7 @@ const ProjectUsers = () => {
                         />
                         {searchTerm !== "" ? (
                             <div style={{ display: "flex", alignItems: "center" }}>
-                                <span className="input-group-text" style={{ backgroundColor: "transparent", border: "none", cursor: "pointer", color: "#34d0ba" }} onClick={() => {handleSearchWithData("");setSearchTerm("");}}>
+                                <span className="input-group-text" style={{ backgroundColor: "transparent", border: "none", cursor: "pointer", color: "#34d0ba" }} onClick={() => { handleSearchWithData(""); setSearchTerm(""); }}>
                                     <FontAwesomeIcon icon={faTimes} style={{ fontSize: "1.35em" }} />
                                 </span>
                             </div>

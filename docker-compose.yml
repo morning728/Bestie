@@ -2,7 +2,7 @@ version: '3'
 services:
   security:
     container_name: security
-    image: morning728/security:0.0.1
+    image: morning728/task-security:0.0.1
     restart: always
     ports:
       - 9898:9898
@@ -11,37 +11,43 @@ services:
     healthcheck:
       test: "exit 0"
     environment:
-      - spring.datasource.url=jdbc:postgresql://postgre:5432/postgres?serverTimezone=UTC
-      - spring.liquibase.url=jdbc:postgresql://postgre:5432/postgres?serverTimezone=UTC
+      - spring.datasource.url=jdbc:postgresql://postgre-security:5432/security?serverTimezone=UTC
+      - spring.liquibase.url=jdbc:postgresql://postgre-security:5432/security?serverTimezone=UTC
       - eureka.client.service-url.defaultZone=http://eureka-server:8761/eureka
+      - application.task-api.db-url=jdbc:postgresql://postgre-main:5432/task_api_db?serverTimezone=UTC
     depends_on:
-      - postgre
-  numapi:
-    container_name: numapi
-    image: morning728/numapi:0.0.1
+      - postgre-security
+      - postgre-main
+  task-api:
+    container_name: task-api
+    image: morning728/task-api-main:0.0.1
     ports:
-      - 54321:54321
+      - 8085:8085
     restart: always
     networks:
       - app-network
     healthcheck:
       test: "exit 0"
     environment:
-      - spring.datasource.url=jdbc:postgresql://postgre:5432/postgres?serverTimezone=UTC
-      - spring.liquibase.url=jdbc:postgresql://postgre:5432/postgres?serverTimezone=UTC
+      - spring.r2dbc.url=r2dbc:pool:postgres://postgre-main:5432/task_api_db
+      - spring.flyway.url=jdbc:postgresql://postgre-main:5432/task_api_db
+      - application.security.userInfoPath=http://127.0.0.1:8080/api/api/v1/users/info
+      - application.security.db=jdbc:postgresql://postgre-security:5432/security?serverTimezone=UTC
       - eureka.client.service-url.defaultZone=http://eureka-server:8761/eureka
     depends_on:
-      - postgre
-  postgre:
-    image: postgres:14
+      - postgre-security
+      - postgre-main
+  postgre-security:
+    container_name: postgre-security
+    image: postgres:16-alpine
     environment:
-      POSTGRES_DB: "postgres"
+      POSTGRES_DB: "security"
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "root"
       PGDATA: "/var/lib/postgresql/data/pgdata"
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data/pgdata
-      - ./data/initdb:/docker-entrypoint-initdb.d
+      - ./data_security/postgres:/var/lib/postgresql/data/pgdata
+      - ./data_security/initdb:/docker-entrypoint-initdb.d
     ports:
       - "5432:5432"
     networks:
@@ -53,9 +59,31 @@ services:
       retries: 7
       start_period: 12s
     restart: unless-stopped
+  postgre-main:
+    container_name: postgre-main
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: "task_api_db"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "root"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - ./data_main/postgres:/var/lib/postgresql/data/pgdata
+      - ./data_main/initdb:/docker-entrypoint-initdb.d
+    ports:
+      - "5433:5432"
+    networks:
+      - app-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
+      interval: 15s
+      timeout: 10s
+      retries: 7
+      start_period: 12s
+    restart: unless-stopped
   gateway:
     container_name: gateway
-    image: morning728/api-gateway:0.0.1
+    image: morning728/task-gateway:0.0.1
     ports:
       - 8765:8765
     restart: always
@@ -69,7 +97,7 @@ services:
       - spring.cloud.gateway.globalcors.cors-configurations.[/**].allowedOrigins=*
   eureka-server:
     container_name: eureka-server
-    image: morning728/eureka-server:0.0.1
+    image: morning728/task-eureka:0.0.1
     ports:
       - 8761:8761
     restart: always
@@ -81,7 +109,7 @@ services:
       - eureka.client.service-url.defaultZone=http://eureka-server:8761/eureka
   frontend:
     container_name: frontend
-    image: morning728/frontend:0.0.1
+    image: morning728/task-frontend:0.0.1
     stdin_open: true
     ports:
       - 3000:3000

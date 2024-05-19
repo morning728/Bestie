@@ -25,5 +25,5 @@ application:
     jwt:
       secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
     db: jdbc:postgresql://localhost:5432/security?serverTimezone=UTC
-    userInfoPath: http://localhost:9898/api/v1/users/info
+    userInfoPath: http://localhost:9898/security/v1/users/info
 

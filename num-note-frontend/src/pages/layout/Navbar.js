@@ -15,7 +15,7 @@ export default function Navbar() {
     return (
         <nav className="navbar navbar-dark bg-dark navbar-container">
             <div className="container">
-                <a className="navbar-brand" href="/">MyApp</a>
+                <a className="navbar-brand" href="/">Bestie</a>
                 <div style={{display:'flex'}}>
                     <Link to="/" className="btn btn-primary btn-sm nav-link">Profile</Link>
                     <Link to="/projects" className="btn btn-primary btn-sm nav-link">Projects</Link>

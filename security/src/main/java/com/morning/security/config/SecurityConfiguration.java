@@ -57,10 +57,10 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(req ->
                         req.requestMatchers(WHITE_LIST_URL)
                                 .permitAll()
-                                .requestMatchers("/api/v1/validate/user").hasAnyRole(ADMIN.name(), MANAGER.name(), USER.name())
-                                .requestMatchers("/api/v1/validate/manager").hasAnyRole(ADMIN.name(), MANAGER.name())
-                                .requestMatchers("/api/v1/validate/admin").hasAnyRole(ADMIN.name())
-                                .requestMatchers("/api/v1/users/info").hasAnyRole(ADMIN.name(), MANAGER.name(), USER.name())
+                                .requestMatchers("/security/v1/validate/user").hasAnyRole(ADMIN.name(), MANAGER.name(), USER.name())
+                                .requestMatchers("/security/v1/validate/manager").hasAnyRole(ADMIN.name(), MANAGER.name())
+                                .requestMatchers("/security/v1/validate/admin").hasAnyRole(ADMIN.name())
+                                .requestMatchers("/security/v1/users/**").hasAnyRole(ADMIN.name(), MANAGER.name(), USER.name())
 /*
                                 .requestMatchers(GET, "/api/v1/management/**").hasAnyAuthority(ADMIN_READ.name(), MANAGER_READ.name())
                                 .requestMatchers(POST, "/api/v1/management/**").hasAnyAuthority(ADMIN_CREATE.name(), MANAGER_CREATE.name())

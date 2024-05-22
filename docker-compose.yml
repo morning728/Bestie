@@ -2,7 +2,7 @@ version: '3'
 services:
   security:
     container_name: security
-    image: morning728/task-security:0.0.1
+    image: morning728/task-security:0.0.2
     restart: always
     ports:
       - 9898:9898
@@ -20,7 +20,7 @@ services:
       - postgre-main
   task-api:
     container_name: task-api
-    image: morning728/task-api-main:0.0.1
+    image: morning728/task-api-main:0.0.2
     ports:
       - 8085:8085
     restart: always
@@ -31,7 +31,7 @@ services:
     environment:
       - spring.r2dbc.url=r2dbc:pool:postgres://postgre-main:5432/task_api_db
       - spring.flyway.url=jdbc:postgresql://postgre-main:5432/task_api_db
-      - application.security.userInfoPath=http://127.0.0.1:8080/api/api/v1/users/info
+      - application.security.userInfoPath=http://security:9898/security/v1/users/info
       - application.security.db=jdbc:postgresql://postgre-security:5432/security?serverTimezone=UTC
       - eureka.client.service-url.defaultZone=http://eureka-server:8761/eureka
     depends_on:
@@ -109,7 +109,7 @@ services:
       - eureka.client.service-url.defaultZone=http://eureka-server:8761/eureka
   frontend:
     container_name: frontend
-    image: morning728/task-frontend:0.0.1
+    image: morning728/task-frontend:0.0.2
     stdin_open: true
     ports:
       - 3000:3000
@@ -127,7 +127,7 @@ services:
     restart: always
     networks:
       - app-network
-    # image: morning728/nginx-for-note:0.0.1
+    # image: morning728/nginx-for-tracker:0.0.1
     build:
       context: ./nginx
       dockerfile: Dockerfile

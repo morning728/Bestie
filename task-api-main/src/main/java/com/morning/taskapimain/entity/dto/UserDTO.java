@@ -14,6 +14,7 @@ public class UserDTO {
     private String firstName;
     private String lastName;
     private String status;
+    private Boolean isManager;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

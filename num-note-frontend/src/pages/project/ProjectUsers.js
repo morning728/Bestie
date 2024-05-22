@@ -16,7 +16,8 @@ const ProjectUsers = () => {
         visibility: ""
     });
     const [me, setMe] = useState({
-        username: ""
+        username: "",
+        is_manager: false
     });
     const [searchResults, setSearchResults] = useState([]);
     const navigate = useNavigate();
@@ -39,7 +40,7 @@ const ProjectUsers = () => {
     };
     const loadMe = async () => {
         try {
-            const response = await doOrdinaryRequest(`${mainURL}/api/v1/users/me`, null, 'get');
+            const response = await doOrdinaryRequest(`${mainURL}/api/v1/users/me?isManager=${id}`, null, 'get');
             setMe(response.data);
         } catch (error) {
             handleErrors(error);
@@ -178,12 +179,12 @@ const ProjectUsers = () => {
                                 {user.username === me.username ? (
                                     <FontAwesomeIcon icon={faCircleUser} style={{ color: "orange" }} />
                                 ) : (
-                                    <FontAwesomeIcon icon={faHeartBroken} style={{ color: "red" }} onClick={() => handleRemoveUserFromProject(user.id)} />
+                                    me.is_manager && <FontAwesomeIcon icon={faHeartBroken} style={{ color: "red" }} onClick={() => handleRemoveUserFromProject(user.id)} />
                                 )}
                             </td>
                             <td>{user.username}</td>
-                            <td>{user.first_name}</td>
-                            <td>{user.last_name}</td>
+                            <td>{user.firstName}</td>
+                            <td>{user.lastName}</td>
                         </tr>
                     ))}
                 </tbody>

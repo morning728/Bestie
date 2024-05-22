@@ -51,7 +51,7 @@ public class ProjectService{
     DELETE FROM public.user_project WHERE project_id = %s AND user_id = %s
     """;
     private static final String INSERT_PROJECT_USER_QUERY =     """
-    INSERT INTO public.user_project (project_id, user_id) VALUES (%s, %s)
+    INSERT INTO public.user_project (project_id, user_id, role) VALUES (%s, %s, 'MANAGER')
     """;
 
 //    """
@@ -66,7 +66,7 @@ public class ProjectService{
 //            """;
 
     /*Проверяет, является ли запрашивающий юзер участником проекта*/
-    public Mono<Boolean> isOwnerOfProjectOrError(Long projectId, String token){
+    public Mono<Boolean> isParticipantOfProjectOrError(Long projectId, String token){
         String username = jwtService.extractUsername(token);
         String query = String.format("%s WHERE users.username = '%s' AND p.id = %s", SELECT_QUERY, username, projectId);
         return client.sql(query)
@@ -76,6 +76,24 @@ public class ProjectService{
                 .defaultIfEmpty(Project.defaultIfEmpty())
                 .flatMap(project -> project.isEmpty() ?
                         Mono.error(new AccessException("You are not owner of project!")) :
+                        Mono.just(true));
+    }
+
+    public Mono<Boolean> isManagerOfProject(Long projectId, String token){
+        String username = jwtService.extractUsername(token);
+        String query = String.format(
+                "%s WHERE users.username = '%s' AND p.id = %s AND user_project.role = 'MANAGER'",
+                SELECT_QUERY,
+                username,
+                projectId
+        );
+        return client.sql(query)
+                .fetch()
+                .first()
+                .flatMap(Project::fromMap)
+                .defaultIfEmpty(Project.defaultIfEmpty())
+                .flatMap(project -> project.isEmpty() ?
+                        Mono.just(false) :
                         Mono.just(true));
     }
 
@@ -208,17 +226,17 @@ public class ProjectService{
 
     public Mono<Field> addField(FieldDTO dto, String token){ /////////////////////////////////////test
         String username = jwtService.extractUsername(token);
-        return isOwnerOfProjectOrError(dto.getProjectId(), token)
+        return isParticipantOfProjectOrError(dto.getProjectId(), token)
                 .then(fieldRepository.save(dto.map()));
     }
 
         public Mono<Field> updateField(FieldDTO dto, String token){
-        isOwnerOfProjectOrError(dto.getProjectId(), token);
+        isParticipantOfProjectOrError(dto.getProjectId(), token);
         return fieldRepository.findById(dto.getId())
                 .defaultIfEmpty(Field.defaultIfEmpty())
                 .flatMap(field -> {
                     if(!field.isEmpty()){
-                        return isOwnerOfProjectOrError(dto.getProjectId(), token)
+                        return isParticipantOfProjectOrError(dto.getProjectId(), token)
                                 .then(fieldRepository.save(dto.map()));
                     }
                     return Mono.error(new NotFoundException("Field was not found!"));
@@ -230,7 +248,7 @@ public class ProjectService{
             .defaultIfEmpty(Field.defaultIfEmpty())
             .flatMap(field -> {
                 if(!field.isEmpty()){
-                    return isOwnerOfProjectOrError(field.getProjectId(), token)
+                    return isParticipantOfProjectOrError(field.getProjectId(), token)
                             .then(fieldRepository.deleteById(fieldId));
                 }
                 return Mono.error(new NotFoundException("Field was not found!"));
@@ -250,7 +268,7 @@ public class ProjectService{
 
     public Flux<User> addUserToProject(Long projectId, Long userId, String token) {
         String query =  String.format(ADD_USER_TO_PROJECT, projectId, userId);
-        return isOwnerOfProjectOrError(projectId, token).thenMany(
+        return isParticipantOfProjectOrError(projectId, token).thenMany(
                 client.sql(query)
                         .fetch()
                         .first()
@@ -261,7 +279,7 @@ public class ProjectService{
 
     public Flux<User> deleteUserFromProject(Long projectId, Long userId, String token) {
         String query =  String.format(DELETE_USER_FROM_PROJECT, projectId, userId);
-        return isOwnerOfProjectOrError(projectId, token).thenMany(
+        return isParticipantOfProjectOrError(projectId, token).thenMany(
                 client.sql(query)
                         .fetch()
                         .first()

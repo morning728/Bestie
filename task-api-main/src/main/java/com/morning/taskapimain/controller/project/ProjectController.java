@@ -118,6 +118,7 @@ public class ProjectController {
         return projectService.findUsersByProjectId(projectId, token);
     }
 
+
     @PostMapping("/{id}/users")
     public Flux<User> addUserToProject(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
                                       @PathVariable(value = "id") Long projectId,

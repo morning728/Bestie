@@ -2,7 +2,7 @@ CREATE TABLE field (
     id  SERIAL PRIMARY KEY,
     name   VARCHAR(64)   NOT NULL,
     project_id INT,
-    FOREIGN KEY (project_id) REFERENCES project(id)
+    FOREIGN KEY (project_id) REFERENCES project(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE task (
@@ -14,6 +14,6 @@ CREATE TABLE task (
     updated_at TIMESTAMP,
     project_id INT,
     field_id INT,
-    FOREIGN KEY (project_id) REFERENCES project(id),
-    FOREIGN KEY (field_id) REFERENCES field(id)
+    FOREIGN KEY (project_id) REFERENCES project(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (field_id) REFERENCES field(id) ON UPDATE CASCADE ON DELETE CASCADE
 );

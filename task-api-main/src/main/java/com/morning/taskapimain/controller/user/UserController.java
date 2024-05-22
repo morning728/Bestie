@@ -4,6 +4,7 @@ import com.morning.taskapimain.entity.User;
 import com.morning.taskapimain.entity.dto.ProfileDTO;
 import com.morning.taskapimain.entity.dto.ProjectDTO;
 import com.morning.taskapimain.entity.dto.UserDTO;
+import com.morning.taskapimain.exception.annotation.CrudExceptionHandler;
 import com.morning.taskapimain.mapper.ProjectMapper;
 import com.morning.taskapimain.mapper.UserMapper;
 import com.morning.taskapimain.service.ProjectService;
@@ -20,6 +21,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
+@CrudExceptionHandler
 public class UserController {
     private final UserService userService;
     private final ProjectService projectService;
@@ -35,8 +37,11 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public Mono<UserDTO> getUserByUsernameContains(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token){
-        return userService.getUserByToken(token).map(userMapper::map);
+    public Mono<UserDTO> getMeByToken(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+                                                   @RequestParam(required = false, name = "isManager") Long projectId){
+        return projectId == null ?
+                userService.getUserByToken(token).map(userMapper::map) :
+                userService.getUserByTokenWithCheckingIsManager(token, projectId);
     }
 
     @GetMapping("/projects")

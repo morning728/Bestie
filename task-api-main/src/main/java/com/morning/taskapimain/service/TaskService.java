@@ -1,9 +1,7 @@
 package com.morning.taskapimain.service;
 
-import com.morning.taskapimain.entity.Project;
 import com.morning.taskapimain.entity.Task;
 import com.morning.taskapimain.entity.dto.TaskDTO;
-import com.morning.taskapimain.exception.AccessException;
 import com.morning.taskapimain.exception.BadRequestException;
 import com.morning.taskapimain.exception.NotFoundException;
 import com.morning.taskapimain.repository.TaskRepository;
@@ -14,7 +12,6 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 
 @Service
@@ -122,7 +119,7 @@ public class TaskService {
             }
             return Mono.error(new AccessException("U r not project owner!"));
         });*/
-        return projectService.isOwnerOfProjectOrError(dto.getProjectId(), token)
+        return projectService.isParticipantOfProjectOrError(dto.getProjectId(), token)
                 .flatMap(hasAccess -> projectService.isFieldBelongsToProject(dto.getFieldId(), dto.getProjectId())
                         .flatMap(belongs ->{
                             if(belongs){
@@ -159,7 +156,7 @@ public class TaskService {
             }
             return Mono.error(new NotFoundException("Task was not found!"));
         });*/
-        return projectService.isOwnerOfProjectOrError(dto.getProjectId(), token)
+        return projectService.isParticipantOfProjectOrError(dto.getProjectId(), token)
                 .then(
                         projectService.isFieldBelongsToProject(dto.getFieldId(), dto.getProjectId())
                                 .flatMap(belongs -> {

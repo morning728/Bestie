@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams,Link } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { doOrdinaryRequest } from '../../jwtLogic/SecurityFunctions.ts';
 import '../../styles/mainProjectPage.css';
 //import '../../styles/insideProject/mainForMenu.css';
@@ -160,7 +160,7 @@ const MainProjectPage = () => {
                     <div className="project-description">{project.description}</div>
                 </div>
                 <ul>
-                
+
                     <li><a href="#1">Основная информация</a></li>
                     <li><Link to={`/projects/${id}/users`} className="">Участники</Link></li>
                 </ul>
@@ -229,6 +229,15 @@ const MainProjectPage = () => {
                                 value={editedTask.description}
                                 onChange={handleEditTaskChange}
                                 className='task-description'
+                            />
+                        </p>
+                        <p>
+                            <input
+                                type="datetime-local"
+                                name="finish_date"
+                                value={editedTask.finish_date.substring(0, 16)}
+                                onChange={handleEditTaskChange}
+                                className='task-finish-date'
                             />
                         </p>
                         <p>Created At: {selectedTask.created_at}</p>

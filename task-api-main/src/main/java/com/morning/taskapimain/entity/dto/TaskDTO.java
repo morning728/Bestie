@@ -18,6 +18,7 @@ public class TaskDTO extends Task{
         return Task.builder()
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
+                .finishDate(LocalDateTime.now().plusHours(24))
                 .name(this.getName())
                 .description(this.getDescription())
                 .projectId(this.getProjectId())

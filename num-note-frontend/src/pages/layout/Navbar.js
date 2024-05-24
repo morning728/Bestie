@@ -17,7 +17,7 @@ export default function Navbar() {
             <div className="container">
                 <a className="navbar-brand" href="/">Bestie</a>
                 <div style={{display:'flex'}}>
-                    <Link to="/" className="btn btn-primary btn-sm nav-link">Profile</Link>
+                    <Link to="/profile" className="btn btn-primary btn-sm nav-link">Profile</Link>
                     <Link to="/projects" className="btn btn-primary btn-sm nav-link">Projects</Link>
                     <button className="btn btn-primary btn-sm logout-button" onClick={() => logout()}>Logout</button>
                 </div>

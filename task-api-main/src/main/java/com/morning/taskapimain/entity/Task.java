@@ -33,6 +33,7 @@ public class Task {
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime finishDate;
     private Long projectId;
     private Long fieldId;
 
@@ -52,6 +53,7 @@ public class Task {
 
     public <T extends Task> Task toUpdate(T from){
         this.setId(from.getId());
+        this.setFinishDate(from.getFinishDate() == null ? getFinishDate() : from.getFinishDate());
         this.setUpdatedAt(LocalDateTime.now());
         this.setCreatedAt(from.getCreatedAt() == null ? getCreatedAt() : from.getCreatedAt());
         this.setName(from.getName() == null ? name : from.getName());

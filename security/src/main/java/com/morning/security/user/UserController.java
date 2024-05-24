@@ -24,6 +24,7 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
+
     @GetMapping("/info")
     public ResponseEntity<?> getProfileInfo(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
         return new ResponseEntity(service.getUserInfo(token), HttpStatusCode.valueOf(200));

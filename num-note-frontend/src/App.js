@@ -15,6 +15,7 @@ import Footer from './pages/layout/Footer';
 import MainProjectPage from './pages/project/MainProjectPage';
 import ProjectUsers from './pages/project/ProjectUsers';
 import Projects from './pages/project/Projects';
+import Main from './pages/main/Main';
 
 
 function App() {
@@ -30,6 +31,8 @@ function App() {
         {/* <p>API_URL: {mainURL}</p> */}
         <Navbar />
         <Routes>
+          <Route exact path="/" element={<Main />} />
+
           <Route exact path="/projects" element={<Projects />} />
           <Route exact path="/projects/:id" element={<MainProjectPage />} />
           <Route exact path="/projects/:id/users" element={<ProjectUsers />} />
@@ -40,7 +43,7 @@ function App() {
 
           <Route exact path="/error" element={<DefaultError />} />
 
-          <Route exact path="/" element={<Profile />} />
+          <Route exact path="/profile" element={<Profile />} />
           <Route exact path="/registration" element={<Registration />} />
           <Route exact path="/login" element={<Login />} />
         </Routes>

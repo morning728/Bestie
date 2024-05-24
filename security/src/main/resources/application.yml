@@ -15,6 +15,22 @@ spring:
         format_sql: true
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+  mail:
+    properties:
+      mail:
+        transport:
+          smtp:
+            auth: true
+            starttls:
+              enable: true
+              required: true
+            ssl:
+              enable: true
+          protocol: smtp
+    host: smtp.yandex.ru
+    port: 465
+    username: matveygrom2017@yandex.ru
+    password: psajdfm43
   liquibase:
     change-log: classpath:liquibase/db.changelog-master.xml
     url: jdbc:postgresql://localhost:5432/security?serverTimezone=UTC

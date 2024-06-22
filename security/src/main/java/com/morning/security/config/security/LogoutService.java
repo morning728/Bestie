@@ -1,4 +1,4 @@
-package com.morning.security.config;
+package com.morning.security.config.security;
 
 import com.morning.security.token.TokenRepository;
 import jakarta.servlet.http.HttpServletRequest;

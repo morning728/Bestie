@@ -1,4 +1,4 @@
-package com.morning.security.config;
+package com.morning.security.config.security;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;

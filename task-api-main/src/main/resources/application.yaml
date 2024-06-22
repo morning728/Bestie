@@ -5,6 +5,8 @@ spring:
     url: r2dbc:pool:postgres://localhost:5432/task_api_db
     username: postgres
     password: root
+  kafka:
+    bootstrap-servers: localhost:9092
   flyway:
     url: jdbc:postgresql://localhost:5432/task_api_db
     locations: classpath:db/migration

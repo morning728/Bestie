@@ -1,5 +1,6 @@
-package com.morning.security.config;
+package com.morning.security.config.security;
 
+import com.morning.security.config.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,19 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 
-import static com.morning.security.user.Permission.ADMIN_CREATE;
-import static com.morning.security.user.Permission.ADMIN_DELETE;
-import static com.morning.security.user.Permission.ADMIN_READ;
-import static com.morning.security.user.Permission.ADMIN_UPDATE;
-import static com.morning.security.user.Permission.MANAGER_CREATE;
-import static com.morning.security.user.Permission.MANAGER_DELETE;
-import static com.morning.security.user.Permission.MANAGER_READ;
-import static com.morning.security.user.Permission.MANAGER_UPDATE;
 import static com.morning.security.user.Role.*;
-import static org.springframework.http.HttpMethod.DELETE;
-import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.POST;
-import static org.springframework.http.HttpMethod.PUT;
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
 
 @Configuration

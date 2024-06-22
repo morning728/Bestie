@@ -17,6 +17,11 @@
                   <project path="$PROJECT_DIR$/eureka-server" />
                 </projects>
               </build>
+              <build path="$PROJECT_DIR$/mail-notification" name="mail-notification">
+                <projects>
+                  <project path="$PROJECT_DIR$/mail-notification" />
+                </projects>
+              </build>
               <build path="$PROJECT_DIR$/security" name="security">
                 <projects>
                   <project path="$PROJECT_DIR$/security" />
@@ -37,6 +42,7 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/api-gateway" />
             <option value="$PROJECT_DIR$/eureka-server" />
+            <option value="$PROJECT_DIR$/mail-notification" />
             <option value="$PROJECT_DIR$/security" />
             <option value="$PROJECT_DIR$/task-api-main" />
           </set>
@@ -57,6 +63,15 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$/eureka-server" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/mail-notification" />
+        <option name="gradleJvm" value="#JAVA_HOME" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/mail-notification" />
           </set>
         </option>
       </GradleProjectSettings>

@@ -33,19 +33,25 @@ export default function Projects() {
             const response = await doOrdinaryRequest(`${mainURL}/api/v1/projects`, null, "get");// await axios.get(`${mainURL}/api/v1/projects?search=${searchTerm}`);
             setProjects(response.data);
         } catch (error) {
-            if(error.response.status !== 404){
+            //if(error.response.status !== 404){
+                setProjects([]);//TEMP
                 handleErrors(error);
-            }
+            //}
             
         }
     };
 
-    const handleErrors = (error) => {
+    const handleErrors = (error) => { //TEMP
         if (error.response && error.response.status === 401) {
             navigate("/login");
-        } else {
+        }
+        if(error.response && error.response.status === 404){
+            return;
+        }
+        if(error.response) {
             navigate("/error", { state: { errorMessage: error.response.data.message != null ?  error.response.data.message :  error.message}});
         }
+        navigate("/login");
     };
 
     const deleteProject = async (id) => {
@@ -188,7 +194,7 @@ export default function Projects() {
                             <button type="button" className="btn btn-primary" onClick={updateProject} style={{ backgroundColor: "#34d0ba", border: "none" }}>Update Project</button>)}
                     </form>
                 </div>
-                <div className="col-md-6">
+                {/* <div className="col-md-6"> //TEMP
                     <form onSubmit={searchProjects} className="mb-4">
                         <h2 style={{ color: "#34d0ba" }}>Search Projects</h2>
                         <div className="input-group">
@@ -202,7 +208,7 @@ export default function Projects() {
                             <button className="btn btn-primary" type="submit" style={{ backgroundColor: "#34d0ba", border: "none" }}>Search</button>
                         </div>
                     </form>
-                </div>
+                </div> */}
             </div>
             <div className="table-responsive">
                 <table className="table table-dark table-striped">

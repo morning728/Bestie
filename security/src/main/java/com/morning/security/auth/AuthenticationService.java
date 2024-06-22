@@ -1,10 +1,12 @@
 package com.morning.security.auth;
 
-import com.morning.security.config.JwtService;
+import com.morning.security.config.security.JwtEmailService;
+import com.morning.security.config.security.JwtService;
+
+import com.morning.security.emailSender.KafkaMailProducer;
 import com.morning.security.token.Token;
 import com.morning.security.token.TokenRepository;
 import com.morning.security.token.TokenType;
-import com.morning.security.user.Role;
 import com.morning.security.user.User;
 import com.morning.security.user.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,10 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -38,6 +37,8 @@ public class AuthenticationService {
   private final PasswordEncoder passwordEncoder;
   private final JwtService jwtService;
   private final AuthenticationManager authenticationManager;
+  private final JwtEmailService jwtEmailService;
+  private final KafkaMailProducer kafkaMailProducer;
 
   @Value("${application.task-api.db-url}")
   private String dbUrl;
@@ -48,9 +49,10 @@ public class AuthenticationService {
         .email(request.getEmail())
         .password(passwordEncoder.encode(request.getPassword()))
         .role(request.getRole())
+        .verified(false)
         .build();
     var savedUser = repository.save(user);
-
+    kafkaMailProducer.sendMailNotification(request.getUsername(), request.getEmail());
     Connection connection = DriverManager.getConnection(dbUrl,
             "postgres", "root");
     String insertQuery = "INSERT INTO \"users\" (username, created_at, updated_at, status ) VALUES (?, ?, ?, ?)";
@@ -143,5 +145,19 @@ public class AuthenticationService {
         new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
       }
     }
+  }
+
+  public void verifyEmail(String token, String data){
+    token = token.substring(7);
+    Map<String, String> claims = new HashMap<>();
+    claims.put("email", "pochta@mail.ru");
+    String testToken = jwtEmailService.buildEmailVerificationToken(claims, jwtService.extractUsername(token), 640000L);
+    if(jwtEmailService.isTokenValid(testToken, jwtService.extractUsername(token)) &&
+    jwtEmailService.extractEmail(testToken).equals("pochta@mail.ru")){
+      System.out.println("URAAAAAAAA");
+    } else {
+      System.out.println("Not uraaa");
+    }
+
   }
 }

@@ -1,4 +1,4 @@
-package com.morning.security.config;
+package com.morning.security.config.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -66,6 +66,7 @@ public class JwtService {
             .compact();
   }
 
+
   public boolean isTokenValid(String token, UserDetails userDetails) {
     final String username = extractUsername(token);
     return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
@@ -92,4 +93,5 @@ public class JwtService {
     byte[] keyBytes = Decoders.BASE64.decode(secretKey);
     return Keys.hmacShaKeyFor(keyBytes);
   }
+
 }

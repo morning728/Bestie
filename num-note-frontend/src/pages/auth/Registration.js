@@ -37,7 +37,7 @@ export default function Registration() {
             navigate("/");
         } catch (error) {
             // Обработка ошибок
-            navigate("/error", { state: { errorMessage: error.response.data.message != null ?  error.response.data.message :  error.message}});
+            navigate("/error", { state: { errorMessage: "Such user already exists!"}});
         }
     };
 

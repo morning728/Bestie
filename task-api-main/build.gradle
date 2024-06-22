@@ -42,11 +42,13 @@ dependencies {
 	implementation "javax.xml.bind:jaxb-api:$jaxbApiVersion"
 	implementation 'org.projectlombok:lombok:1.18.30'
 
+	implementation 'org.springframework.kafka:spring-kafka'
+
 	compileOnly('org.projectlombok:lombok')
 	annotationProcessor "org.projectlombok:lombok"
 	annotationProcessor "org.mapstruct:mapstruct-processor:$mapStructVersion"
 
-
+	testImplementation 'org.springframework.kafka:spring-kafka-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'io.projectreactor:reactor-test'
 }

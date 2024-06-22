@@ -2,7 +2,7 @@ version: '3'
 services:
   security:
     container_name: security
-    image: morning728/task-security:0.0.2
+    image: morning728/task-security:0.0.3
     restart: always
     ports:
       - 9898:9898
@@ -20,7 +20,7 @@ services:
       - postgre-main
   task-api:
     container_name: task-api
-    image: morning728/task-api-main:0.0.2
+    image: morning728/task-api-main:0.0.3
     ports:
       - 8085:8085
     restart: always
@@ -109,7 +109,7 @@ services:
       - eureka.client.service-url.defaultZone=http://eureka-server:8761/eureka
   frontend:
     container_name: frontend
-    image: morning728/task-frontend:0.0.2
+    image: morning728/task-frontend:0.0.3
     stdin_open: true
     ports:
       - 3000:3000

@@ -13,8 +13,8 @@ public class VerificationController {
     @GetMapping("/verify-email")
     public void verifyEmail(
             @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
-                            @RequestParam(name = "data") String data
+                            @RequestParam(name = "data") String emailToken
     ){
-        service.verifyEmail(token, data);
+        service.verifyEmail(token, emailToken);
     }
 }

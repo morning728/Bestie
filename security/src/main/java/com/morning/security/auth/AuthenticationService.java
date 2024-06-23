@@ -28,6 +28,7 @@ import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -147,13 +148,12 @@ public class AuthenticationService {
     }
   }
 
-  public void verifyEmail(String token, String data){
+  public void verifyEmail(String token, String emailToken){
+    User user = repository.findByUsername(jwtService.extractUsername(token)).orElseThrow();
+
     token = token.substring(7);
-    Map<String, String> claims = new HashMap<>();
-    claims.put("email", "pochta@mail.ru");
-    String testToken = jwtEmailService.buildEmailVerificationToken(claims, jwtService.extractUsername(token), 640000L);
-    if(jwtEmailService.isTokenValid(testToken, jwtService.extractUsername(token)) &&
-    jwtEmailService.extractEmail(testToken).equals("pochta@mail.ru")){
+    if(jwtEmailService.isTokenValid(emailToken, jwtService.extractUsername(token)) &&
+      jwtEmailService.extractEmail(emailToken).equals(user.getEmail())){
       System.out.println("URAAAAAAAA");
     } else {
       System.out.println("Not uraaa");

@@ -149,12 +149,13 @@ public class AuthenticationService {
   }
 
   public void verifyEmail(String token, String emailToken){
+    token = token.substring(7);
     User user = repository.findByUsername(jwtService.extractUsername(token)).orElseThrow();
 
-    token = token.substring(7);
     if(jwtEmailService.isTokenValid(emailToken, jwtService.extractUsername(token)) &&
       jwtEmailService.extractEmail(emailToken).equals(user.getEmail())){
-      System.out.println("URAAAAAAAA");
+      user.setVerified(true);
+      repository.save(user);
     } else {
       System.out.println("Not uraaa");
     }

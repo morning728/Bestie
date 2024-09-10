@@ -5,4 +5,5 @@ includeBuild 'task-api-main'
 includeBuild 'api-gateway'
 includeBuild 'security'
 includeBuild 'mail-notification'
+includeBuild 'open-request-handler'
 

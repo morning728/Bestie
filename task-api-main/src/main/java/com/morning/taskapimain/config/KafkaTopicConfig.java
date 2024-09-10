@@ -7,9 +7,9 @@ import org.springframework.kafka.config.TopicBuilder;
 
 @Configuration
 public class KafkaTopicConfig {
-//    @Bean
-//    public NewTopic confirmationTopic(){
-//        return TopicBuilder.name("mail-verification-topic")
-//                .build();
-//    }
+    @Bean
+    public NewTopic participantsEditTopic(){
+        return TopicBuilder.name("participants-edit-topic")
+                .build();
+    }
 }

@@ -38,10 +38,10 @@ public class UserController {
 
     @GetMapping("/me")
     public Mono<UserDTO> getMeByToken(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
-                                                   @RequestParam(required = false, name = "isManager") Long projectId){
+                                                   @RequestParam(required = false, name = "with-role") Long projectId){
         return projectId == null ?
                 userService.getUserByToken(token).map(userMapper::map) :
-                userService.getUserByTokenWithCheckingIsManager(token, projectId);
+                userService.getUserWithRoleByToken(token, projectId);
     }
 
     @GetMapping("/projects")

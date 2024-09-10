@@ -24,11 +24,19 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-
     @GetMapping("/info")
-    public ResponseEntity<?> getProfileInfo(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
-        return new ResponseEntity(service.getUserInfo(token), HttpStatusCode.valueOf(200));
+    public ResponseEntity<?> getProfileInfoByUsername(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+                                                      @RequestParam(name = "username", required = false) String username) {
+        return username != null ?
+                new ResponseEntity(service.getUserInfoByUsername(username), HttpStatusCode.valueOf(200)) :
+                new ResponseEntity(service.getUserInfoByToken(token), HttpStatusCode.valueOf(200));
     }
+
+/*    @GetMapping("/info")
+    public ResponseEntity<?> getProfileInfo(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
+        return new ResponseEntity(service.getUserInfoByToken(token), HttpStatusCode.valueOf(200));
+    }*/
+
 
     @PutMapping("/info")
     public ResponseEntity<?> updateProfileInfo(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,

@@ -38,12 +38,11 @@ public class UserService {
         repository.save(user);
     }
 
-    public ProfileInfoDTO getUserInfo(String token){
-        User user = repository.findByUsername(jwtService.extractUsername(token.substring(7))).get();
-        if(user == null){
-            log.error(String.format("User (%s) was not found", jwtService.extractUsername(token)));
-            throw new RuntimeException(String.format("User (%s) was not found", jwtService.extractUsername(token)));
-        }
+    public ProfileInfoDTO getUserInfoByToken(String token){
+        return getUserInfoByUsername(jwtService.extractUsername(token.substring(7)));
+    }
+    public ProfileInfoDTO getUserInfoByUsername(String username){
+        User user = repository.findByUsername(username).orElseThrow(() -> {throw new RuntimeException(String.format("User (%s) was not found",username));});
         return ProfileInfoDTO.builder()
                 .telegramId(user.getTelegramId())
                 .email(user.getEmail())

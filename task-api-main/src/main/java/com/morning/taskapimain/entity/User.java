@@ -39,7 +39,7 @@ public class User {
         return "********";
     }
 
-    public static Mono<User> fromMap(Map<String, Object> map){
+    public static Mono<User> monoFromMap(Map<String, Object> map){
         return Mono.just(User
                 .builder()
                 .id(Long.valueOf(map.get("id").toString()))
@@ -51,7 +51,18 @@ public class User {
                 .lastName((String) map.get("last_name"))
                 .build());
     }
-
+    public static User fromMap(Map<String, Object> map){
+        return User
+                .builder()
+                .id(Long.valueOf(map.get("id").toString()))
+                .username((String) map.get("username"))
+                .createdAt((LocalDateTime) map.get("created_at"))
+                .updatedAt((LocalDateTime) map.get("updated_at"))
+                .status((String) map.get("status"))
+                .firstName((String) map.get("first_name"))
+                .lastName((String) map.get("last_name"))
+                .build();
+    }
     public static User defaultIfEmpty(){
         return User
                 .builder()

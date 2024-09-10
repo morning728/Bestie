@@ -22,6 +22,11 @@
                   <project path="$PROJECT_DIR$/mail-notification" />
                 </projects>
               </build>
+              <build path="$PROJECT_DIR$/open-request-handler" name="open-request-handler">
+                <projects>
+                  <project path="$PROJECT_DIR$/open-request-handler" />
+                </projects>
+              </build>
               <build path="$PROJECT_DIR$/security" name="security">
                 <projects>
                   <project path="$PROJECT_DIR$/security" />
@@ -43,6 +48,7 @@
             <option value="$PROJECT_DIR$/api-gateway" />
             <option value="$PROJECT_DIR$/eureka-server" />
             <option value="$PROJECT_DIR$/mail-notification" />
+            <option value="$PROJECT_DIR$/open-request-handler" />
             <option value="$PROJECT_DIR$/security" />
             <option value="$PROJECT_DIR$/task-api-main" />
           </set>
@@ -81,6 +87,15 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$/numApi" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/open-request-handler" />
+        <option name="gradleJvm" value="#JAVA_HOME" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/open-request-handler" />
           </set>
         </option>
       </GradleProjectSettings>

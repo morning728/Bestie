@@ -28,6 +28,13 @@ spring:
           filters:
             - AuthenticationFilter
 
+        - id: open-request-handler
+          uri: lb://OPEN-REQUEST-HANDLER
+          predicates:
+            - Path=/request-handler/**
+#          filters:
+#            - AuthenticationFilter
+
 
       globalcors:
         cors-configurations:

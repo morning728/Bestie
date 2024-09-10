@@ -4,10 +4,7 @@ import com.morning.taskapimain.entity.Field;
 import com.morning.taskapimain.entity.Project;
 import com.morning.taskapimain.entity.Task;
 import com.morning.taskapimain.entity.User;
-import com.morning.taskapimain.entity.dto.FieldDTO;
-import com.morning.taskapimain.entity.dto.ProjectDTO;
-import com.morning.taskapimain.entity.dto.TaskDTO;
-import com.morning.taskapimain.entity.dto.UserProjectsRequest;
+import com.morning.taskapimain.entity.dto.*;
 import com.morning.taskapimain.exception.BadRequestException;
 import com.morning.taskapimain.exception.annotation.AccessExceptionHandler;
 import com.morning.taskapimain.exception.annotation.BadRequestExceptionHandler;
@@ -113,21 +110,21 @@ public class ProjectController {
 
 
     @GetMapping("/{id}/users")
-    public Flux<User> getProjectUsers(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
-                                      @PathVariable(value = "id") Long projectId){
+    public Flux<UserDTO> getProjectUsers(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+                                         @PathVariable(value = "id") Long projectId){
         return projectService.findUsersByProjectId(projectId, token);
     }
 
 
     @PostMapping("/{id}/users")
-    public Flux<User> addUserToProject(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+    public Mono<Void> inviteUserToProject(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
                                       @PathVariable(value = "id") Long projectId,
-                                      @RequestParam(name = "user_id", required = true) Long userId){
-        return projectService.addUserToProject(projectId, userId, token);
+                                      @RequestParam(name = "username", required = true) String username){
+        return projectService.inviteUserToProject(projectId, username, token);
     }
 
     @DeleteMapping("/{id}/users")
-    public Flux<User> deleteUserFromProject(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+    public Flux<UserDTO> deleteUserFromProject(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
                                       @PathVariable(value = "id") Long projectId,
                                       @RequestParam(name = "user_id", required = true) Long userId){
         return projectService.deleteUserFromProject(projectId, userId, token);

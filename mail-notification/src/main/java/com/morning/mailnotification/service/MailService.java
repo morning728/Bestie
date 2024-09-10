@@ -16,13 +16,18 @@ public class MailService {
     private String from;
     @Value("${application.link-to-verify}")
     private String pathToVerify;
+    @Value("${application.link-to-accept-invitation-to-project}")
+    private String pathToAcceptAnInvitationToProject;
 
     private final JavaMailSender mailSender;
     private final JwtEmailService jwtEmailService;
 
-    private final String verifyEmailPostfix = "/verify-email?data=";
+    private final String verifyEmailPostfix = "/verify?data=";
+    private final String acceptInvitationPostfix = "/accept-invitation?data=";
     private final String VERIFICATION_SUBJECT = "Verification from Bestie!";
     private final String VERIFICATION_BODY = "Please, click on link if you are %s: %s";
+    private final String ACCEPTION_TO_PROJECT_SUBJECT = "You have been invited to project!";
+    private final String ACCEPTION_TO_PROJECT_BODY = "%s, You have been invited to project by %s, if you want to join, click: %s";
 
     public void sendVerificationMail(Map<String, String> data){
         String username = data.get("username");
@@ -31,12 +36,28 @@ public class MailService {
         Map<String, String> claims = new HashMap<>();
         claims.put("email", email);
 
-        String token = jwtEmailService.buildEmailVerificationToken(claims, username);
+        String token = jwtEmailService.buildEmailToken(claims, username);
 
         String linkToVerify = pathToVerify.concat(verifyEmailPostfix).concat(token);
 
         String mailBody = String.format(VERIFICATION_BODY, username, linkToVerify);
         send(email, VERIFICATION_SUBJECT, mailBody);
+    }
+
+    public void sendInviteToProject(Map<String, String> data){
+        String username = data.get("username");
+        String email = data.get("email");
+        String from = data.get("from");
+
+        Map<String, String> claims = new HashMap<>();
+        claims.put("projectId", data.get("projectId"));
+
+        String token = jwtEmailService.buildEmailToken(claims, username);
+
+        String linkToAccept = pathToAcceptAnInvitationToProject.concat(acceptInvitationPostfix).concat(token);
+
+        String mailBody = String.format(ACCEPTION_TO_PROJECT_BODY, username, from, linkToAccept);
+        send(email, ACCEPTION_TO_PROJECT_SUBJECT, mailBody);
     }
 
 

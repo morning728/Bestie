@@ -33,6 +33,25 @@ public class KafkaListeners {
             log.error(e.toString());
         }
     }
+    @KafkaListener(
+            topics = "participants-edit-topic",
+            groupId = "participants-edit"
+    )
+    void editorParticipantsListener(String data){
+        Map<String, String> event = null;
+        try {
+            event = objectMapper.readValue(data, Map.class);
+            switch(event.get("action")){
+                case "INVITE_TO_PROJECT":{
+                    mailService.sendInviteToProject(event);
+                    break;
+                }
+            }
+        } catch(Exception e){
+            log.error(e.toString());
+        }
+    }
+
 
 //    @KafkaListener(
 //            topics = "notification",

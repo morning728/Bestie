@@ -18,7 +18,7 @@ public class JwtEmailService {
     @Value("${application.security.jwt.expiration-email-key}")
     private long jwtEmailExpiration;
 
-    public String buildEmailVerificationToken(
+    public String buildEmailToken(
             Map<String, String> extraClaims,
             String username
     ) {

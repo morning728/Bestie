@@ -5,15 +5,18 @@ import com.morning.taskapimain.entity.Project;
 import com.morning.taskapimain.entity.User;
 import com.morning.taskapimain.entity.dto.FieldDTO;
 import com.morning.taskapimain.entity.dto.ProjectDTO;
+import com.morning.taskapimain.entity.dto.UserDTO;
 import com.morning.taskapimain.exception.AccessException;
 import com.morning.taskapimain.exception.BadRequestException;
 import com.morning.taskapimain.exception.NotFoundException;
 import com.morning.taskapimain.mapper.ProjectMapper;
 import com.morning.taskapimain.repository.FieldRepository;
 import com.morning.taskapimain.repository.ProjectRepository;
+import com.morning.taskapimain.service.kafka.KafkaNotificationService;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -29,6 +32,8 @@ public class ProjectService{
     private final FieldRepository fieldRepository;
     private final UserService userService;
     private final JwtService jwtService;
+    private final JwtEmailService jwtEmailService;
+    private final KafkaNotificationService kafkaNotificationService;
     private final ProjectMapper projectMapper;
 
     private static final String SELECT_QUERY =     """
@@ -38,7 +43,7 @@ public class ProjectService{
     """;
 
     private static final String SELECT_USERS_BY_PROJECT_ID_QUERY =     """
-    select users.id, users.username, users.first_name,users.last_name, users.status, users.created_at, users.updated_at
+    select users.id, users.username, users.first_name,users.last_name, users.status, users.created_at, users.updated_at, user_project.role
      from project  as p
     join user_project on p.id=user_project.project_id
     join users on user_project.user_id=users.id
@@ -51,7 +56,7 @@ public class ProjectService{
     DELETE FROM public.user_project WHERE project_id = %s AND user_id = %s
     """;
     private static final String INSERT_PROJECT_USER_QUERY =     """
-    INSERT INTO public.user_project (project_id, user_id, role) VALUES (%s, %s, 'MANAGER')
+    INSERT INTO public.user_project (project_id, user_id, role) VALUES (%s, %s, 'ADMIN')
     """;
 
 //    """
@@ -79,7 +84,7 @@ public class ProjectService{
                         Mono.just(true));
     }
 
-    public Mono<Boolean> isManagerOfProject(Long projectId, String token){
+    public Mono<Boolean> isManagerOfProjectOrError(Long projectId, String token){
         String username = jwtService.extractUsername(token);
         String query = String.format(
                 "%s WHERE users.username = '%s' AND p.id = %s AND user_project.role = 'MANAGER'",
@@ -93,7 +98,24 @@ public class ProjectService{
                 .flatMap(Project::fromMap)
                 .defaultIfEmpty(Project.defaultIfEmpty())
                 .flatMap(project -> project.isEmpty() ?
-                        Mono.just(false) :
+                        Mono.error(new AccessException("You are not manager of project!")) :
+                        Mono.just(true));
+    }
+    public Mono<Boolean> isAdminOfProjectOrError(Long projectId, String token){
+        String username = jwtService.extractUsername(token);
+        String query = String.format(
+                "%s WHERE users.username = '%s' AND p.id = %s AND user_project.role = 'ADMIN'",
+                SELECT_QUERY,
+                username,
+                projectId
+        );
+        return client.sql(query)
+                .fetch()
+                .first()
+                .flatMap(Project::fromMap)
+                .defaultIfEmpty(Project.defaultIfEmpty())
+                .flatMap(project -> project.isEmpty() ?
+                        Mono.error(new AccessException("You are not admin of project!")) :
                         Mono.just(true));
     }
 
@@ -255,29 +277,63 @@ public class ProjectService{
             });
     }
 
-    public Flux<User> findUsersByProjectId(Long projectId, String token){
+    public Flux<UserDTO> findUsersByProjectId(Long projectId, String token){
         String query =  String.format("%s WHERE p.id = '%s' order by users.id", SELECT_USERS_BY_PROJECT_ID_QUERY, projectId);
         return hasAccessToProjectOrError(projectId, token)
                 .thenMany(
                     client.sql(query)
                             .fetch()
                             .all()
-                            .flatMap(User::fromMap)
+                            .flatMap(stringObjectMap -> {
+                                User user = User.fromMap(stringObjectMap);
+                                UserDTO dto = UserDTO.fromUser(user);
+                                dto.setRole((String) stringObjectMap.get("role"));
+                                return Mono.just(dto);
+                            })
                 );
     }
+    public Flux<Object> addUserToProjectByAcceptationToken(String acceptationToken){
+        Long projectId = jwtEmailService.extractProjectId(acceptationToken);
+        String username = jwtEmailService.extractUsername(acceptationToken);
+        return addUserToProject(projectId, username);
+    }
+    public Flux<Object> addUserToProject(Long projectId, String username) {
+        //String query =  String.format(ADD_USER_TO_PROJECT, projectId, userId);
 
-    public Flux<User> addUserToProject(Long projectId, Long userId, String token) {
-        String query =  String.format(ADD_USER_TO_PROJECT, projectId, userId);
-        return isParticipantOfProjectOrError(projectId, token).thenMany(
-                client.sql(query)
+        return userService.findUserByUsername(username)
+            .defaultIfEmpty(User.defaultIfEmpty())
+            .flatMap(user -> {
+                if(user.isEmpty()){
+                    return Mono.error(new NotFoundException("User you want to add does not exist!"));
+                }
+                return  Mono.just(user.getId());
+            })
+            .flatMapMany(userId ->{
+                return client.sql(String.format(ADD_USER_TO_PROJECT, projectId, userId))
                         .fetch()
                         .first()
                         .onErrorResume(e -> Mono.error(new BadRequestException("Bad Request!")))
-                        .thenMany(findUsersByProjectId(projectId, token))
+                        .flatMap(stringObjectMap -> {
+                            return Mono.just(null);
+                        });
+            });
+
+    }
+    public Mono<Void> inviteUserToProject(Long projectId, String toUsername, String token) {
+        //String query =  String.format(ADD_USER_TO_PROJECT, projectId, userId);
+
+        String fromUsername = jwtService.extractUsername(token);
+
+
+        return isAdminOfProjectOrError(projectId, token).then(
+                userService.findProfileByUsername(toUsername, token)
+                        .flatMap(profileDTO -> {
+                            return kafkaNotificationService.sendInviteToProject(projectId,fromUsername, profileDTO.getUsername(), profileDTO.getEmail());
+                        })
         );
     }
 
-    public Flux<User> deleteUserFromProject(Long projectId, Long userId, String token) {
+    public Flux<UserDTO> deleteUserFromProject(Long projectId, Long userId, String token) {
         String query =  String.format(DELETE_USER_FROM_PROJECT, projectId, userId);
         return isParticipantOfProjectOrError(projectId, token).thenMany(
                 client.sql(query)

@@ -17,7 +17,7 @@ const ProjectUsers = () => {
     });
     const [me, setMe] = useState({
         username: "",
-        is_manager: false
+        role: ""
     });
     const [searchResults, setSearchResults] = useState([]);
     const navigate = useNavigate();
@@ -40,7 +40,7 @@ const ProjectUsers = () => {
     };
     const loadMe = async () => {
         try {
-            const response = await doOrdinaryRequest(`${mainURL}/api/v1/users/me?isManager=${id}`, null, 'get');
+            const response = await doOrdinaryRequest(`${mainURL}/api/v1/users/me?with-role=${id}`, null, 'get');
             setMe(response.data);
         } catch (error) {
             handleErrors(error);
@@ -85,11 +85,11 @@ const ProjectUsers = () => {
             navigate("/error", { state: { errorMessage: error.response.data.message != null ? error.response.data.message : error.message } });
         }
     };
-    const handleAddToProject = async (userId) => {
+    const handleAddToProject = async (username) => {
         http://localhost:8085/api/v1/projects/38/users?user_id=3
         try {
-            const response = await doOrdinaryRequest(`${mainURL}/api/v1/projects/${id}/users?user_id=${userId}`, null, 'post');
-            setUsers(response.data);
+            const response = await doOrdinaryRequest(`${mainURL}/api/v1/projects/${id}/users?username=${username}`, null, 'post');
+            //setUsers(response.data);
         } catch (error) {
             handleErrors(error);
         }
@@ -155,7 +155,7 @@ const ProjectUsers = () => {
                                         {users.find(u => u.id === user.id) ? (
                                             <span className="badge badge-success" style={{ fontWeight: "bold", color: "#34d0ba" }}>✓</span>
                                         ) : (
-                                            <button style={{ paddingTop: "0.2rem", paddingBottom: "0.2rem", paddingLeft: "0.4rem", paddingRight: "0.4rem", fontSize: "0.65rem" }} className="btn btn-sm btn-outline-primary" onMouseEnter={(e) => e.target.style.backgroundColor = "#34d0ba"} onMouseLeave={(e) => e.target.style.backgroundColor = "transparent"} onClick={() => handleAddToProject(user.id)}>+</button>)}
+                                            <button style={{ paddingTop: "0.2rem", paddingBottom: "0.2rem", paddingLeft: "0.4rem", paddingRight: "0.4rem", fontSize: "0.65rem" }} className="btn btn-sm btn-outline-primary" onMouseEnter={(e) => e.target.style.backgroundColor = "#34d0ba"} onMouseLeave={(e) => e.target.style.backgroundColor = "transparent"} onClick={() => handleAddToProject(user.username)}>+</button>)}
                                     </li>
                                 ))}
                             </ul>
@@ -170,6 +170,7 @@ const ProjectUsers = () => {
                         <th scope="col">Username</th>
                         <th scope="col">First Name</th>
                         <th scope="col">Last Name</th>
+                        <th scope="col">Role</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -179,12 +180,13 @@ const ProjectUsers = () => {
                                 {user.username === me.username ? (
                                     <FontAwesomeIcon icon={faCircleUser} style={{ color: "orange" }} />
                                 ) : (
-                                    me.is_manager && <FontAwesomeIcon icon={faHeartBroken} style={{ color: "red" }} onClick={() => handleRemoveUserFromProject(user.id)} />
+                                    me.role === "ADMIN" && <FontAwesomeIcon icon={faHeartBroken} style={{ color: "red" }} onClick={() => handleRemoveUserFromProject(user.id)} />
                                 )}
                             </td>
                             <td>{user.username}</td>
                             <td>{user.firstName}</td>
                             <td>{user.lastName}</td>
+                            <td>{user.role}</td>
                         </tr>
                     ))}
                 </tbody>

@@ -126,7 +126,7 @@ public class ProjectController {
     @DeleteMapping("/{id}/users")
     public Flux<UserDTO> deleteUserFromProject(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
                                       @PathVariable(value = "id") Long projectId,
-                                      @RequestParam(name = "user_id", required = true) Long userId){
-        return projectService.deleteUserFromProject(projectId, userId, token);
+                                      @RequestParam(name = "username", required = true) String username){
+        return projectService.deleteUserFromProject(projectId, username, token);
     }
 }

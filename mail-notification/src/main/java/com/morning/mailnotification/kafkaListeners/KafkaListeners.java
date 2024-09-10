@@ -46,6 +46,10 @@ public class KafkaListeners {
                     mailService.sendInviteToProject(event);
                     break;
                 }
+                case "DELETE_FROM_PROJECT":{
+                    mailService.sendDeleteNotification(event);
+                    break;
+                }
             }
         } catch(Exception e){
             log.error(e.toString());

@@ -4,6 +4,7 @@ import com.morning.taskapimain.entity.Field;
 import com.morning.taskapimain.entity.Project;
 import com.morning.taskapimain.entity.User;
 import com.morning.taskapimain.entity.dto.FieldDTO;
+import com.morning.taskapimain.entity.dto.ProfileDTO;
 import com.morning.taskapimain.entity.dto.ProjectDTO;
 import com.morning.taskapimain.entity.dto.UserDTO;
 import com.morning.taskapimain.exception.AccessException;
@@ -333,15 +334,23 @@ public class ProjectService{
         );
     }
 
-    public Flux<UserDTO> deleteUserFromProject(Long projectId, Long userId, String token) {
-        String query =  String.format(DELETE_USER_FROM_PROJECT, projectId, userId);
-        return isParticipantOfProjectOrError(projectId, token).thenMany(
-                client.sql(query)
-                        .fetch()
-                        .first()
-                        .onErrorResume(e -> Mono.error(new BadRequestException("Bad Request!")))
-                        .thenMany(findUsersByProjectId(projectId, token))
+    public Flux<UserDTO> deleteUserFromProject(Long projectId, String usernameTo, String token) {
+        String from = jwtService.extractUsername(token);
+        Mono<String> projectName = projectRepository.findById(projectId).flatMap(project -> Mono.just(project.getName()));
+        Mono<ProfileDTO> toProfile = userService.findProfileByUsername(usernameTo, token);
+        Mono.zip(projectName, toProfile).subscribe(result -> {
+            kafkaNotificationService.sendDeleteNotification(result.getT1(), from, result.getT2().getUsername(), result.getT2().getEmail());
+            String query =  String.format(DELETE_USER_FROM_PROJECT, projectId, result.getT2().getId());
+            isAdminOfProjectOrError(projectId, token).thenMany(
+                    client.sql(query)
+                            .fetch()
+                            .first()
+                            .onErrorResume(e -> Mono.error(new BadRequestException("Bad Request!"))))
+                            .subscribe(stringObjectMap -> System.out.println(stringObjectMap));
+                }
         );
+        return findUsersByProjectId(projectId, token);
+
     }
 
 }

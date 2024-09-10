@@ -94,9 +94,9 @@ const ProjectUsers = () => {
             handleErrors(error);
         }
     };
-    const handleRemoveUserFromProject = async (userId) => {
+    const handleRemoveUserFromProject = async (username) => {
         try {
-            const response = await doOrdinaryRequest(`${mainURL}/api/v1/projects/${id}/users?user_id=${userId}`, null, 'delete');
+            const response = await doOrdinaryRequest(`${mainURL}/api/v1/projects/${id}/users?username=${username}`, null, 'delete');
             setUsers(response.data);
         } catch (error) {
             handleErrors(error);
@@ -180,7 +180,7 @@ const ProjectUsers = () => {
                                 {user.username === me.username ? (
                                     <FontAwesomeIcon icon={faCircleUser} style={{ color: "orange" }} />
                                 ) : (
-                                    me.role === "ADMIN" && <FontAwesomeIcon icon={faHeartBroken} style={{ color: "red" }} onClick={() => handleRemoveUserFromProject(user.id)} />
+                                    me.role === "ADMIN" && <FontAwesomeIcon icon={faHeartBroken} style={{ color: "red" }} onClick={() => handleRemoveUserFromProject(user.username)} />
                                 )}
                             </td>
                             <td>{user.username}</td>

@@ -28,6 +28,8 @@ public class MailService {
     private final String VERIFICATION_BODY = "Please, click on link if you are %s: %s";
     private final String ACCEPTION_TO_PROJECT_SUBJECT = "You have been invited to project!";
     private final String ACCEPTION_TO_PROJECT_BODY = "%s, You have been invited to project by %s, if you want to join, click: %s";
+    private final String DELETE_FROM_PROJECT_BODY = "%s, You have been deleted from project <<%s>> by %s!";
+    private final String DELETE_FROM_PROJECT_SUBJECT = "You have been deleted from project!";
 
     public void sendVerificationMail(Map<String, String> data){
         String username = data.get("username");
@@ -58,6 +60,16 @@ public class MailService {
 
         String mailBody = String.format(ACCEPTION_TO_PROJECT_BODY, username, from, linkToAccept);
         send(email, ACCEPTION_TO_PROJECT_SUBJECT, mailBody);
+    }
+
+    public void sendDeleteNotification(Map<String, String> data){
+        String username = data.get("username");
+        String email = data.get("email");
+        String from = data.get("from");
+        String projectName = data.get("projectName");
+
+        String mailBody = String.format(DELETE_FROM_PROJECT_BODY, username, projectName, from);
+        send(email, DELETE_FROM_PROJECT_SUBJECT, mailBody);
     }
 
 

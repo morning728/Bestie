@@ -37,4 +37,21 @@ public class KafkaNotificationService {
         }
         return Mono.empty();
     }
+
+    public Mono<Void> sendDeleteNotification(String projectName, String fromUsername, String toUsername, String toEmail){
+        try{
+            Map<String, String> event = new HashMap<>();
+            event.put("username", toUsername);
+            event.put("email", toEmail);
+            event.put("from", fromUsername);
+            event.put("projectName", projectName);
+            event.put("action", "DELETE_FROM_PROJECT");
+            String eventAsString = objectMapper.writeValueAsString(event);
+            kafkaTemplate.send(new ProducerRecord<>("participants-edit-topic", eventAsString));
+        } catch (JsonProcessingException e){
+            log.error("Kafka exception: " + e.toString());
+            return Mono.error(new KafkaException("ERROR: Kafka cant do it right now"));
+        }
+        return Mono.empty();
+    }
 }

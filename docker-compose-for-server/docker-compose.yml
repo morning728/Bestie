@@ -1,0 +1,138 @@
+version: '3'
+services:
+  security:
+    container_name: security
+    image: morning728/task-security:0.0.3
+    restart: always
+    ports:
+      - 9898:9898
+    networks:
+      - app-network
+    healthcheck:
+      test: "exit 0"
+    environment:
+      - spring.datasource.url=jdbc:postgresql://postgre-security:5432/security?serverTimezone=UTC
+      - spring.liquibase.url=jdbc:postgresql://postgre-security:5432/security?serverTimezone=UTC
+      - eureka.client.service-url.defaultZone=http://eureka-server:8761/eureka
+      - application.task-api.db-url=jdbc:postgresql://postgre-main:5432/task_api_db?serverTimezone=UTC
+    depends_on:
+      - postgre-security
+      - postgre-main
+  task-api:
+    container_name: task-api
+    image: morning728/task-api-main:0.0.3
+    ports:
+      - 8085:8085
+    restart: always
+    networks:
+      - app-network
+    healthcheck:
+      test: "exit 0"
+    environment:
+      - spring.r2dbc.url=r2dbc:pool:postgres://postgre-main:5432/task_api_db
+      - spring.flyway.url=jdbc:postgresql://postgre-main:5432/task_api_db
+      - application.security.userInfoPath=http://2.59.40.164:8080/api/security/v1/users/info
+      - application.security.db=jdbc:postgresql://postgre-security:5432/security?serverTimezone=UTC
+      - eureka.client.service-url.defaultZone=http://eureka-server:8761/eureka
+    depends_on:
+      - postgre-security
+      - postgre-main
+  postgre-security:
+    container_name: postgre-security
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: "security"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "root"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - ./data_security/postgres:/var/lib/postgresql/data/pgdata
+      - ./data_security/initdb:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 15s
+      timeout: 10s
+      retries: 7
+      start_period: 12s
+    restart: unless-stopped
+  postgre-main:
+    container_name: postgre-main
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: "task_api_db"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "root"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    volumes:
+      - ./data_main/postgres:/var/lib/postgresql/data/pgdata
+      - ./data_main/initdb:/docker-entrypoint-initdb.d
+    ports:
+      - "5433:5432"
+    networks:
+      - app-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d postgres" ]
+      interval: 15s
+      timeout: 10s
+      retries: 7
+      start_period: 12s
+    restart: unless-stopped
+  gateway:
+    container_name: gateway
+    image: morning728/task-gateway:0.0.1
+    ports:
+      - 8765:8765
+    restart: always
+    networks:
+      - app-network
+    healthcheck:
+      test: "exit 0"
+    environment:
+      - eureka.client.service-url.defaultZone=http://eureka-server:8761/eureka
+      - services.path.security-validate-user=http://security:9898/security/v1/validate/user
+      - spring.cloud.gateway.globalcors.cors-configurations.[/**].allowedOrigins=*
+  eureka-server:
+    container_name: eureka-server
+    image: morning728/task-eureka:0.0.1
+    ports:
+      - 8761:8761
+    restart: always
+    networks:
+      - app-network
+    healthcheck:
+      test: "exit 0"
+    environment:
+      - eureka.client.service-url.defaultZone=http://eureka-server:8761/eureka
+  frontend:
+    container_name: frontend
+    image: morning728/task-frontend:0.0.3
+    stdin_open: true
+    ports:
+      - 3000:3000
+    restart: always
+    networks:
+      - app-network
+    healthcheck:
+      test: "exit 0"
+    environment:
+      - REACT_APP_API_URL=http://2.59.40.164:8080/api
+  nginx:
+    depends_on:
+      - gateway
+      - frontend
+    restart: always
+    networks:
+      - app-network
+    # image: morning728/nginx-for-tracker:0.0.1
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+networks:
+  app-network:
+    driver: bridge

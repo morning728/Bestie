@@ -50,6 +50,13 @@ public class ProjectService{
     join users on user_project.user_id=users.id
     """;
 
+    private static final String SELECT_ROLE_BY_PROJECT_ID_QUERY =     """
+    select user_project.role
+     from project  as p
+    join user_project on p.id=user_project.project_id
+    join users on user_project.user_id=users.id
+    """;
+
     private static final String ADD_USER_TO_PROJECT =     """
     INSERT INTO public.user_project (project_id, user_id) VALUES (%s, %s)
     """;
@@ -58,6 +65,10 @@ public class ProjectService{
     """;
     private static final String INSERT_PROJECT_USER_QUERY =     """
     INSERT INTO public.user_project (project_id, user_id, role) VALUES (%s, %s, 'ADMIN')
+    """;
+
+    private static final String CHANGE_USER_ROLE =     """
+    UPDATE public.user_project SET role = '%s' WHERE project_id = %s AND user_id = %s
     """;
 
 //    """
@@ -347,10 +358,26 @@ public class ProjectService{
                             .first()
                             .onErrorResume(e -> Mono.error(new BadRequestException("Bad Request!"))))
                             .subscribe(stringObjectMap -> System.out.println(stringObjectMap));
-                }
+        }
         );
         return findUsersByProjectId(projectId, token);
+    }
 
+    public Mono<Void> changeUserRole(Long projectId, String username, String newRole, String token){
+        Mono<Boolean> isAdmin = isAdminOfProjectOrError(projectId, token);
+        Mono<Long> userId = userService.findUserByUsername(username).flatMap(user -> Mono.just(user.getId()));
+
+        Mono.zip(isAdmin, userId)
+                .subscribe(result -> {
+                    if(result.getT1()){
+                        String query =  String.format(CHANGE_USER_ROLE, newRole, projectId, result.getT2());
+                        client.sql(query)
+                                .fetch()
+                                .first()
+                                .onErrorResume(e -> Mono.error(new BadRequestException("Bad Request!")));
+                    }
+                });
+        return null;
     }
 
 }

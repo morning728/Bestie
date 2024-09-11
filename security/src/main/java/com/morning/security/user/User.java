@@ -30,6 +30,7 @@ public class User implements UserDetails {
   private String email;
   private String password;
   private String telegramId;
+  private Boolean verified;
 
   @Enumerated(EnumType.STRING)
   private Role role;

@@ -11,9 +11,14 @@ CREATE TABLE user_project (
       project_id INT,
       user_id   INT,
       PRIMARY KEY (project_id, user_id),
-      FOREIGN KEY (project_id) REFERENCES project(id),
-      FOREIGN KEY (user_id) REFERENCES users(id)
+      FOREIGN KEY (project_id) REFERENCES project(id) ON UPDATE CASCADE ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
+
+
+
+INSERT INTO "users" (username, first_name,last_name,status, created_at, updated_at)
+VALUES ('admin', 'AdminName','AdminLastname', 'ACTIVE',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP);
 
 INSERT INTO project (name, description, status, created_at, updated_at, visibility)
     VALUES ('test_project', 'test project description', 'ACTIVE',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP, 'OPEN'),

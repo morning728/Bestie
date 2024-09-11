@@ -1,0 +1,45 @@
+server:
+  port: 8086
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/task_api_db?serverTimezone=UTC
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  kafka:
+    bootstrap-servers: localhost:9092
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
+  application:
+    name: OPEN-REQUEST-HANDLER
+  main:
+    allow-bean-definition-overriding: true
+eureka:
+  client:
+    service-url:
+      defaultZone : http://localhost:8761/eureka
+application:
+  security:
+    jwt:
+      expiration-email-key: 36000000 # an 10 hour
+      secret-email-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5971
+    database:
+      security-db:
+        url: jdbc:postgresql://localhost:5432/security?serverTimezone=UTC
+        username: postgres
+        password: root
+      task-api-main-db:
+        url: jdbc:postgresql://localhost:5432/task_api_db?serverTimezone=UTC
+        username: postgres
+        password: root

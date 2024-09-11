@@ -1,6 +1,6 @@
 package com.morning.security.user;
 
-import com.morning.security.config.JwtService;
+import com.morning.security.config.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -8,7 +8,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +17,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository repository;
     private final JwtService jwtService;
+    public void create(User user){}
     public void changePassword(ChangePasswordRequest request, Principal connectedUser) {
 
         var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
@@ -38,12 +38,11 @@ public class UserService {
         repository.save(user);
     }
 
-    public ProfileInfoDTO getUserInfo(String token){
-        User user = repository.findByUsername(jwtService.extractUsername(token.substring(7))).get();
-        if(user == null){
-            log.error(String.format("User (%s) was not found", jwtService.extractUsername(token)));
-            throw new RuntimeException(String.format("User (%s) was not found", jwtService.extractUsername(token)));
-        }
+    public ProfileInfoDTO getUserInfoByToken(String token){
+        return getUserInfoByUsername(jwtService.extractUsername(token.substring(7)));
+    }
+    public ProfileInfoDTO getUserInfoByUsername(String username){
+        User user = repository.findByUsername(username).orElseThrow(() -> {throw new RuntimeException(String.format("User (%s) was not found",username));});
         return ProfileInfoDTO.builder()
                 .telegramId(user.getTelegramId())
                 .email(user.getEmail())

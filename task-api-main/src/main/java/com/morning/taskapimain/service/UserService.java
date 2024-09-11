@@ -2,8 +2,12 @@ package com.morning.taskapimain.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.morning.taskapimain.entity.Project;
 import com.morning.taskapimain.entity.User;
 import com.morning.taskapimain.entity.dto.ProfileDTO;
+import com.morning.taskapimain.entity.dto.UserDTO;
+import com.morning.taskapimain.exception.NotFoundException;
+import com.morning.taskapimain.mapper.UserMapper;
 import com.morning.taskapimain.repository.UserRepository;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -14,9 +18,11 @@ import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,10 +34,16 @@ public class UserService {
     private final RestTemplate template;
     private final JwtService jwtService;
     private final DatabaseClient client;
+    private final UserMapper userMapper;
     @Value("${application.security.userInfoPath}")
     private String userInfoPath;
     private static final String SELECT_QUERY =     """
     select u.id, u.username, u.first_name,u.last_name, u.status, u.created_at, u.updated_at from users  as u
+    """;
+    private static final String SELECT_USER_ROLE_IN_PROJECT =     """
+    select user_project.role from project as p
+    join user_project on p.id=user_project.project_id
+    join users on user_project.user_id=users.id
     """;
 
     public Mono<User> findUserById(Long id) {
@@ -43,10 +55,95 @@ public class UserService {
         return client.sql(query)
                 .fetch()
                 .first()
-                .flatMap(User::fromMap);
+                .flatMap(User::monoFromMap);
     }
 
-    public Mono<ProfileDTO> findProfileByUsername(String token){
+    public Flux<User> findUsersByUsernameContains(String substring){
+        return userRepository.findUserByUsernameContainsIgnoreCase(substring)
+                .sort(Comparator.comparingInt(o -> o.getUsername().length()));
+    }
+
+    public Mono<Boolean> isManagerOfProject(Long projectId, String token){
+        String username = jwtService.extractUsername(token);
+        String query = String.format(
+                "%s WHERE users.username = '%s' AND p.id = %s",
+                SELECT_USER_ROLE_IN_PROJECT,
+                username,
+                projectId
+        );
+        return client.sql(query)
+                .fetch()
+                .first()
+                .flatMap(stringObjectMap -> Mono.just(stringObjectMap.get("role").toString()))
+                .defaultIfEmpty("null")
+                .flatMap(role -> role == "null" ?
+                        Mono.error(new NotFoundException("Such user was not found in this project at all!")) :
+                        Mono.just(role.equals("MANAGER")));
+    }
+
+    public Mono<Boolean> isAdminOfProject(Long projectId, String token){
+        String username = jwtService.extractUsername(token);
+        String query = String.format(
+                "%s WHERE users.username = '%s' AND p.id = %s",
+                SELECT_USER_ROLE_IN_PROJECT,
+                username,
+                projectId
+        );
+        return client.sql(query)
+                .fetch()
+                .first()
+                .flatMap(stringObjectMap -> Mono.just(stringObjectMap.get("role").toString()))
+                .defaultIfEmpty("null")
+                .flatMap(role -> role == "null" ?
+                        Mono.error(new NotFoundException("Such user was not found in this project at all!")) :
+                        Mono.just(role.equals("ADMIN")));
+    }
+
+    public Mono<String> findRoleInProjectByToken(Long projectId, String token){
+        String username = jwtService.extractUsername(token);
+        String query = String.format(
+                "%s WHERE users.username = '%s' AND p.id = %s",
+                SELECT_USER_ROLE_IN_PROJECT,
+                username,
+                projectId
+        );
+        return client.sql(query)
+                .fetch()
+                .first()
+                .flatMap(stringObjectMap -> Mono.just(stringObjectMap.get("role").toString()))
+                .defaultIfEmpty("null")
+                .flatMap(role -> role == "null" ?
+                        Mono.error(new NotFoundException("Such user was not found in this project at all!")) :
+                        Mono.just(role));
+    }
+
+    public Mono<User> getUserByToken(String token){
+        return userRepository.findByUsername(jwtService.extractUsername(token))
+                .defaultIfEmpty(User.defaultIfEmpty())
+                .onErrorReturn(User.defaultIfEmpty())
+                .flatMap(user -> {
+                    if(!user.isEmpty()){
+                        return Mono.just(user);
+                    }
+                    return Mono.error(new NotFoundException("User was not found!"));
+                });
+    }
+    public Mono<UserDTO> getUserWithRoleByToken(String token, Long projectId){
+        return userRepository.findByUsername(jwtService.extractUsername(token))
+                .defaultIfEmpty(User.defaultIfEmpty())
+                .onErrorReturn(User.defaultIfEmpty())
+                .flatMap(user -> {
+                    if(!user.isEmpty()){
+                        return findRoleInProjectByToken(projectId, token).flatMap(s ->{
+                            UserDTO dto = UserDTO.fromUser(user);
+                            dto.setRole(s);
+                            return Mono.just(dto);
+                        });
+                    }
+                    return Mono.error(new NotFoundException("User was not found!"));
+                });
+    }
+    public Mono<ProfileDTO> findProfileByToken(String token){
         String username = jwtService.extractUsername(token);
         ResponseEntity<String> profileInfo;
         try {
@@ -56,6 +153,7 @@ public class UserService {
                     HttpHeaders.AUTHORIZATION,
                     token
             );
+            //log.info(userInfoPath,headers.toString());
 
             HttpEntity<String> entity = new HttpEntity<>("body", headers);
 
@@ -71,6 +169,32 @@ public class UserService {
                 user1.getCreatedAt())
                 .getProfileInfoFromSecurityResponse(profileInfo.getBody())));
     }
+    public Mono<ProfileDTO> findProfileByUsername(String usernameToGetProfile, String yourToken){
+        ResponseEntity<String> profileInfo;
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+            headers.add(
+                    HttpHeaders.AUTHORIZATION,
+                    yourToken
+            );
+            //log.info(userInfoPath,headers.toString());
+
+            HttpEntity<String> entity = new HttpEntity<>("body", headers);
+
+            profileInfo = template.exchange(userInfoPath.concat("?username=").concat(usernameToGetProfile), HttpMethod.GET, entity, String.class);
+        } catch (Exception e) {
+            return Mono.error(new HttpClientErrorException(HttpStatus.FORBIDDEN));
+//                    throw new RuntimeException("Access Denied!");
+        }
+        return findUserByUsername(usernameToGetProfile).flatMap(user1 -> Mono.just(new ProfileDTO(user1.getId(),
+                user1.getUsername(),
+                user1.getFirstName(),
+                user1.getLastName(),
+                user1.getCreatedAt())
+                .getProfileInfoFromSecurityResponse(profileInfo.getBody())));
+    }
+
 
     public Mono<User> updateProfileByToken(String token, ProfileDTO dto){
         String username = jwtService.extractUsername(token);

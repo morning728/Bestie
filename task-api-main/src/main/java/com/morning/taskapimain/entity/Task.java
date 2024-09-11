@@ -1,6 +1,9 @@
 package com.morning.taskapimain.entity;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.morning.taskapimain.entity.dto.TaskDTO;
+import com.morning.taskapimain.exception.NotFoundException;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Data
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,6 +33,7 @@ public class Task {
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime finishDate;
     private Long projectId;
     private Long fieldId;
 
@@ -46,13 +51,17 @@ public class Task {
                 .build());
     }
 
-    public <T extends Task> void update(T from){
+    public <T extends Task> Task toUpdate(T from){
+        this.setId(from.getId());
+        this.setFinishDate(from.getFinishDate() == null ? getFinishDate() : from.getFinishDate());
         this.setUpdatedAt(LocalDateTime.now());
+        this.setCreatedAt(from.getCreatedAt() == null ? getCreatedAt() : from.getCreatedAt());
         this.setName(from.getName() == null ? name : from.getName());
         this.setStatus(from.getStatus() == null ? status : from.getStatus());
         this.setDescription(from.getDescription() == null ? description : from.getDescription());
         this.setFieldId(from.getFieldId() == null ? this.getFieldId() : from.getFieldId());
         this.setProjectId(from.getProjectId() == null ? this.getProjectId() : from.getProjectId());
+        return this;
     }
 
     public static Task defaultIfEmpty() {
@@ -60,5 +69,20 @@ public class Task {
                 .builder()
                 .status("EMPTY")
                 .build();
+    }
+
+    public boolean isEmpty(){
+        if(status != null)
+            return status.equals("EMPTY");
+        return false;
+    }
+
+    public Mono<Task> returnExceptionIfEmpty(){
+        {
+            if(this.isEmpty()){
+                return Mono.error(new NotFoundException("Task was not found!"));
+            }
+            return Mono.just(this);
+        }
     }
 }

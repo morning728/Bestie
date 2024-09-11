@@ -27,6 +27,9 @@
             <column name="role" type="VARCHAR(25)" defaultValue="USER">
                 <constraints nullable="false"/>
             </column>
+            <column name="verified" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
 
             <column name="username" type="VARCHAR(255)">
                 <constraints nullable="false" unique="true"/>
@@ -60,6 +63,17 @@
                 <constraints nullable="true" unique="false"/>
             </column>
         </createTable>
+    </changeSet>
+
+    <changeSet id="1.0.3" author="morning728">
+        <insert tableName="auth_user" >
+            <column name="id" value="1"/>
+            <column name="email" value="adminEmail"/>
+            <column name="telegram_id" value="adminTg"/>
+            <column name="password" value="$2a$10$UIX9XplJoFf30Sso2K2Vd.25iak6n6y0Bx5P7E8w2a/1LDoqfpCHK"/>
+            <column name="role" value="USER"/>
+            <column name="username" value="admin"/>
+        </insert>
     </changeSet>
 
 </databaseChangeLog>

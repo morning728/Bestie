@@ -1,0 +1,93 @@
+/* Login and Registration Component */
+.login-container {
+    background-color: #262626;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Kurachka Lapkoi', cursive;
+}
+
+.login-card {
+    background-color: #34D0BA;
+    color: black;
+    width: 350px;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.login-title {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.login-label {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.login-button {
+    background-color: black;
+    border: none;
+    color: #34D0BA; /* Исправление цвета текста кнопки */
+}
+
+.create-account-button {
+    color: black;
+    text-decoration: underline;
+    text-align: center;
+    /* display: block; */
+    font-size: 16px;
+    font-weight: bold;
+}
+/* Добавление стилей для меньшей кнопки */
+.smaller {
+    margin-block-start: 1em;
+    font-size: 14px;
+}
+
+/* Navbar Component */
+.navbar-container {
+    font-family: 'Kurachka Lapkoi', cursive;
+    margin-block-end: 20px;
+}
+
+.navbar-brand {
+    font-size: 24px;
+    font-weight: bold;
+    text-decoration: none;
+    color: #34D0BA;
+}
+
+.nav-link, .logout-button {
+    margin-right: 1em;
+    padding: 0.2em;
+    background-color: #34D0BA;
+    border: none;
+    color: black; /* Исправление цвета текста кнопки */
+    font-size: 16px; /* Уменьшение размера шрифта */
+    font-weight: bold;
+    /* transition: background-color 1s ease; Добавление анимации при наведении */
+}
+
+.nav-link:hover, .logout-button:hover {
+    background-color: #34D0BA;
+    color: white; /* Изменение цвета фона при наведении */
+}
+
+/* DefaultError Component */
+.error-container {
+    background-color: #262626;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Kurachka Lapkoi', cursive;
+}
+
+.error-message {
+    font-size: 24px;
+    color: #34D0BA;
+    text-align: center;
+}

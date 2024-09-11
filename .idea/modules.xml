@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/api-gateway.main.iml" filepath="$PROJECT_DIR$/.idea/modules/api-gateway.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/mail-notification.main.iml" filepath="$PROJECT_DIR$/.idea/modules/mail-notification.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/security.main.iml" filepath="$PROJECT_DIR$/.idea/modules/security.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/task-api-main.main.iml" filepath="$PROJECT_DIR$/.idea/modules/task-api-main.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/testtest.main.iml" filepath="$PROJECT_DIR$/.idea/modules/testtest.main.iml" />

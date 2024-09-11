@@ -46,7 +46,7 @@ export default function Profile() {
     }, []);
 
     const loadProfile = async () => {
-        const url = mainURL + `/api/v1/profile`;
+        const url = mainURL + `/api/v1/user/profile`;
         try {
             const response = await doOrdinaryRequest(url, null, "get");
             setProfile(response.data);
@@ -63,20 +63,11 @@ export default function Profile() {
     }
 
     return (
-        <div className='container'>
-            <h1>Profile</h1>
+        <div className='container' style={{color:"#F78F77", minHeight:"100vh"}}>
+            <h1 >Profile</h1>
             <div>username: {username}</div>
             <div>firstName: {firstName}</div>
             <div>lastName: {lastName}</div>
-            <div>birthday: {birthday}</div>
-            <div>weight: {weight}</div>
-            <div>height: {height}</div>
-            <div>averageMark: {averageMark}</div>
-            <div>averageMoodMark: {averageMoodMark}</div>
-            <div>averageStepsPerDay: {averageStepsPerDay}</div>
-            <div>averageSheetsPerDay: {averageSheetsPerDay}</div>
-            <div>averageIncomePerDay: {averageIncomePerDay}</div>
-            <div>averageSymbolsPerDescription: {averageSymbolsPerDescription}</div>
         </div>
     )
 }

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 import reactor.core.publisher.Mono;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @Data
-@Builder(toBuilder = true)
+@SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @Table("field")
@@ -38,5 +39,9 @@ public class Field {
                 .builder()
                 .id(-1L)
                 .build();
+    }
+
+    public boolean isEmpty(){
+        return this.id == -1L;
     }
 }

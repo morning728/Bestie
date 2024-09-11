@@ -2,13 +2,22 @@ package com.morning.taskapimain.service;
 
 import com.morning.taskapimain.entity.Field;
 import com.morning.taskapimain.entity.Project;
+import com.morning.taskapimain.entity.User;
+import com.morning.taskapimain.entity.dto.FieldDTO;
+import com.morning.taskapimain.entity.dto.ProfileDTO;
 import com.morning.taskapimain.entity.dto.ProjectDTO;
+import com.morning.taskapimain.entity.dto.UserDTO;
+import com.morning.taskapimain.exception.AccessException;
+import com.morning.taskapimain.exception.BadRequestException;
+import com.morning.taskapimain.exception.NotFoundException;
 import com.morning.taskapimain.mapper.ProjectMapper;
 import com.morning.taskapimain.repository.FieldRepository;
 import com.morning.taskapimain.repository.ProjectRepository;
+import com.morning.taskapimain.service.kafka.KafkaNotificationService;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -24,15 +33,33 @@ public class ProjectService{
     private final FieldRepository fieldRepository;
     private final UserService userService;
     private final JwtService jwtService;
-    private final ProjectMapper mapper;
+    private final JwtEmailService jwtEmailService;
+    private final KafkaNotificationService kafkaNotificationService;
+    private final ProjectMapper projectMapper;
+
     private static final String SELECT_QUERY =     """
     select p.id, p.name, p.description, p.status, p.created_at, p.updated_at, p.visibility from project  as p
     join user_project on p.id=user_project.project_id
     join users on user_project.user_id=users.id
     """;
-    private static final String INSERT_PROJECT_USER_QUERY =     """
+
+    private static final String SELECT_USERS_BY_PROJECT_ID_QUERY =     """
+    select users.id, users.username, users.first_name,users.last_name, users.status, users.created_at, users.updated_at, user_project.role
+     from project  as p
+    join user_project on p.id=user_project.project_id
+    join users on user_project.user_id=users.id
+    """;
+
+    private static final String ADD_USER_TO_PROJECT =     """
     INSERT INTO public.user_project (project_id, user_id) VALUES (%s, %s)
     """;
+    private static final String DELETE_USER_FROM_PROJECT =     """
+    DELETE FROM public.user_project WHERE project_id = %s AND user_id = %s
+    """;
+    private static final String INSERT_PROJECT_USER_QUERY =     """
+    INSERT INTO public.user_project (project_id, user_id, role) VALUES (%s, %s, 'ADMIN')
+    """;
+
 //    """
 //            SELECT d.id d_id, d.name d_name, m.id m_id, m.first_name m_firstName, m.last_name m_lastName,
 //                m.position m_position, m.is_full_time m_isFullTime, e.id e_id, e.first_name e_firstName,
@@ -44,7 +71,70 @@ public class ProjectService{
 //            LEFT JOIN employees e ON e.id = de.employee_id
 //            """;
 
+    /*Проверяет, является ли запрашивающий юзер участником проекта*/
+    public Mono<Boolean> isParticipantOfProjectOrError(Long projectId, String token){
+        String username = jwtService.extractUsername(token);
+        String query = String.format("%s WHERE users.username = '%s' AND p.id = %s", SELECT_QUERY, username, projectId);
+        return client.sql(query)
+                .fetch()
+                .first()
+                .flatMap(Project::fromMap)
+                .defaultIfEmpty(Project.defaultIfEmpty())
+                .flatMap(project -> project.isEmpty() ?
+                        Mono.error(new AccessException("You are not owner of project!")) :
+                        Mono.just(true));
+    }
 
+    public Mono<Boolean> isManagerOfProjectOrError(Long projectId, String token){
+        String username = jwtService.extractUsername(token);
+        String query = String.format(
+                "%s WHERE users.username = '%s' AND p.id = %s AND user_project.role = 'MANAGER'",
+                SELECT_QUERY,
+                username,
+                projectId
+        );
+        return client.sql(query)
+                .fetch()
+                .first()
+                .flatMap(Project::fromMap)
+                .defaultIfEmpty(Project.defaultIfEmpty())
+                .flatMap(project -> project.isEmpty() ?
+                        Mono.error(new AccessException("You are not manager of project!")) :
+                        Mono.just(true));
+    }
+    public Mono<Boolean> isAdminOfProjectOrError(Long projectId, String token){
+        String username = jwtService.extractUsername(token);
+        String query = String.format(
+                "%s WHERE users.username = '%s' AND p.id = %s AND user_project.role = 'ADMIN'",
+                SELECT_QUERY,
+                username,
+                projectId
+        );
+        return client.sql(query)
+                .fetch()
+                .first()
+                .flatMap(Project::fromMap)
+                .defaultIfEmpty(Project.defaultIfEmpty())
+                .flatMap(project -> project.isEmpty() ?
+                        Mono.error(new AccessException("You are not admin of project!")) :
+                        Mono.just(true));
+    }
+
+    /*Проверяет, имеет ли запрашивающий доступи к проекту*/
+    public Mono<Boolean> hasAccessToProjectOrError(Long projectId, String token){
+        return findById(projectId).defaultIfEmpty(Project.defaultIfEmpty()).flatMap(project -> {
+            if(project.isEmpty())
+                return Mono.error(new NotFoundException("Project was not found!"));
+            return project.getVisibility() == "OPEN" ?
+                    Mono.just(true) :
+                    findByUsernameAndId(jwtService.extractUsername(token), projectId)
+                            .defaultIfEmpty(Project.defaultIfEmpty())
+                            .onErrorReturn(Project.defaultIfEmpty())
+                            .flatMap(project1 -> project1.isEmpty() ?
+                                    Mono.error(new AccessException("You have not access to project!")) :
+                                    Mono.just(true));
+        });
+    }
     public Flux<Project> findAllByUserId(Long id) {
         String query = String.format("%s WHERE users.id =%s", SELECT_QUERY, id);
         return client.sql(query)
@@ -58,7 +148,9 @@ public class ProjectService{
         return client.sql(query)
                 .fetch()
                 .all()
-                .flatMap(Project::fromMap);
+                .flatMap(Project::fromMap)
+                .defaultIfEmpty(Project.defaultIfEmpty())
+                .flatMap(project -> project.isEmpty() ? Mono.error(new NotFoundException("No one project was found!")) : Mono.just(project));
     }
 
     public Mono<Project> findByUsernameAndId(String username, Long id) {
@@ -66,7 +158,9 @@ public class ProjectService{
         return client.sql(query)
                 .fetch()
                 .first()
-                .flatMap(Project::fromMap);
+                .flatMap(Project::fromMap)
+                .defaultIfEmpty(Project.defaultIfEmpty())
+                .flatMap(project -> project.isEmpty() ? Mono.error(new NotFoundException("Such project was not found!")) : Mono.just(project));
     }
 
     public Mono<Boolean> isFieldBelongsToProject(Long fieldId, Long projectId){
@@ -83,13 +177,16 @@ public class ProjectService{
 
 
     public Mono<Project> findById(Long id){
-        return projectRepository.findById(id);
+        return projectRepository.findById(id)
+                .defaultIfEmpty(Project.defaultIfEmpty())
+                .flatMap(project -> project.isEmpty() ? Mono.error(new NotFoundException("Project was not found!")) : Mono.just(project));
     }
 
+    /*Выдает проект всем, если он открыт и только участникам в противном случае*/
     public Mono<Project> findByIdAndVisibility(Long id, String token){
         return findById(id).defaultIfEmpty(Project.defaultIfEmpty()).flatMap(project -> {
             if(project.isEmpty())
-                return Mono.error(new RuntimeException("Project was not found!"));
+                return Mono.error(new NotFoundException("Project was not found!"));
             return project.getVisibility() == "OPEN" ?
                     Mono.just(project) :
                     findByUsernameAndId(jwtService.extractUsername(token), id);
@@ -98,9 +195,11 @@ public class ProjectService{
 
     public Mono<Project> findByIdAndVisibility(Long id){
         return findById(id).flatMap(project -> {
-            return project.getVisibility().equals("OPEN") ? Mono.just(project) : Mono.empty();
+            if(!project.isEmpty()){
+                return Mono.just(project);
+            }
+            return Mono.error(new NotFoundException("Project was not found!"));
         });
-
     }
 
     /*Добавляет проект в бд, а также привязывает проект к юзеру, который отправил запрос на создание*/
@@ -122,10 +221,10 @@ public class ProjectService{
         return findByUsernameAndId(username, id)
                 .defaultIfEmpty(Project.defaultIfEmpty())
                 .flatMap(project -> {
-                    if(!project.getStatus().equals("EMPTY")){
+                    if(!project.isEmpty()){
                         return projectRepository.deleteById(id);
                     }
-                    return Mono.error(new RuntimeException("No such project!"));
+                    return Mono.error(new NotFoundException("Project was not found!"));
                 });
     }
 
@@ -135,12 +234,123 @@ public class ProjectService{
         return findByUsernameAndId(username, dto.getId())
                 .defaultIfEmpty(Project.defaultIfEmpty())
                 .flatMap(project -> {
-                    if(!project.getStatus().equals("EMPTY")){
+                    if(!project.isEmpty()){
                         project.update(dto);
                         return projectRepository.save(project);
                     }
-                    return Mono.error(new RuntimeException("No such task!"));
+                    return Mono.error(new NotFoundException("Project was not found!"));
                 });
+    }
+
+    public Flux<Field> findProjectFieldsByProjectId(Long projectId, String token){
+        return hasAccessToProjectOrError(projectId, token)
+                .thenMany(fieldRepository.findByProjectIdOrderById(projectId));
+    }
+
+    public Mono<Field> addField(FieldDTO dto, String token){ /////////////////////////////////////test
+        String username = jwtService.extractUsername(token);
+        return isParticipantOfProjectOrError(dto.getProjectId(), token)
+                .then(fieldRepository.save(dto.map()));
+    }
+
+        public Mono<Field> updateField(FieldDTO dto, String token){
+        isParticipantOfProjectOrError(dto.getProjectId(), token);
+        return fieldRepository.findById(dto.getId())
+                .defaultIfEmpty(Field.defaultIfEmpty())
+                .flatMap(field -> {
+                    if(!field.isEmpty()){
+                        return isParticipantOfProjectOrError(dto.getProjectId(), token)
+                                .then(fieldRepository.save(dto.map()));
+                    }
+                    return Mono.error(new NotFoundException("Field was not found!"));
+                });
+    }
+
+    public Mono<Void> deleteFieldById(Long fieldId, String token){
+    return fieldRepository.findById(fieldId)
+            .defaultIfEmpty(Field.defaultIfEmpty())
+            .flatMap(field -> {
+                if(!field.isEmpty()){
+                    return isParticipantOfProjectOrError(field.getProjectId(), token)
+                            .then(fieldRepository.deleteById(fieldId));
+                }
+                return Mono.error(new NotFoundException("Field was not found!"));
+            });
+    }
+
+    public Flux<UserDTO> findUsersByProjectId(Long projectId, String token){
+        String query =  String.format("%s WHERE p.id = '%s' order by users.id", SELECT_USERS_BY_PROJECT_ID_QUERY, projectId);
+        return hasAccessToProjectOrError(projectId, token)
+                .thenMany(
+                    client.sql(query)
+                            .fetch()
+                            .all()
+                            .flatMap(stringObjectMap -> {
+                                User user = User.fromMap(stringObjectMap);
+                                UserDTO dto = UserDTO.fromUser(user);
+                                dto.setRole((String) stringObjectMap.get("role"));
+                                return Mono.just(dto);
+                            })
+                );
+    }
+    public Flux<Object> addUserToProjectByAcceptationToken(String acceptationToken){
+        Long projectId = jwtEmailService.extractProjectId(acceptationToken);
+        String username = jwtEmailService.extractUsername(acceptationToken);
+        return addUserToProject(projectId, username);
+    }
+    public Flux<Object> addUserToProject(Long projectId, String username) {
+        //String query =  String.format(ADD_USER_TO_PROJECT, projectId, userId);
+
+        return userService.findUserByUsername(username)
+            .defaultIfEmpty(User.defaultIfEmpty())
+            .flatMap(user -> {
+                if(user.isEmpty()){
+                    return Mono.error(new NotFoundException("User you want to add does not exist!"));
+                }
+                return  Mono.just(user.getId());
+            })
+            .flatMapMany(userId ->{
+                return client.sql(String.format(ADD_USER_TO_PROJECT, projectId, userId))
+                        .fetch()
+                        .first()
+                        .onErrorResume(e -> Mono.error(new BadRequestException("Bad Request!")))
+                        .flatMap(stringObjectMap -> {
+                            return Mono.just(null);
+                        });
+            });
+
+    }
+    public Mono<Void> inviteUserToProject(Long projectId, String toUsername, String token) {
+        //String query =  String.format(ADD_USER_TO_PROJECT, projectId, userId);
+
+        String fromUsername = jwtService.extractUsername(token);
+
+
+        return isAdminOfProjectOrError(projectId, token).then(
+                userService.findProfileByUsername(toUsername, token)
+                        .flatMap(profileDTO -> {
+                            return kafkaNotificationService.sendInviteToProject(projectId,fromUsername, profileDTO.getUsername(), profileDTO.getEmail());
+                        })
+        );
+    }
+
+    public Flux<UserDTO> deleteUserFromProject(Long projectId, String usernameTo, String token) {
+        String from = jwtService.extractUsername(token);
+        Mono<String> projectName = projectRepository.findById(projectId).flatMap(project -> Mono.just(project.getName()));
+        Mono<ProfileDTO> toProfile = userService.findProfileByUsername(usernameTo, token);
+        Mono.zip(projectName, toProfile).subscribe(result -> {
+            kafkaNotificationService.sendDeleteNotification(result.getT1(), from, result.getT2().getUsername(), result.getT2().getEmail());
+            String query =  String.format(DELETE_USER_FROM_PROJECT, projectId, result.getT2().getId());
+            isAdminOfProjectOrError(projectId, token).thenMany(
+                    client.sql(query)
+                            .fetch()
+                            .first()
+                            .onErrorResume(e -> Mono.error(new BadRequestException("Bad Request!"))))
+                            .subscribe(stringObjectMap -> System.out.println(stringObjectMap));
+                }
+        );
+        return findUsersByProjectId(projectId, token);
+
     }
 
 }

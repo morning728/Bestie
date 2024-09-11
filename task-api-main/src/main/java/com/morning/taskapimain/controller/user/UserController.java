@@ -4,6 +4,7 @@ import com.morning.taskapimain.entity.User;
 import com.morning.taskapimain.entity.dto.ProfileDTO;
 import com.morning.taskapimain.entity.dto.ProjectDTO;
 import com.morning.taskapimain.entity.dto.UserDTO;
+import com.morning.taskapimain.exception.annotation.CrudExceptionHandler;
 import com.morning.taskapimain.mapper.ProjectMapper;
 import com.morning.taskapimain.mapper.UserMapper;
 import com.morning.taskapimain.service.ProjectService;
@@ -20,6 +21,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
+@CrudExceptionHandler
 public class UserController {
     private final UserService userService;
     private final ProjectService projectService;
@@ -27,10 +29,19 @@ public class UserController {
     private final ProjectMapper projectMapper;
     private final JwtService jwtService;
 
+
     @GetMapping("")
-    public Mono<UserDTO> getUser(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token){
-        String username = jwtService.extractUsername(token);
-        return userService.findUserByUsername(username).map(userMapper::map);
+    public Flux<UserDTO> getUserByUsernameContains(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+                                 @RequestParam(name = "contains", required = false) String substring){
+        return userService.findUsersByUsernameContains(substring).map(userMapper::map);
+    }
+
+    @GetMapping("/me")
+    public Mono<UserDTO> getMeByToken(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+                                                   @RequestParam(required = false, name = "with-role") Long projectId){
+        return projectId == null ?
+                userService.getUserByToken(token).map(userMapper::map) :
+                userService.getUserWithRoleByToken(token, projectId);
     }
 
     @GetMapping("/projects")

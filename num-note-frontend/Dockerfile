@@ -3,7 +3,7 @@ WORKDIR /app
 COPY package.json .
 COPY package-lock.json .
 # COPY ./env.sh .
-# COPY .env .
+COPY .env .
 
 # # Make our shell script executable
 # RUN chmod +x env.sh
@@ -14,5 +14,5 @@ COPY . .
 ARG REACT_APP_API_URL
 
 ENV REACT_APP_API_URL $REACT_APP_API_URL
-EXPOSE 3001
+EXPOSE 3000
 CMD ["npm", "start"]

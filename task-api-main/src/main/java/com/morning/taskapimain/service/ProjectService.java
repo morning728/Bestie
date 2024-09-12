@@ -92,7 +92,7 @@ public class ProjectService{
                 .flatMap(Project::fromMap)
                 .defaultIfEmpty(Project.defaultIfEmpty())
                 .flatMap(project -> project.isEmpty() ?
-                        Mono.error(new AccessException("You are not owner of project!")) :
+                        Mono.error(new AccessException("You are not participant of project!")) :
                         Mono.just(true));
     }
 
@@ -174,7 +174,7 @@ public class ProjectService{
                 .flatMap(project -> project.isEmpty() ? Mono.error(new NotFoundException("Such project was not found!")) : Mono.just(project));
     }
 
-    public Mono<Boolean> isFieldBelongsToProject(Long fieldId, Long projectId){
+    public Mono<Boolean> doFieldBelongsToProject(Long fieldId, Long projectId){
         Mono<Field> fieldMono = fieldRepository.findById(fieldId);
         return fieldMono
                 .defaultIfEmpty(Field.defaultIfEmpty())
@@ -260,12 +260,12 @@ public class ProjectService{
 
     public Mono<Field> addField(FieldDTO dto, String token){ /////////////////////////////////////test
         String username = jwtService.extractUsername(token);
-        return isParticipantOfProjectOrError(dto.getProjectId(), token)
+        return isAdminOfProjectOrError(dto.getProjectId(), token)
                 .then(fieldRepository.save(dto.map()));
     }
 
         public Mono<Field> updateField(FieldDTO dto, String token){
-        isParticipantOfProjectOrError(dto.getProjectId(), token);
+        isAdminOfProjectOrError(dto.getProjectId(), token);
         return fieldRepository.findById(dto.getId())
                 .defaultIfEmpty(Field.defaultIfEmpty())
                 .flatMap(field -> {
@@ -282,7 +282,7 @@ public class ProjectService{
             .defaultIfEmpty(Field.defaultIfEmpty())
             .flatMap(field -> {
                 if(!field.isEmpty()){
-                    return isParticipantOfProjectOrError(field.getProjectId(), token)
+                    return isAdminOfProjectOrError(field.getProjectId(), token)
                             .then(fieldRepository.deleteById(fieldId));
                 }
                 return Mono.error(new NotFoundException("Field was not found!"));

@@ -334,7 +334,7 @@ public class ProjectService{
         );
     }
 
-    public Flux<UserDTO> deleteUserFromProject(Long projectId, String usernameTo, String token) {
+    public Flux<UserDTO> deleteUserFromProject(Long projectId, String usernameTo, String token) {//
         String from = jwtService.extractUsername(token);
         Mono<String> projectName = projectRepository.findById(projectId).flatMap(project -> Mono.just(project.getName()));
         Mono<ProfileDTO> toProfile = userService.findProfileByUsername(usernameTo, token);

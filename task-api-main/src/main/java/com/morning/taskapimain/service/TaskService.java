@@ -1,12 +1,15 @@
 package com.morning.taskapimain.service;
 
 import com.morning.taskapimain.entity.Task;
+import com.morning.taskapimain.entity.User;
 import com.morning.taskapimain.entity.dto.TaskDTO;
+import com.morning.taskapimain.exception.AccessException;
 import com.morning.taskapimain.exception.BadRequestException;
 import com.morning.taskapimain.exception.NotFoundException;
 import com.morning.taskapimain.repository.TaskRepository;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.common.protocol.types.Field;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -19,12 +22,19 @@ import java.util.HashMap;
 public class TaskService {
     private final DatabaseClient client;
     private final ProjectService projectService;
+    private final UserService userService;
     private final TaskRepository taskRepository;
     private final JwtService jwtService;
     private static final String SELECT_QUERY =     """
     select t.id, t.name, t.description, t.status, t.created_at, t.updated_at, t.project_id, t.field_id from task  as t
     join project on t.project_id=project.id
     join field on t.field_id=field.id
+    """;
+    private static final String ADD_TASK_TO_USER_QUERY =     """
+    insert into user_task (user_id, task_id) values (%s, %s)
+    """;
+    private static final String IS_USER_RESPONSIBLE_QUERY =     """
+    select user_id, task_id from user_task where user_id = %s and task_id = %s
     """;
     private static final String FULL_SELECT_QUERY =     """
     select t.id, t.name, t.description, t.status, t.created_at, t.updated_at, t.project_id, t.field_id from task  as t
@@ -47,6 +57,16 @@ public class TaskService {
                 .flatMap(Task::fromMap)
                 .defaultIfEmpty(Task.defaultIfEmpty())
                 .flatMap(Task::returnExceptionIfEmpty);
+    }
+    public Mono<Boolean> isUserResponsibleForTaskOrError(Long userId, Long taskId) {
+        String query = String.format(IS_USER_RESPONSIBLE_QUERY, userId, taskId);
+        return client.sql(query)
+                .fetch()
+                .first()
+                .defaultIfEmpty(null)
+                .flatMap(stringObjectMap -> {
+                    return stringObjectMap != null ?  Mono.just(true) : Mono.error(new AccessException("You are not responsible for this task"));
+                });
     }
 
     public Flux<Task> getAllTasksByToken(String token){
@@ -104,30 +124,20 @@ public class TaskService {
                 .thenMany(taskRepository.findTasksByProjectIdAndFieldIdOrderById(projectId, fieldId));
     }
     public Mono<Task> addTask(TaskDTO dto, String token){
-/*        String username = jwtService.extractUsername(token);
-        Mono<Boolean> belongsToProject = projectService.isFieldBelongsToProject(dto.getFieldId(), dto.getProjectId());
-        Flux<Long> longFlux = projectService.findAllByUsername(username).map(Project::getId)
-                .filter(aLong -> {return aLong.equals(dto.getProjectId());});
-        return belongsToProject.flatMap(aBoolean -> {
-            if(aBoolean){
-                return longFlux.singleOrEmpty().flatMap(userProjectsId -> {
-                    if(userProjectsId.equals(dto.getProjectId())){
-                        return taskRepository.save(dto.toInsertTask());
-                    }
-                    return Mono.error(new AccessException("U r not project owner!"));
+        Mono<Long> userId = userService.findUserByUsername(jwtService.extractUsername(token)).flatMap(user -> Mono.just(user.getId()));
+        Mono<Boolean> isParticipant = projectService.isParticipantOfProjectOrError(dto.getProjectId(), token);
+        Mono<Boolean> doFieldBelongsToProject = projectService.doFieldBelongsToProject(dto.getFieldId(), dto.getProjectId());
+        return Mono.zip(userId, isParticipant, doFieldBelongsToProject)
+                .flatMap(result -> {
+                    return taskRepository.save(dto.toInsertTask())
+                            .flatMap(task -> {
+                                String query = String.format(ADD_TASK_TO_USER_QUERY, result.getT1(), task.getId());
+                                client.sql(query)
+                                    .fetch()
+                                    .first();
+                                return Mono.just(task);
+                            });
                 });
-            }
-            return Mono.error(new AccessException("U r not project owner!"));
-        });*/
-        return projectService.isParticipantOfProjectOrError(dto.getProjectId(), token)
-                .flatMap(hasAccess -> projectService.isFieldBelongsToProject(dto.getFieldId(), dto.getProjectId())
-                        .flatMap(belongs ->{
-                            if(belongs){
-                                return taskRepository.save(dto.toInsertTask());
-                            } else {
-                                return Mono.error(new BadRequestException("Bad Request! Check data and try again!"));
-                            }
-                        }));
     }
 
     private Mono<Boolean> isOpenTaskById(Long id){
@@ -144,55 +154,39 @@ public class TaskService {
                 });
     }
 
-    /*Метод обновления таски: если у пользователя, отправившего запрос, есть такая таска, то обновляем ее*/
+    /*Метод обновления таски: если у пользователя, отправившего запрос, есть такая таска или он админ проекта, то обновляем ее*/
     public Mono<Task> updateTask(TaskDTO dto, String token){
-        /*String username = jwtService.extractUsername(token);
-        return findByIdAndUsername(dto.getId(), username)
-                .defaultIfEmpty(Task.defaultIfEmpty())
-                .flatMap(task -> {
-            if(!task.isEmpty()){
-                task.toUpdate(dto);
-                return taskRepository.save(task);
-            }
-            return Mono.error(new NotFoundException("Task was not found!"));
-        });*/
-        return projectService.isParticipantOfProjectOrError(dto.getProjectId(), token)
-                .then(
-                        projectService.isFieldBelongsToProject(dto.getFieldId(), dto.getProjectId())
-                                .flatMap(belongs -> {
-                                    if(belongs){
-                                        return taskRepository.findById(dto.getId())
-                                                .defaultIfEmpty(Task.defaultIfEmpty())
-                                                .flatMap(task -> {
-                                                    if(!task.isEmpty()){
-                                                        return taskRepository.save(task.toUpdate(dto));
-                                                    }
-                                                    return Mono.error(new NotFoundException("Task was not found!"));
-                                                });
-                                    }
-                                    return Mono.error(new BadRequestException("Bad Request! Check data and try again!"));
-                                })
-                );
+        Mono<Long> userId = userService.findUserByUsername(jwtService.extractUsername(token)).flatMap(user -> Mono.just(user.getId()));
+        Mono<Boolean> doFieldBelongsToProject = projectService.doFieldBelongsToProject(dto.getFieldId(), dto.getProjectId());
+        Mono<Task> task = taskRepository.findById(dto.getId()).defaultIfEmpty(Task.defaultIfEmpty());
+        return Mono.zip(userId, doFieldBelongsToProject, task).flatMap(result1 -> {
+            Mono<Boolean> isAdmin = UserService.getUserRoleInProject(dto.getProjectId(), token, jwtService, client)
+                    .flatMap(role -> Mono.just(role.equals("ADMIN")));
+            Mono<Boolean> isResponsible = isUserResponsibleForTaskOrError(result1.getT1(), dto.getId());
+            return Mono.zip(isAdmin, isResponsible).flatMap(result2 -> {
+               if(!result1.getT3().isEmpty() && result1.getT2() && (result2.getT1() || result2.getT2())) {
+                   return taskRepository.save(result1.getT3().toUpdate(dto));
+               }
+               return Mono.error(new BadRequestException("Invalid data!"));
+            });
+        });
     }
 
     public Mono<Void> deleteTaskById(Long id, Long projectId, String token){
-/*        String username = jwtService.extractUsername(token);
-        return findByIdAndUsername(id, username)
-                .defaultIfEmpty(Task.defaultIfEmpty())
-                .flatMap(task -> {
-                    if(!task.isEmpty()){
-                        return taskRepository.deleteById(id);
-                    }
-                    return Mono.error(new NotFoundException("Task was not found!"));
-        });*/
-        return projectService.hasAccessToProjectOrError(projectId, token)
-                .then(taskRepository.findById(id).defaultIfEmpty(Task.defaultIfEmpty())
-                        .flatMap(task -> {
-                            if(!task.isEmpty()){
-                                return taskRepository.deleteById(id);
-                            }
-                            return Mono.error(new NotFoundException("Task was not found!"));
-                        }));
+        Mono<Long> userId = userService.findUserByUsername(jwtService.extractUsername(token)).flatMap(user -> Mono.just(user.getId()));
+        Mono<Task> task = taskRepository.findById(id).defaultIfEmpty(Task.defaultIfEmpty());
+        return Mono.zip(userId, task).flatMap(objects -> {
+            Mono<Boolean> isAdmin = UserService.getUserRoleInProject(projectId, token, jwtService, client)
+                    .flatMap(role -> Mono.just(role.equals("ADMIN")));
+            Mono<Boolean> isResponsible = isUserResponsibleForTaskOrError(objects.getT1(), id);
+            return Mono.zip(isAdmin, isResponsible).flatMap(objects1 -> {
+                if(!objects.getT2().isEmpty() && (objects1.getT2() || objects1.getT1())){
+                    return taskRepository.deleteById(id);
+                }
+                return Mono.error(new NotFoundException("Task was not found!"));
+            });
+
+        });
     }
 
 

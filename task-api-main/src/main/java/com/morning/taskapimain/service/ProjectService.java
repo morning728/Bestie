@@ -50,6 +50,13 @@ public class ProjectService{
     join users on user_project.user_id=users.id
     """;
 
+    private static final String SELECT_ROLE_BY_PROJECT_ID_QUERY =     """
+    select user_project.role
+     from project  as p
+    join user_project on p.id=user_project.project_id
+    join users on user_project.user_id=users.id
+    """;
+
     private static final String ADD_USER_TO_PROJECT =     """
     INSERT INTO public.user_project (project_id, user_id) VALUES (%s, %s)
     """;
@@ -58,6 +65,10 @@ public class ProjectService{
     """;
     private static final String INSERT_PROJECT_USER_QUERY =     """
     INSERT INTO public.user_project (project_id, user_id, role) VALUES (%s, %s, 'ADMIN')
+    """;
+
+    private static final String CHANGE_USER_ROLE =     """
+    UPDATE public.user_project SET role = '%s' WHERE project_id = %s AND user_id = %s
     """;
 
 //    """
@@ -81,7 +92,7 @@ public class ProjectService{
                 .flatMap(Project::fromMap)
                 .defaultIfEmpty(Project.defaultIfEmpty())
                 .flatMap(project -> project.isEmpty() ?
-                        Mono.error(new AccessException("You are not owner of project!")) :
+                        Mono.error(new AccessException("You are not participant of project!")) :
                         Mono.just(true));
     }
 
@@ -163,7 +174,7 @@ public class ProjectService{
                 .flatMap(project -> project.isEmpty() ? Mono.error(new NotFoundException("Such project was not found!")) : Mono.just(project));
     }
 
-    public Mono<Boolean> isFieldBelongsToProject(Long fieldId, Long projectId){
+    public Mono<Boolean> doFieldBelongsToProject(Long fieldId, Long projectId){
         Mono<Field> fieldMono = fieldRepository.findById(fieldId);
         return fieldMono
                 .defaultIfEmpty(Field.defaultIfEmpty())
@@ -249,12 +260,12 @@ public class ProjectService{
 
     public Mono<Field> addField(FieldDTO dto, String token){ /////////////////////////////////////test
         String username = jwtService.extractUsername(token);
-        return isParticipantOfProjectOrError(dto.getProjectId(), token)
+        return isAdminOfProjectOrError(dto.getProjectId(), token)
                 .then(fieldRepository.save(dto.map()));
     }
 
         public Mono<Field> updateField(FieldDTO dto, String token){
-        isParticipantOfProjectOrError(dto.getProjectId(), token);
+        isAdminOfProjectOrError(dto.getProjectId(), token);
         return fieldRepository.findById(dto.getId())
                 .defaultIfEmpty(Field.defaultIfEmpty())
                 .flatMap(field -> {
@@ -271,7 +282,7 @@ public class ProjectService{
             .defaultIfEmpty(Field.defaultIfEmpty())
             .flatMap(field -> {
                 if(!field.isEmpty()){
-                    return isParticipantOfProjectOrError(field.getProjectId(), token)
+                    return isAdminOfProjectOrError(field.getProjectId(), token)
                             .then(fieldRepository.deleteById(fieldId));
                 }
                 return Mono.error(new NotFoundException("Field was not found!"));
@@ -347,10 +358,26 @@ public class ProjectService{
                             .first()
                             .onErrorResume(e -> Mono.error(new BadRequestException("Bad Request!"))))
                             .subscribe(stringObjectMap -> System.out.println(stringObjectMap));
-                }
+        }
         );
         return findUsersByProjectId(projectId, token);
+    }
 
+    public Mono<Void> changeUserRole(Long projectId, String username, String newRole, String token){
+        Mono<Boolean> isAdmin = isAdminOfProjectOrError(projectId, token);
+        Mono<Long> userId = userService.findUserByUsername(username).flatMap(user -> Mono.just(user.getId()));
+
+        Mono.zip(isAdmin, userId)
+                .subscribe(result -> {
+                    if(result.getT1()){
+                        String query =  String.format(CHANGE_USER_ROLE, newRole, projectId, result.getT2());
+                        client.sql(query)
+                                .fetch()
+                                .first()
+                                .onErrorResume(e -> Mono.error(new BadRequestException("Bad Request!")));
+                    }
+                });
+        return null;
     }
 
 }

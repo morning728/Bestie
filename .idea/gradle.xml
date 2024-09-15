@@ -7,14 +7,24 @@
         <compositeConfiguration>
           <compositeBuild compositeDefinitionSource="SCRIPT">
             <builds>
+              <build path="$PROJECT_DIR$/eureka-server" name="eureka-server">
+                <projects>
+                  <project path="$PROJECT_DIR$/eureka-server" />
+                </projects>
+              </build>
+              <build path="$PROJECT_DIR$/task-api-main" name="task-api-main">
+                <projects>
+                  <project path="$PROJECT_DIR$/task-api-main" />
+                </projects>
+              </build>
               <build path="$PROJECT_DIR$/api-gateway" name="api-gateway">
                 <projects>
                   <project path="$PROJECT_DIR$/api-gateway" />
                 </projects>
               </build>
-              <build path="$PROJECT_DIR$/eureka-server" name="eureka-server">
+              <build path="$PROJECT_DIR$/security" name="security">
                 <projects>
-                  <project path="$PROJECT_DIR$/eureka-server" />
+                  <project path="$PROJECT_DIR$/security" />
                 </projects>
               </build>
               <build path="$PROJECT_DIR$/mail-notification" name="mail-notification">
@@ -25,16 +35,6 @@
               <build path="$PROJECT_DIR$/open-request-handler" name="open-request-handler">
                 <projects>
                   <project path="$PROJECT_DIR$/open-request-handler" />
-                </projects>
-              </build>
-              <build path="$PROJECT_DIR$/security" name="security">
-                <projects>
-                  <project path="$PROJECT_DIR$/security" />
-                </projects>
-              </build>
-              <build path="$PROJECT_DIR$/task-api-main" name="task-api-main">
-                <projects>
-                  <project path="$PROJECT_DIR$/task-api-main" />
                 </projects>
               </build>
             </builds>

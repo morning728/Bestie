@@ -6,6 +6,7 @@ import com.morning.taskapimain.entity.Project;
 import com.morning.taskapimain.entity.User;
 import com.morning.taskapimain.entity.dto.ProfileDTO;
 import com.morning.taskapimain.entity.dto.UserDTO;
+import com.morning.taskapimain.exception.AccessException;
 import com.morning.taskapimain.exception.NotFoundException;
 import com.morning.taskapimain.mapper.UserMapper;
 import com.morning.taskapimain.repository.UserRepository;
@@ -40,11 +41,56 @@ public class UserService {
     private static final String SELECT_QUERY =     """
     select u.id, u.username, u.first_name,u.last_name, u.status, u.created_at, u.updated_at from users  as u
     """;
+
+    private static final String SELECT_ROLE_BY_PROJECT_ID_QUERY =     """
+    select user_project.role
+     from project  as p
+    join user_project on p.id=user_project.project_id
+    join users on user_project.user_id=users.id
+    """;
     private static final String SELECT_USER_ROLE_IN_PROJECT =     """
     select user_project.role from project as p
     join user_project on p.id=user_project.project_id
     join users on user_project.user_id=users.id
     """;
+
+    public static Mono<String> getUserRoleInProject(Long projectId,
+                                                        String token,
+                                                        JwtService jwtService,
+                                                        DatabaseClient client){
+        String username = jwtService.extractUsername(token);
+        String query = String.format(
+                "%s WHERE users.username = '%s' AND p.id = %s",
+                SELECT_ROLE_BY_PROJECT_ID_QUERY,
+                username,
+                projectId
+        );
+        return client.sql(query)
+                .fetch()
+                .first()
+                .flatMap(stringObjectMap -> Mono.just(stringObjectMap.get("role").toString()));
+    }
+
+    public static Mono<Boolean> isManagerOfProjectOrError(Long projectId,
+                                                        String token,
+                                                        JwtService jwtService,
+                                                        DatabaseClient client){
+        String username = jwtService.extractUsername(token);
+        String query = String.format(
+                "%s WHERE users.username = '%s' AND p.id = %s AND user_project.role = 'ADMIN'",
+                SELECT_QUERY,
+                username,
+                projectId
+        );
+        return client.sql(query)
+                .fetch()
+                .first()
+                .flatMap(Project::fromMap)
+                .defaultIfEmpty(Project.defaultIfEmpty())
+                .flatMap(project -> project.isEmpty() ?
+                        Mono.error(new AccessException("You are not admin of project!")) :
+                        Mono.just(true));
+    }
 
     public Mono<User> findUserById(Long id) {
         return userRepository.findById(id);

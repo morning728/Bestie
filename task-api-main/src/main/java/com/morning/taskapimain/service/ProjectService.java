@@ -264,17 +264,17 @@ public class ProjectService{
                 .then(fieldRepository.save(dto.map()));
     }
 
-        public Mono<Field> updateField(FieldDTO dto, String token){
-        isAdminOfProjectOrError(dto.getProjectId(), token);
-        return fieldRepository.findById(dto.getId())
-                .defaultIfEmpty(Field.defaultIfEmpty())
-                .flatMap(field -> {
-                    if(!field.isEmpty()){
-                        return isParticipantOfProjectOrError(dto.getProjectId(), token)
-                                .then(fieldRepository.save(dto.map()));
-                    }
-                    return Mono.error(new NotFoundException("Field was not found!"));
-                });
+    public Mono<Field> updateField(FieldDTO dto, String token){
+    isAdminOfProjectOrError(dto.getProjectId(), token);
+    return fieldRepository.findById(dto.getId())
+            .defaultIfEmpty(Field.defaultIfEmpty())
+            .flatMap(field -> {
+                if(!field.isEmpty()){
+                    return isParticipantOfProjectOrError(dto.getProjectId(), token)
+                            .then(fieldRepository.save(dto.map()));
+                }
+                return Mono.error(new NotFoundException("Field was not found!"));
+            });
     }
 
     public Mono<Void> deleteFieldById(Long fieldId, String token){
@@ -363,21 +363,28 @@ public class ProjectService{
         return findUsersByProjectId(projectId, token);
     }
 
-    public Mono<Void> changeUserRole(Long projectId, String username, String newRole, String token){
-        Mono<Boolean> isAdmin = isAdminOfProjectOrError(projectId, token);
-        Mono<Long> userId = userService.findUserByUsername(username).flatMap(user -> Mono.just(user.getId()));
+    public Mono<Object> changeUserRole(Long projectId, String username, String newRole, String token){
 
-        Mono.zip(isAdmin, userId)
-                .subscribe(result -> {
+        Mono<Boolean> isAdmin = UserService.getUserRoleInProject(projectId, token, jwtService, client)
+                .map(s -> s.equals("ADMIN"));
+
+        Mono<Long> userId = userService.findUserByUsername(username)
+                .map(user -> (user.getId()));
+
+        return Mono.zip(isAdmin, userId)
+                .flatMap(result -> {
                     if(result.getT1()){
                         String query =  String.format(CHANGE_USER_ROLE, newRole, projectId, result.getT2());
-                        client.sql(query)
+                        return client.sql(query)
                                 .fetch()
                                 .first()
+                                .map(stringObjectMap -> "User's role was changed!")
+                                .defaultIfEmpty("User's role was changed!")
                                 .onErrorResume(e -> Mono.error(new BadRequestException("Bad Request!")));
+                    } else {
+                        return Mono.error(new AccessException("You Can't change user's role!"));
                     }
                 });
-        return null;
     }
 
 }

@@ -88,7 +88,7 @@ const ProjectUsers = () => {
     const handleAddToProject = async (username) => {
         http://localhost:8085/api/v1/projects/38/users?user_id=3
         try {
-            const response = await doOrdinaryRequest(`${mainURL}/api/v1/projects/${id}/users?username=${username}`, null, 'post');
+            const response = await doOrdinaryRequest(`${mainURL}/api/v1/projects/${id}/users/invite?username=${username}`, null, 'get');
             //setUsers(response.data);
         } catch (error) {
             handleErrors(error);
@@ -98,6 +98,21 @@ const ProjectUsers = () => {
         try {
             const response = await doOrdinaryRequest(`${mainURL}/api/v1/projects/${id}/users?username=${username}`, null, 'delete');
             setUsers(response.data);
+        } catch (error) {
+            handleErrors(error);
+        }
+    };
+
+    const handleRoleChange = async (username, newRole) => {
+        try {
+            const response = await doOrdinaryRequest(`${mainURL}/api/v1/projects/${id}/users/change-role?username=${username}&role=${newRole}`, null, 'get');
+            if(response.status === 200){
+                setUsers((prevUsers) =>
+                    prevUsers.map((user) =>
+                        user.username === username ? { ...user, role: newRole } : user
+                    )
+                );
+            }
         } catch (error) {
             handleErrors(error);
         }
@@ -186,7 +201,21 @@ const ProjectUsers = () => {
                             <td>{user.username}</td>
                             <td>{user.firstName}</td>
                             <td>{user.lastName}</td>
-                            <td>{user.role}</td>
+                            <td>
+                            {me.role === "ADMIN" && me.username !== user.username ? (
+                                <select
+                                    value={user.role}
+                                    onChange={(e) => handleRoleChange(user.username, e.target.value)}
+                                    className="form-select"
+                                >
+                                    <option value="GUEST">GUEST</option>
+                                    <option value="MANAGER">MANAGER</option>
+                                    <option value="ADMIN">ADMIN</option>
+                                </select>
+                            ) : (
+                                user.role
+                            )}
+                        </td>
                         </tr>
                     ))}
                 </tbody>

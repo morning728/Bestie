@@ -28,7 +28,7 @@ public class TaskController {
     private final TaskService taskService;
 
     @GetMapping("/{projectId}/tasks")
-    public Flux<Task> getAllProjectTasks(@RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String token,
+    public Flux<TaskDTO> getAllProjectTasks(@RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String token,
                                          @PathVariable(name = "projectId") Long projectId,
                                          @RequestParam(name = "field_id", required = false) Long fieldId){
         if(fieldId != null){

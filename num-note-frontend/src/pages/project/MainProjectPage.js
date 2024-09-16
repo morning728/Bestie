@@ -58,6 +58,7 @@ const MainProjectPage = () => {
                 return { fieldId: field.id, tasks: response.data };
             });
             const tasksData = await Promise.all(tasksPromises);
+            console.log(tasksData);
             setTasks(tasksData);
         } catch (error) {
             handleErrors(error);
@@ -242,6 +243,7 @@ const MainProjectPage = () => {
                         </p>
                         <p>Created At: {selectedTask.created_at}</p>
                         <p>Updated At: {selectedTask.updated_at}</p>
+                        <p>List of responsible: {selectedTask.list_of_responsible}</p>
                         <button onClick={handleEditTask} className='save-button' >Сохранить</button>
                         <button onClick={() => handleDeleteTask(selectedTask.id)} className='delete-button' >Удалить</button>
                     </div>

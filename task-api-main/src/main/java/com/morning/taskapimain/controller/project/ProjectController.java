@@ -114,27 +114,27 @@ public class ProjectController {
                                          @PathVariable(value = "id") Long projectId){
         return projectService.findUsersByProjectId(projectId, token);
     }
-
-
-    @GetMapping("/{id}/users")
-    public Mono<Void> inviteUserToProject(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
-                                      @PathVariable(value = "id") Long projectId,
-                                      @RequestParam(name = "username", required = true) String username){
-        return projectService.inviteUserToProject(projectId, username, token);
+    @DeleteMapping("/{id}/users")
+    public Flux<UserDTO> deleteUserFromProject(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+                                               @PathVariable(value = "id") Long projectId,
+                                               @RequestParam(name = "username", required = true) String username){
+        return projectService.deleteUserFromProject(projectId, username, token);
     }
 
-    @GetMapping("/{id}/users")
-    public Mono<Void> changeUserRole(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+    @GetMapping("/{id}/users/change-role")
+    public Mono<Object> changeUserRole(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
                                           @PathVariable(value = "id") Long projectId,
                                           @RequestParam(name = "username", required = true) String username,
                                           @RequestParam(name = "role", required = true) String newRole){
         return projectService.changeUserRole(projectId, username, newRole, token);
     }
 
-    @DeleteMapping("/{id}/users")
-    public Flux<UserDTO> deleteUserFromProject(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
-                                      @PathVariable(value = "id") Long projectId,
-                                      @RequestParam(name = "username", required = true) String username){
-        return projectService.deleteUserFromProject(projectId, username, token);
+    @GetMapping("/{id}/users/invite")
+    public Mono<Void> inviteUserToProject(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+                                          @PathVariable(value = "id") Long projectId,
+                                          @RequestParam(name = "username", required = true) String username){
+        return projectService.inviteUserToProject(projectId, username, token);
     }
+
+
 }

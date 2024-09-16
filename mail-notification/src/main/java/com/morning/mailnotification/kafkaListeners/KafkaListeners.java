@@ -2,6 +2,7 @@ package com.morning.mailnotification.kafkaListeners;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.morning.mailnotification.service.MailService;
+import com.morning.mailnotification.service.quartz.TaskSchedulerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -15,6 +16,7 @@ import java.util.Map;
 public class KafkaListeners {
     private ObjectMapper objectMapper = new ObjectMapper();
     private final MailService mailService;
+    private final TaskSchedulerService taskSchedulerService;
     @KafkaListener(
             topics = "mail-verification-topic",
             groupId = "confirmation"
@@ -48,6 +50,26 @@ public class KafkaListeners {
                 }
                 case "DELETE_FROM_PROJECT":{
                     mailService.sendDeleteNotification(event);
+                    break;
+                }
+            }
+        } catch(Exception e){
+            log.error(e.toString());
+        }
+    }
+
+    @KafkaListener(
+            topics = "mail-notification-topic",
+            groupId = "task"
+    )
+    void taskEEditListener(String data){
+        Map<String, String> event = null;
+        try {
+            event = objectMapper.readValue(data, Map.class);
+            switch(event.get("action")){
+                case "TASK_CREATION":{
+                    log.info(event.toString() + "QQQQQQ");
+                    taskSchedulerService.scheduleTask(event);
                     break;
                 }
             }

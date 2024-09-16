@@ -2,6 +2,7 @@ package com.morning.taskapimain.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.morning.taskapimain.entity.Contacts;
 import com.morning.taskapimain.entity.Project;
 import com.morning.taskapimain.entity.User;
 import com.morning.taskapimain.entity.dto.ProfileDTO;
@@ -21,7 +22,9 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
+import java.sql.*;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -38,6 +41,14 @@ public class UserService {
     private final UserMapper userMapper;
     @Value("${application.security.userInfoPath}")
     private String userInfoPath;
+    @Value("${application.security.db}")
+    private String securityDatabasePath;
+    @Value("${application.security.db-username}")
+    private String securityDatabaseUsername;
+    @Value("${application.security.db-password}")
+    private String securityDatabasePassword;
+
+
     private static final String SELECT_QUERY =     """
     select u.id, u.username, u.first_name,u.last_name, u.status, u.created_at, u.updated_at from users  as u
     """;
@@ -53,6 +64,39 @@ public class UserService {
     join user_project on p.id=user_project.project_id
     join users on user_project.user_id=users.id
     """;
+
+    private static final String SELECT_USER_CONTACTS_QUERY =     """
+    select username, telegram_id, email from public.auth_user
+    """;
+
+    public Mono<Contacts> getUserContactsByUsername(String username) {
+
+        return Mono.fromCallable(() -> {
+                    Connection connection = DriverManager.getConnection(securityDatabasePath,
+                            securityDatabaseUsername, securityDatabasePassword);
+
+                    String query = SELECT_USER_CONTACTS_QUERY + " WHERE username = ?";
+                    PreparedStatement statement = connection.prepareStatement(query);
+                    statement.setString(1, username);
+
+                    ResultSet resultSet = statement.executeQuery();
+
+                    Contacts contacts = new Contacts();
+                    if (resultSet.next()) {
+                        contacts.setUsername(resultSet.getString("username"));
+                        contacts.setEmail(resultSet.getString("email"));
+                        contacts.setTelegramId(resultSet.getString("telegram_id"));
+                    }
+
+                    // Закрываем ресурсы
+                    resultSet.close();
+                    statement.close();
+                    connection.close();
+
+                    return contacts;
+                })
+                .subscribeOn(Schedulers.boundedElastic()); // Выполняем асинхронно
+    }
 
     public static Mono<String> getUserRoleInProject(Long projectId,
                                                         String token,

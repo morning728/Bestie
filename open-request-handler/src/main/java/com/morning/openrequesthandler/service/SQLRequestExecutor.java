@@ -56,8 +56,13 @@ public class SQLRequestExecutor {
         int count = statement.executeUpdate();
         System.out.println(count);
         if(count != 1){
+            statement.close();
+            connection.close();
             throw new SQLException("Something went wrong...");
         }
+
+        statement.close();
+        connection.close();
     }
 
 
@@ -93,8 +98,13 @@ public class SQLRequestExecutor {
         int count = statement.executeUpdate();
         System.out.println(count);
         if(count != 1){
+            statement.close();
+            connection.close();
             throw new SQLException("Something went wrong...");
         }
+
+        statement.close();
+        connection.close();
     }
 
 }

@@ -1,5 +1,6 @@
 package com.morning.taskapimain.service;
 
+import com.morning.taskapimain.entity.Contacts;
 import com.morning.taskapimain.entity.Task;
 import com.morning.taskapimain.entity.User;
 import com.morning.taskapimain.entity.dto.TaskDTO;
@@ -7,6 +8,7 @@ import com.morning.taskapimain.exception.AccessException;
 import com.morning.taskapimain.exception.BadRequestException;
 import com.morning.taskapimain.exception.NotFoundException;
 import com.morning.taskapimain.repository.TaskRepository;
+import com.morning.taskapimain.service.kafka.KafkaNotificationService;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,7 @@ public class TaskService {
     private final UserService userService;
     private final TaskRepository taskRepository;
     private final JwtService jwtService;
+    private final KafkaNotificationService kafkaNotificationService;
     private static final String SELECT_QUERY =     """
     select t.id, t.name, t.description, t.status, t.created_at, t.updated_at, t.project_id, t.field_id from task  as t
     join project on t.project_id=project.id
@@ -163,14 +166,23 @@ public class TaskService {
 
 
     public Mono<Task> addTask(TaskDTO dto, String token){
-        Mono<Long> userId = userService.findUserByUsername(jwtService.extractUsername(token)).flatMap(user -> Mono.just(user.getId()));
-        Mono<Boolean> isParticipant = projectService.isParticipantOfProjectOrError(dto.getProjectId(), token);
-        Mono<Boolean> doFieldBelongsToProject = projectService.doFieldBelongsToProject(dto.getFieldId(), dto.getProjectId());
-        return Mono.zip(userId, isParticipant, doFieldBelongsToProject)
+        Mono<Long> userIdMono = userService.findUserByUsername(jwtService.extractUsername(token)).flatMap(user -> Mono.just(user.getId()));
+        Mono<Boolean> isParticipantMono = projectService.isParticipantOfProjectOrError(dto.getProjectId(), token);
+        Mono<Boolean> doFieldBelongsToProjectMono = projectService.doFieldBelongsToProject(dto.getFieldId(), dto.getProjectId());
+        Mono<Contacts> contactsMono = userService.getUserContactsByUsername(jwtService.extractUsername(token));
+        return Mono.zip(userIdMono, isParticipantMono, doFieldBelongsToProjectMono, contactsMono)
                 .flatMap(result -> {
+                    Long userId = result.getT1();
+                    Contacts contacts = result.getT4();
                     return taskRepository.save(dto.toInsertTask())
                             .flatMap(task -> {
-                                String query = String.format(ADD_TASK_TO_USER_QUERY, result.getT1(), task.getId());
+                                kafkaNotificationService.sendTaskCreation(
+                                        task.getId(),
+                                        task.getName(),
+                                        List.of(contacts.getEmail()),
+                                        task.getFinishDate()
+                                ).subscribe();
+                                String query = String.format(ADD_TASK_TO_USER_QUERY, userId, task.getId());
                                 return client.sql(query)
                                     .fetch()
                                     .first()

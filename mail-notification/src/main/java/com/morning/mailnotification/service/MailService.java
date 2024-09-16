@@ -7,6 +7,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -72,7 +73,12 @@ public class MailService {
         send(email, DELETE_FROM_PROJECT_SUBJECT, mailBody);
     }
 
-
+    public void sendTaskDeadlineReminder(List<String> emails,String taskName, String deadline){
+        String mailBody = String.format("Deadline for task <<%s>> is burning! it expires on %s!", taskName, deadline);
+        for(String email : emails){
+            send(email, "Deadline is burning!:)", mailBody);
+        }
+    }
     private void send(String to, String subject, String body) {
         SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setTo(to);

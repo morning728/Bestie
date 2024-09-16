@@ -14,6 +14,35 @@ spring:
           auth: true
           starttls:
             enable: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/quartz_db
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
+  quartz:
+    config: classpath:quartz.properties
+#    quartz:
+#      job-store-type: jdbc
+#      jdbc:
+#        initialize-schema: never  # Либо never, если схема уже создана!!!!!!!!!!!CREATE TABLES
+#      properties:
+#        org:
+#          quartz:
+#            jobStore:
+#              misfireThreshold: 60000
+#
+#              driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+#              class: org.quartz.impl.jdbcjobstore.JobStoreTX
+#              dataSource: myDataSource
+#              #tablePrefix: public.QRTZ_      # Префикс таблиц, используемых Quartz
+#              isClustered: false       # Поддержка кластера для многозадачности
+#            threadPool:
+#              threadCount: 5        # Количество потоков для выполнения задач
+logging:
+  level:
+    org:
+      quartz: INFO  # Уровень логирования Quartz
+    root: INFO
 server:
   port: 8087
 application:

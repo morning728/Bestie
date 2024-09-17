@@ -164,6 +164,20 @@ public class TaskService {
                 .collectList();  // Преобразуем результат в список
     }
 
+    private Mono<Boolean> isOpenTaskById(Long id){
+        String query = String.format("%s WHERE t.id = %s", CHECK_TASK_VISIBILITY, id);
+        return client.sql(query)
+                .fetch()
+                .first()
+                .defaultIfEmpty(new HashMap<>())
+                .flatMap(stringObjectMap -> {
+                    if(stringObjectMap.isEmpty()) return Mono.error(new NotFoundException("Task was not found!"));
+                    return stringObjectMap.get("visibility").equals("OPEN") ?
+                            Mono.just(true) :
+                            Mono.just(false);
+                });
+    }
+
 
     public Mono<Task> addTask(TaskDTO dto, String token){
         Mono<Long> userIdMono = userService.findUserByUsername(jwtService.extractUsername(token)).flatMap(user -> Mono.just(user.getId()));
@@ -176,7 +190,7 @@ public class TaskService {
                     Contacts contacts = result.getT4();
                     return taskRepository.save(dto.toInsertTask())
                             .flatMap(task -> {
-                                kafkaNotificationService.sendTaskCreation(
+                                kafkaNotificationService.sendTaskCreate(
                                         task.getId(),
                                         task.getName(),
                                         List.of(contacts.getEmail()),
@@ -191,19 +205,6 @@ public class TaskService {
                 });
     }
 
-    private Mono<Boolean> isOpenTaskById(Long id){
-        String query = String.format("%s WHERE t.id = %s", CHECK_TASK_VISIBILITY, id);
-        return client.sql(query)
-                .fetch()
-                .first()
-                .defaultIfEmpty(new HashMap<>())
-                .flatMap(stringObjectMap -> {
-                    if(stringObjectMap.isEmpty()) return Mono.error(new NotFoundException("Task was not found!"));
-                    return stringObjectMap.get("visibility").equals("OPEN") ?
-                            Mono.just(true) :
-                            Mono.just(false);
-                });
-    }
 
     /*Метод обновления таски: если у пользователя, отправившего запрос, есть такая таска или он админ проекта, то обновляем ее*/
     public Mono<Task> updateTask(TaskDTO dto, String token) {
@@ -249,7 +250,20 @@ public class TaskService {
 
                                 // Если пользователь — админ или ответственен за задачу, обновляем задачу
                                 if (isAdmin || isResponsible) {
-                                    return taskRepository.save(task.toUpdate(dto));  // Обновляем задачу
+                                    return Flux.fromIterable(dto.getListOfResponsible())
+                                            .flatMap(s -> userService.getUserContactsByUsername(s))
+                                            .map(Contacts::getEmail)
+                                            .collectList()
+                                            .flatMap(strings -> {
+                                                kafkaNotificationService.sendTaskUpdate(
+                                                        task.getId(),
+                                                        dto.getName(),
+                                                        strings,
+                                                        dto.getFinishDate()
+                                                );
+                                                // Сохраняем задачу только после отправки уведомлений
+                                                return taskRepository.save(task.toUpdate(dto));
+                                            });
                                 }
 
                                 return Mono.error(new BadRequestException("You do not have permission to update this task!"));
@@ -258,24 +272,6 @@ public class TaskService {
     }
 
 
-/*    public Mono<Void> deleteTaskById(Long id, Long projectId, String token){
-        Mono<Long> userId = userService.findUserByUsername(jwtService.extractUsername(token)).flatMap(user -> Mono.just(user.getId()));
-        Mono<Task> task = taskRepository.findById(id).defaultIfEmpty(Task.defaultIfEmpty());
-        return Mono.zip(userId, task).flatMap(objects -> {
-            Mono<Boolean> isAdmin = UserService.getUserRoleInProject(projectId, token, jwtService, client)
-                    .flatMap(role -> Mono.just(role.equals("ADMIN")));
-            Mono<Boolean> isResponsible = isUserResponsibleForTask(objects.getT1(), id);
-            log.info("asda");
-            return Mono.zip(isAdmin, isResponsible).flatMap(objects1 -> {
-                log.info("adsadsda");
-                if(!objects.getT2().isEmpty() && (objects1.getT2() || objects1.getT1())){
-                    return taskRepository.deleteById(id);
-                }
-                return Mono.error(new NotFoundException("Task was not found!"));
-            });
-
-        });
-    }*/
 public Mono<Void> deleteTaskById(Long id, Long projectId, String token) {
     Mono<Long> userId = userService.findUserByUsername(jwtService.extractUsername(token))
             .flatMap(user -> Mono.just(user.getId()));
@@ -309,7 +305,8 @@ public Mono<Void> deleteTaskById(Long id, Long projectId, String token) {
 
                             if (isAdminResult || isResponsibleResult) {
                                 // Удаляем задачу, если админ или ответственен
-                                return taskRepository.deleteById(id);
+                                return kafkaNotificationService.sendTaskDelete(id)
+                                        .then(taskRepository.deleteById(id));
                             } else {
                                 return Mono.error(new NotFoundException("You don't have permissions to delete this task!"));
                             }

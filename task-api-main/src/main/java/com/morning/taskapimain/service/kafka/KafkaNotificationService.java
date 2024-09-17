@@ -2,6 +2,7 @@ package com.morning.taskapimain.service.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.morning.taskapimain.exception.BadRequestException;
 import com.morning.taskapimain.exception.KafkaException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +11,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import javax.annotation.Nullable;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -57,14 +59,22 @@ public class KafkaNotificationService {
         return Mono.empty();
     }
 
-    public Mono<Void> sendTaskCreation(Long taskId, String taskName, List<String> emails, LocalDateTime deadline){
+    public Mono<Void> sendTaskAction(Long taskId, @Nullable String taskName, @Nullable List<String> emails, @Nullable LocalDateTime deadline, String ACTION){
         try{
             Map<String, String> event = new HashMap<>();
-            event.put("taskId", String.valueOf(taskId));
-            event.put("taskName", taskName);
-            event.put("deadline", deadline.toString());
-            event.put("users", String.join(",", emails));
-            event.put("action", "TASK_CREATION");
+            if(ACTION.equals("TASK_CREATE") || ACTION.equals("TASK_UPDATE")) {
+                event.put("taskId", String.valueOf(taskId));
+                event.put("taskName", taskName);
+                event.put("deadline", deadline.toString());
+                event.put("users", String.join(",", emails));
+                event.put("action", ACTION);
+            } else if (ACTION.equals("TASK_DELETE")) {
+                event.put("taskId", String.valueOf(taskId));
+                event.put("action", ACTION);
+            } else {
+                return Mono.error(new BadRequestException("ERROR: Action is invalid!"));
+            }
+
             String eventAsString = objectMapper.writeValueAsString(event);
             kafkaTemplate.send(new ProducerRecord<>("mail-notification-topic", eventAsString));
         } catch (JsonProcessingException e){
@@ -72,5 +82,17 @@ public class KafkaNotificationService {
             return Mono.error(new KafkaException("ERROR: Kafka cant do it right now"));
         }
         return Mono.empty();
+    }
+
+    public Mono<Void> sendTaskCreate(Long taskId, String taskName, List<String> emails, LocalDateTime deadline){
+        return sendTaskAction(taskId, taskName, emails, deadline, "TASK_CREATE");
+    }
+
+    public Mono<Void> sendTaskUpdate(Long taskId, String taskName, List<String> emails, LocalDateTime deadline){
+        return sendTaskAction(taskId, taskName, emails, deadline, "TASK_UPDATE");
+    }
+
+    public Mono<Void> sendTaskDelete(Long taskId){
+        return sendTaskAction(taskId, null, null, null, "TASK_DELETE");
     }
 }

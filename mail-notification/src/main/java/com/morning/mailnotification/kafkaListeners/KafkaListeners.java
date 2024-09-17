@@ -67,9 +67,17 @@ public class KafkaListeners {
         try {
             event = objectMapper.readValue(data, Map.class);
             switch(event.get("action")){
-                case "TASK_CREATION":{
-                    log.info(event.toString() + "QQQQQQ");
+                case "TASK_CREATE":{
                     taskSchedulerService.scheduleTask(event);
+                    break;
+                }
+                case "TASK_UPDATE":{
+                    log.info("AAADASDSAD");
+                    taskSchedulerService.rescheduleTask(event);
+                    break;
+                }
+                case "TASK_DELETE":{
+                    taskSchedulerService.deleteScheduledTask(event);
                     break;
                 }
             }

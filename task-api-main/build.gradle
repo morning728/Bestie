@@ -15,6 +15,8 @@ repositories {
 	mavenCentral()
 }
 ext {
+	set('testcontainersVersion', '1.19.0')  // Поддержка Postgres 16 с TestContainers
+	set('junitJupiterVersion', '5.9.3')     // Актуальная версия JUnit
 	set('springCloudVersion', "2022.0.4")
 }
 dependencies {
@@ -25,7 +27,10 @@ dependencies {
 
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
-	implementation "io.r2dbc:r2dbc-postgresql:$r2dbcVersion"
+	//implementation "io.r2dbc:r2dbc-postgresql:$r2dbcVersion"
+	// https://mvnrepository.com/artifact/org.postgresql/r2dbc-postgresql
+	implementation 'org.postgresql:r2dbc-postgresql:1.0.0.RELEASE'
+
 	implementation "org.postgresql:postgresql:$postgreSqlVersion"
 
 	implementation "org.flywaydb:flyway-core:$flywayDbVersion"
@@ -48,6 +53,12 @@ dependencies {
 	annotationProcessor "org.projectlombok:lombok"
 	annotationProcessor "org.mapstruct:mapstruct-processor:$mapStructVersion"
 
+	// TestContainers
+	testImplementation "org.testcontainers:postgresql:${testcontainersVersion}"
+	testImplementation "org.testcontainers:junit-jupiter:${testcontainersVersion}"
+
+	testImplementation "org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}"
+	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}"
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'io.projectreactor:reactor-test'

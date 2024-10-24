@@ -1,0 +1,3 @@
+
+ALTER TABLE user_project
+ALTER role SET DEFAULT 'GUEST';

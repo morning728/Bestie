@@ -28,7 +28,7 @@ public class PostgresDatabaseContainerInitializer implements ApplicationContextI
                 "spring.flyway.url=" + postgresContainer.getJdbcUrl(),  // URL для Flyway (JDBC)
                 "spring.flyway.user=" + postgresContainer.getUsername(),
                 "spring.flyway.password=" + postgresContainer.getPassword(),
-                "spring.flyway.locations=classpath:db/migration"  // Локации для миграций
+                "spring.flyway.locations=classpath:migration"  // Локации для миграций
         ).applyTo(configurableApplicationContext.getEnvironment());
     }
 

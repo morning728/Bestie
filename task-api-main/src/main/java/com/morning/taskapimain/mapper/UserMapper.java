@@ -7,10 +7,10 @@ import org.mapstruct.InheritInverseConfiguration;
 import org.mapstruct.Mapper;
 
 
-@Mapper(componentModel = "spring")
+/*@Mapper(componentModel = "spring")
 public interface UserMapper {
     UserDTO map(User user);
 
     @InheritInverseConfiguration
     User map(UserDTO dto);
-}
+}*/

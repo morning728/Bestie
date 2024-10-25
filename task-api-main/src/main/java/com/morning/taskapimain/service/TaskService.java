@@ -262,7 +262,7 @@ public class TaskService {
                                                         dto.getFinishDate()
                                                 );
                                                 // Сохраняем задачу только после отправки уведомлений
-                                                return taskRepository.save(task.toUpdate(dto));
+                                                return taskRepository.save(task.toUpdate(dto.toTask()));
                                             });
                                 }
 

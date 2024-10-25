@@ -1,8 +1,6 @@
 package com.morning.taskapimain.controller.user;
 
 import com.morning.taskapimain.entity.dto.ProfileDTO;
-import com.morning.taskapimain.mapper.ProjectMapper;
-import com.morning.taskapimain.mapper.UserMapper;
 import com.morning.taskapimain.service.ProjectService;
 import com.morning.taskapimain.service.UserService;
 import com.morning.taskapimain.service.security.JwtService;
@@ -20,8 +18,6 @@ import reactor.core.publisher.Mono;
 public class ProfileController {
     private final UserService userService;
     private final ProjectService projectService;
-    private final UserMapper userMapper;
-    private final ProjectMapper projectMapper;
     private final JwtService jwtService;
 
     @GetMapping("")

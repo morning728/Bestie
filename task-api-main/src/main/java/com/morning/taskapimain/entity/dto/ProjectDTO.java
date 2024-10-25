@@ -16,18 +16,19 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@SuperBuilder(toBuilder = true)
 @AllArgsConstructor
-@Data
-@EqualsAndHashCode(callSuper=false)
-public class ProjectDTO extends Project {
-//    @Builder
-//    public ProjectDTO(Long id, String name, String description, String status,
-//                      String visibility, LocalDateTime createdAt, LocalDateTime updatedAt,
-//                      Set<User> connectedUsers) {
-//        super(id, name, description, status, visibility, createdAt, updatedAt, connectedUsers);
-//    }
-    public Project toInsertProject(){
+@Getter
+@Setter
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+public class ProjectDTO {
+    private Long id;
+    private String name;
+    private String description;
+    private String status;
+    private String visibility;
+
+    public Project toInsertProject() {
         return Project.builder()
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -36,4 +37,29 @@ public class ProjectDTO extends Project {
                 .visibility(this.getVisibility())
                 .build();
     }
+
+    // Метод для преобразования из Project в ProjectDTO
+    public static ProjectDTO fromProject(Project project) {
+        return new ProjectDTO(
+                project.getId(),
+                project.getName(),
+                project.getDescription(),
+                project.getStatus(),
+                project.getVisibility()
+        );
+    }
+
+    // Метод для преобразования из ProjectDTO в Project
+    public Project toProject() {
+        return Project.builder()
+                .id(this.getId())
+                .name(this.getName())
+                .description(this.getDescription())
+                .status(this.getStatus())
+                .visibility(this.getVisibility())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+    }
 }
+

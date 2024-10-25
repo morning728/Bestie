@@ -37,9 +37,9 @@ public class PostgresR2dbcTest {
         // Блокируем результат и преобразуем его в список
         List<User> users = userFlux.collectList().block();
 
-        // Проверяем, что пользователей 1
+        // Проверяем, что пользователей 2
         assertNotNull(users);
-        assertEquals(1, users.size(), "Expected exactly one user in the database");
+        assertEquals(2, users.size(), "Expected exactly two users in the database");
 
         // Проверяем, что имя пользователя - admin
         assertEquals("admin", users.get(0).getUsername(), "Expected username to be 'admin'");

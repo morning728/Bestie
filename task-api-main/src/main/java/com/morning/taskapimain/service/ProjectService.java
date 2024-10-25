@@ -10,14 +10,12 @@ import com.morning.taskapimain.entity.dto.UserDTO;
 import com.morning.taskapimain.exception.AccessException;
 import com.morning.taskapimain.exception.BadRequestException;
 import com.morning.taskapimain.exception.NotFoundException;
-import com.morning.taskapimain.mapper.ProjectMapper;
 import com.morning.taskapimain.repository.FieldRepository;
 import com.morning.taskapimain.repository.ProjectRepository;
 import com.morning.taskapimain.service.kafka.KafkaNotificationService;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -35,7 +33,6 @@ public class ProjectService{
     private final JwtService jwtService;
     private final JwtEmailService jwtEmailService;
     private final KafkaNotificationService kafkaNotificationService;
-    private final ProjectMapper projectMapper;
 
     private static final String SELECT_QUERY =     """
     select p.id, p.name, p.description, p.status, p.created_at, p.updated_at, p.visibility from project  as p
@@ -246,7 +243,7 @@ public class ProjectService{
                 .defaultIfEmpty(Project.defaultIfEmpty())
                 .flatMap(project -> {
                     if(!project.isEmpty()){
-                        project.update(dto);
+                        project.update(dto.toProject());
                         return projectRepository.save(project);
                     }
                     return Mono.error(new NotFoundException("Project was not found!"));

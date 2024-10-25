@@ -14,19 +14,33 @@ public class UserDTO {
     private String username;
     private String firstName;
     private String lastName;
-    private String status;
     private Boolean isAdmin;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String role;
-    public static UserDTO fromUser(User user){
-        UserDTO dto = new UserDTO();
-        dto.setId(user.getId());
-        dto.setUsername(user.getUsername());
-        dto.setFirstName(user.getFirstName());
-        dto.setStatus(user.getStatus());
-        dto.setCreatedAt(user.getCreatedAt());
-        dto.setUpdatedAt(user.getUpdatedAt());
-        return dto;
+
+    // Метод для преобразования из User в UserDTO
+    public static UserDTO fromUser(User user) {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(user.getId());
+        userDTO.setUsername(user.getUsername());
+        userDTO.setFirstName(user.getFirstName());
+        userDTO.setLastName(user.getLastName());
+        userDTO.setCreatedAt(user.getCreatedAt());
+        userDTO.setUpdatedAt(user.getUpdatedAt());
+        return userDTO;
+    }
+
+    // Метод для преобразования из UserDTO в User
+    public User toUser() {
+        return User.builder()
+                .id(this.id)
+                .username(this.username)
+                .firstName(this.firstName)
+                .lastName(this.lastName)
+                .createdAt(this.createdAt != null ? this.createdAt : LocalDateTime.now())
+                .updatedAt(this.updatedAt != null ? this.updatedAt : LocalDateTime.now())
+                .build();
     }
 }
+

@@ -1,19 +1,15 @@
 package com.morning.taskapimain.controller.tech;
 
-import com.morning.taskapimain.entity.dto.ProfileDTO;
 import com.morning.taskapimain.exception.annotation.AccessExceptionHandler;
 import com.morning.taskapimain.exception.annotation.BadRequestExceptionHandler;
 import com.morning.taskapimain.exception.annotation.CrudExceptionHandler;
-import com.morning.taskapimain.mapper.ProjectMapper;
-import com.morning.taskapimain.mapper.UserMapper;
 import com.morning.taskapimain.service.ProjectService;
-import com.morning.taskapimain.service.UserService;
-import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 @RestController
 @RequiredArgsConstructor

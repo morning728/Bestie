@@ -8,8 +8,8 @@ import com.morning.taskapimain.entity.User;
 import com.morning.taskapimain.entity.dto.ProfileDTO;
 import com.morning.taskapimain.entity.dto.UserDTO;
 import com.morning.taskapimain.exception.AccessException;
+import com.morning.taskapimain.exception.BadRequestException;
 import com.morning.taskapimain.exception.NotFoundException;
-import com.morning.taskapimain.mapper.UserMapper;
 import com.morning.taskapimain.repository.UserRepository;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,6 @@ import java.sql.*;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Map;
 
 @Service
 @Slf4j
@@ -38,7 +37,6 @@ public class UserService {
     private final RestTemplate template;
     private final JwtService jwtService;
     private final DatabaseClient client;
-    private final UserMapper userMapper;
     @Value("${application.security.userInfoPath}")
     private String userInfoPath;
     @Value("${application.security.db}")
@@ -69,11 +67,14 @@ public class UserService {
     select username, telegram_id, email from public.auth_user
     """;
 
+    public Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(securityDatabasePath,
+                securityDatabaseUsername, securityDatabasePassword);
+    }
     public Mono<Contacts> getUserContactsByUsername(String username) {
 
         return Mono.fromCallable(() -> {
-                    Connection connection = DriverManager.getConnection(securityDatabasePath,
-                            securityDatabaseUsername, securityDatabasePassword);
+                    Connection connection = getConnection();
 
                     String query = SELECT_USER_CONTACTS_QUERY + " WHERE username = ?";
                     PreparedStatement statement = connection.prepareStatement(query);
@@ -209,30 +210,38 @@ public class UserService {
 
     public Mono<User> getUserByToken(String token){
         return userRepository.findByUsername(jwtService.extractUsername(token))
-                .defaultIfEmpty(User.defaultIfEmpty())
-                .onErrorReturn(User.defaultIfEmpty())
-                .flatMap(user -> {
-                    if(!user.isEmpty()){
-                        return Mono.just(user);
+                .switchIfEmpty(Mono.error(new NotFoundException("User was not found!")))
+                .onErrorMap(e -> {
+                    // Обработка и перехват всех ошибок, кроме NotFoundException
+                    if (!(e instanceof NotFoundException)) {
+                        return new BadRequestException("An unexpected error occurred" + e.toString());
                     }
-                    return Mono.error(new NotFoundException("User was not found!"));
+                    return e; // Пробрасываем NotFoundException
                 });
     }
-    public Mono<UserDTO> getUserWithRoleByToken(String token, Long projectId){
-        return userRepository.findByUsername(jwtService.extractUsername(token))
-                .defaultIfEmpty(User.defaultIfEmpty())
-                .onErrorReturn(User.defaultIfEmpty())
-                .flatMap(user -> {
-                    if(!user.isEmpty()){
-                        return findRoleInProjectByToken(projectId, token).flatMap(s ->{
-                            UserDTO dto = UserDTO.fromUser(user);
-                            dto.setRole(s);
-                            return Mono.just(dto);
-                        });
+    public Mono<UserDTO> getUserWithRoleByToken(String token, Long projectId) {
+        String username = jwtService.extractUsername(token);
+
+        return userRepository.findByUsername(username)
+                .switchIfEmpty(Mono.error(new NotFoundException("User was not found!")))  // Ошибка, если пользователь не найден
+                .zipWith(findRoleInProjectByToken(projectId, token))  // Получение пользователя и роли
+                .map(tuple -> {
+                    User user = tuple.getT1();
+                    String role = tuple.getT2();
+                    UserDTO dto = UserDTO.fromUser(user);
+                    dto.setRole(role);
+                    return dto;
+                })
+                .onErrorMap(e -> {
+                    // Обработка и перехват всех ошибок, кроме NotFoundException
+                    if (!(e instanceof NotFoundException)) {
+                        return new BadRequestException("An unexpected error occurred" + e.toString());
                     }
-                    return Mono.error(new NotFoundException("User was not found!"));
+                    return e; // Пробрасываем NotFoundException
                 });
     }
+
+
     public Mono<ProfileDTO> findProfileByToken(String token){
         String username = jwtService.extractUsername(token);
         ResponseEntity<String> profileInfo;
@@ -328,4 +337,6 @@ public class UserService {
         String jacksonData = objectMapper.writeValueAsString(map);
         return new HttpEntity<>((jacksonData), headers);
     }
+
+
 }

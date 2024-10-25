@@ -2,15 +2,12 @@ package com.morning.taskapimain.controller.project;
 
 import com.morning.taskapimain.entity.Field;
 import com.morning.taskapimain.entity.Project;
-import com.morning.taskapimain.entity.Task;
-import com.morning.taskapimain.entity.User;
-import com.morning.taskapimain.entity.dto.*;
-import com.morning.taskapimain.exception.BadRequestException;
+import com.morning.taskapimain.entity.dto.FieldDTO;
+import com.morning.taskapimain.entity.dto.ProjectDTO;
+import com.morning.taskapimain.entity.dto.UserDTO;
 import com.morning.taskapimain.exception.annotation.AccessExceptionHandler;
 import com.morning.taskapimain.exception.annotation.BadRequestExceptionHandler;
 import com.morning.taskapimain.exception.annotation.CrudExceptionHandler;
-import com.morning.taskapimain.mapper.ProjectMapper;
-import com.morning.taskapimain.repository.UserRepository;
 import com.morning.taskapimain.service.ProjectService;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -31,33 +28,17 @@ public class ProjectController {
 
     private final JwtService jwtService;
     private final ProjectService projectService;
-    private final ProjectMapper mapper;
-//    @GetMapping("/test")
-//    public Mono<Project> getTest(/*@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token*/) throws InterruptedException {
-//        String username = jwtService.extractUsername(token);
-//        String role = jwtService.extractRole(token);
-//        projectService.findById(1L).subscribe(v -> System.out.println(v));
-//        Thread.sleep(20000);
-//        Mono<Project> map = projectService.findById(1L);
-//        return map;
-//    }
-
-//    @GetMapping("")
-//    public Flux<ProjectDTO> getProjectsByUserId(@RequestBody UserProjectsRequest request) {
-//        Long id = request.getUserId();
-//        return projectService.findAllByUserId(id).map(mapper::map);
-//    }
 
     @GetMapping("")
     public Flux<ProjectDTO> getProjectsByUsername(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token){
-        return projectService.findAllByUsername(jwtService.extractUsername(token)).map(mapper::map);
+        return projectService.findAllByUsername(jwtService.extractUsername(token)).map(ProjectDTO::fromProject);
     }
 
     @GetMapping("/{id}")
     public Mono<?> getProjectById(@RequestHeader(name = HttpHeaders.AUTHORIZATION,required = false) String token, @PathVariable String id) {
         return token == null ?
-                projectService.findByIdAndVisibility(Long.valueOf(id)).map(mapper::map) :
-                projectService.findByIdAndVisibility(Long.valueOf(id), token).map(mapper::map);
+                projectService.findByIdAndVisibility(Long.valueOf(id)).map(ProjectDTO::fromProject) :
+                projectService.findByIdAndVisibility(Long.valueOf(id), token).map(ProjectDTO::fromProject);
     }
 
     @PostMapping("")

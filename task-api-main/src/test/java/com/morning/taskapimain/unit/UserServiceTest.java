@@ -113,7 +113,7 @@ class UserServiceTest {
 
         // Используем StepVerifier для проверки результата
         StepVerifier.create(result)
-                .expectNext("ADM2IN")
+                .expectNext("ADM3IN")
                 .verifyComplete();
 
         // Проверяем, что username был извлечен из токена

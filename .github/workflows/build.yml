@@ -21,6 +21,8 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'       # Задайте версию JDK, подходящую для вашего проекта
+      - name: Give execute permission to gradlew
+        run: chmod +x ./gradlew  # Установите права на выполнение
 
       - name: Build with Gradle
         run: ./gradlew build       # Команда Gradle для сборки и запуска тестов

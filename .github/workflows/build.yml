@@ -1,10 +1,12 @@
-name: Java CI
+name: Build
 
 on:
-  push:         # Запуск при каждом `push`
+  pull_request:
     branches:
-      - main    # Укажите нужную ветку, например, `main` или `develop`
-  pull_request: # Запуск при создании `pull request`
+      - '*'
+  push:
+    branches:
+      - 'master'
 
 jobs:
   build:

@@ -110,10 +110,10 @@ class UserServiceTest {
 
         // Тестируемый метод
         Mono<String> result = UserService.getUserRoleInProject(projectId, token, jwtService, client);
-
+///
         // Используем StepVerifier для проверки результата
         StepVerifier.create(result)
-                .expectNext("ADMIN")
+                .expectNext("ADMI2N")
                 .verifyComplete();
 
         // Проверяем, что username был извлечен из токена

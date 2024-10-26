@@ -1,0 +1,24 @@
+name: Java CI
+
+on:
+  push:         # Запуск при каждом `push`
+    branches:
+      - main    # Укажите нужную ветку, например, `main` или `develop`
+  pull_request: # Запуск при создании `pull request`
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: '17'       # Задайте версию JDK, подходящую для вашего проекта
+
+      - name: Build with Gradle
+        run: ./gradlew build       # Команда Gradle для сборки и запуска тестов

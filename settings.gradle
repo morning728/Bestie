@@ -1,9 +1,19 @@
 rootProject.name = 'task-tracker'
 
-includeBuild 'eureka-server'
+/*includeBuild 'eureka-server'
 includeBuild 'task-api-main'
 includeBuild 'api-gateway'
 includeBuild 'security'
 includeBuild 'mail-notification'
-includeBuild 'open-request-handler'
+includeBuild 'open-request-handler'*/
+
+include 'eureka-server'
+include 'task-api-main'
+include 'api-gateway'
+include 'security'
+include 'mail-notification'
+include 'open-request-handler'
+
+
+
 

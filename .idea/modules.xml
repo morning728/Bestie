@@ -2,13 +2,13 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/api-gateway.main.iml" filepath="$PROJECT_DIR$/.idea/modules/api-gateway.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.morning.api-gateway.main.iml" filepath="$PROJECT_DIR$/.idea/modules/com.morning.api-gateway.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.morning.security.main.iml" filepath="$PROJECT_DIR$/.idea/modules/com.morning.security.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/mail-notification.main.iml" filepath="$PROJECT_DIR$/.idea/modules/mail-notification.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/open-request-handler.main.iml" filepath="$PROJECT_DIR$/.idea/modules/open-request-handler.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/security.main.iml" filepath="$PROJECT_DIR$/.idea/modules/security.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/task-api-main.test.iml" filepath="$PROJECT_DIR$/.idea/modules/task-api-main.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/api-gateway/task-tracker.api-gateway.main.iml" filepath="$PROJECT_DIR$/.idea/modules/api-gateway/task-tracker.api-gateway.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/mail-notification/task-tracker.mail-notification.main.iml" filepath="$PROJECT_DIR$/.idea/modules/mail-notification/task-tracker.mail-notification.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/open-request-handler/task-tracker.open-request-handler.main.iml" filepath="$PROJECT_DIR$/.idea/modules/open-request-handler/task-tracker.open-request-handler.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/security/task-tracker.security.main.iml" filepath="$PROJECT_DIR$/.idea/modules/security/task-tracker.security.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/task-api-main/task-tracker.task-api-main.main.iml" filepath="$PROJECT_DIR$/.idea/modules/task-api-main/task-tracker.task-api-main.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/testtest.main.iml" filepath="$PROJECT_DIR$/.idea/modules/testtest.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/testtest.test.iml" filepath="$PROJECT_DIR$/.idea/modules/testtest.test.iml" />
     </modules>

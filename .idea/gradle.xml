@@ -4,42 +4,6 @@
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
-        <compositeConfiguration>
-          <compositeBuild compositeDefinitionSource="SCRIPT">
-            <builds>
-              <build path="$PROJECT_DIR$/api-gateway" name="api-gateway">
-                <projects>
-                  <project path="$PROJECT_DIR$/api-gateway" />
-                </projects>
-              </build>
-              <build path="$PROJECT_DIR$/eureka-server" name="eureka-server">
-                <projects>
-                  <project path="$PROJECT_DIR$/eureka-server" />
-                </projects>
-              </build>
-              <build path="$PROJECT_DIR$/mail-notification" name="mail-notification">
-                <projects>
-                  <project path="$PROJECT_DIR$/mail-notification" />
-                </projects>
-              </build>
-              <build path="$PROJECT_DIR$/open-request-handler" name="open-request-handler">
-                <projects>
-                  <project path="$PROJECT_DIR$/open-request-handler" />
-                </projects>
-              </build>
-              <build path="$PROJECT_DIR$/security" name="security">
-                <projects>
-                  <project path="$PROJECT_DIR$/security" />
-                </projects>
-              </build>
-              <build path="$PROJECT_DIR$/task-api-main" name="task-api-main">
-                <projects>
-                  <project path="$PROJECT_DIR$/task-api-main" />
-                </projects>
-              </build>
-            </builds>
-          </compositeBuild>
-        </compositeConfiguration>
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="gradleJvm" value="#JAVA_HOME" />
         <option name="modules">

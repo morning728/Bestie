@@ -104,23 +104,25 @@ public class ProjectService{
                         Mono.error(new AccessException("You are not manager of project!")) :
                         Mono.just(true));
     }
-    public Mono<Boolean> isAdminOfProjectOrError(Long projectId, String token){
+    public Mono<Boolean> isAdminOfProjectOrError(Long projectId, String token) {
         String username = jwtService.extractUsername(token);
+
+        // Создание SQL-запроса с использованием параметров
         String query = String.format(
-                "%s WHERE users.username = '%s' AND p.id = %s AND user_project.role = 'ADMIN'",
-                SELECT_QUERY,
-                username,
-                projectId
+                "%s WHERE users.username = :username AND p.id = :projectId AND user_project.role = 'ADMIN'",
+                SELECT_QUERY
         );
+
         return client.sql(query)
+                .bind("username", username) // Используем параметр для username
+                .bind("projectId", projectId) // Используем параметр для projectId
                 .fetch()
                 .first()
                 .flatMap(Project::fromMap)
-                .defaultIfEmpty(Project.defaultIfEmpty())
-                .flatMap(project -> project.isEmpty() ?
-                        Mono.error(new AccessException("You are not admin of project!")) :
-                        Mono.just(true));
+                .switchIfEmpty(Mono.error(new AccessException("You are not an admin of the project!"))) // Уточненное сообщение
+                .map(project -> true);
     }
+
 
     /*Проверяет, имеет ли запрашивающий доступи к проекту*/
     public Mono<Boolean> hasAccessToProjectOrError(Long projectId, String token){

@@ -68,30 +68,24 @@ public class ProjectService{
     UPDATE public.user_project SET role = '%s' WHERE project_id = %s AND user_id = %s
     """;
 
-//    """
-//            SELECT d.id d_id, d.name d_name, m.id m_id, m.first_name m_firstName, m.last_name m_lastName,
-//                m.position m_position, m.is_full_time m_isFullTime, e.id e_id, e.first_name e_firstName,
-//                e.last_name e_lastName, e.position e_position, e.is_full_time e_isFullTime
-//            FROM departments d
-//            LEFT JOIN department_managers dm ON dm.department_id = d.id
-//            LEFT JOIN employees m ON m.id = dm.employee_id
-//            LEFT JOIN department_employees de ON de.department_id = d.id
-//            LEFT JOIN employees e ON e.id = de.employee_id
-//            """;
+
 
     /*Проверяет, является ли запрашивающий юзер участником проекта*/
-    public Mono<Boolean> isParticipantOfProjectOrError(Long projectId, String token){
+    public Mono<Boolean> isParticipantOfProjectOrError(Long projectId, String token) {
         String username = jwtService.extractUsername(token);
-        String query = String.format("%s WHERE users.username = '%s' AND p.id = %s", SELECT_QUERY, username, projectId);
+
+        String query = SELECT_QUERY + " WHERE users.username = :username AND p.id = :projectId";
+
         return client.sql(query)
+                .bind("username", username)
+                .bind("projectId", projectId)
                 .fetch()
                 .first()
                 .flatMap(Project::fromMap)
-                .defaultIfEmpty(Project.defaultIfEmpty())
-                .flatMap(project -> project.isEmpty() ?
-                        Mono.error(new AccessException("You are not participant of project!")) :
-                        Mono.just(true));
+                .switchIfEmpty(Mono.error(new AccessException("You are not a participant of the project!")))
+                .map(project ->  (true));
     }
+
 
     public Mono<Boolean> isManagerOfProjectOrError(Long projectId, String token){
         String username = jwtService.extractUsername(token);
@@ -110,23 +104,25 @@ public class ProjectService{
                         Mono.error(new AccessException("You are not manager of project!")) :
                         Mono.just(true));
     }
-    public Mono<Boolean> isAdminOfProjectOrError(Long projectId, String token){
+    public Mono<Boolean> isAdminOfProjectOrError(Long projectId, String token) {
         String username = jwtService.extractUsername(token);
+
+        // Создание SQL-запроса с использованием параметров
         String query = String.format(
-                "%s WHERE users.username = '%s' AND p.id = %s AND user_project.role = 'ADMIN'",
-                SELECT_QUERY,
-                username,
-                projectId
+                "%s WHERE users.username = :username AND p.id = :projectId AND user_project.role = 'ADMIN'",
+                SELECT_QUERY
         );
+
         return client.sql(query)
+                .bind("username", username) // Используем параметр для username
+                .bind("projectId", projectId) // Используем параметр для projectId
                 .fetch()
                 .first()
                 .flatMap(Project::fromMap)
-                .defaultIfEmpty(Project.defaultIfEmpty())
-                .flatMap(project -> project.isEmpty() ?
-                        Mono.error(new AccessException("You are not admin of project!")) :
-                        Mono.just(true));
+                .switchIfEmpty(Mono.error(new AccessException("You are not an admin of the project!"))) // Уточненное сообщение
+                .map(project -> true);
     }
+
 
     /*Проверяет, имеет ли запрашивающий доступи к проекту*/
     public Mono<Boolean> hasAccessToProjectOrError(Long projectId, String token){

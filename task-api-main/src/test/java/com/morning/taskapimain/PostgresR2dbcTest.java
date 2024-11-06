@@ -27,8 +27,8 @@ public class PostgresR2dbcTest {
 
     @Test
     void someDatabaseTest() {
-        User user = userRepository.findByUsername("admin").block();
-        assertThat(user.getUsername()).isEqualTo("admin");
+        User user = userRepository.findByUsername("admin1").block();
+        assertThat(user.getUsername()).isEqualTo("admin1");
     }
     @Test
     void someDatabaseTest2() {
@@ -42,7 +42,7 @@ public class PostgresR2dbcTest {
         assertEquals(2, users.size(), "Expected exactly two users in the database");
 
         // Проверяем, что имя пользователя - admin
-        assertEquals("admin", users.get(0).getUsername(), "Expected username to be 'admin'");
+        assertEquals("admin1", users.get(0).getUsername(), "Expected username to be 'admin1'");
     }
 
 

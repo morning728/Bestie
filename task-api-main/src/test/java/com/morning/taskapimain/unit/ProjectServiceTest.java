@@ -1,6 +1,7 @@
 package com.morning.taskapimain.unit;
 
 import com.morning.taskapimain.exception.AccessException;
+import com.morning.taskapimain.exception.NotFoundException;
 import com.morning.taskapimain.service.ProjectService;
 import com.morning.taskapimain.service.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.r2dbc.core.FetchSpec;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -150,6 +152,48 @@ class ProjectServiceTest {
         // Act & Assert
         StepVerifier.create(projectService.isAdminOfProjectOrError(projectId, token))
                 .expectError(AccessException.class) // Ожидаем, что выбрасывается AccessException
+                .verify();
+    }
+
+    @Test
+    void findAllByUsername_ProjectsFound_ReturnsProjects() {
+        // Arrange
+        String username = "testUser";
+        Map<String, Object> projectMap1 = new HashMap<>();
+        projectMap1.put("id", 1L);
+        projectMap1.put("name", "Project 1");
+        projectMap1.put("description", "Description 1");
+
+        Map<String, Object> projectMap2 = new HashMap<>();
+        projectMap2.put("id", 2L);
+        projectMap2.put("name", "Project 2");
+        projectMap2.put("description", "Description 2");
+
+        when(client.sql(anyString())).thenReturn(executeSpec);
+        when(executeSpec.bind(anyString(), anyString())).thenReturn(executeSpec);
+        when(executeSpec.fetch()).thenReturn(genericExecuteSpec);
+        when(genericExecuteSpec.all()).thenReturn(Flux.just(projectMap1, projectMap2));
+
+        // Act & Assert
+        StepVerifier.create(projectService.findAllByUsername(username))
+                .expectNextMatches(project -> project.getName().equals("Project 1"))
+                .expectNextMatches(project -> project.getName().equals("Project 2"))
+                .verifyComplete();
+    }
+
+    @Test
+    void findAllByUsername_NoProjectsFound_ReturnsNotFoundException() {
+        // Arrange
+        String username = "testUser";
+
+        when(client.sql(anyString())).thenReturn(executeSpec);
+        when(executeSpec.bind(anyString(), anyString())).thenReturn(executeSpec);
+        when(executeSpec.fetch()).thenReturn(genericExecuteSpec);
+        when(genericExecuteSpec.all()).thenReturn(Flux.empty());
+
+        // Act & Assert
+        StepVerifier.create(projectService.findAllByUsername(username))
+                .expectError(NotFoundException.class)
                 .verify();
     }
 

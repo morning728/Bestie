@@ -18,11 +18,11 @@ CREATE TABLE user_project (
 
 
 INSERT INTO "users" (username, first_name,last_name,status, created_at, updated_at)
-VALUES ('admin', 'AdminName','AdminLastname', 'ACTIVE',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP),
+VALUES ('admin1', 'AdminName','AdminLastname', 'ACTIVE',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP),
        ('admin2', 'AdminName2','AdminLastname2', 'ACTIVE',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP);
 
 INSERT INTO project (name, description, status, created_at, updated_at, visibility)
-    VALUES ('test_project', 'test project description', 'ACTIVE',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP, 'OPEN'),
+    VALUES ('test_project1', 'test project description', 'ACTIVE',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP, 'OPEN'),
            ('test_project2', 'test project description2', 'ACTIVE',CURRENT_TIMESTAMP,CURRENT_TIMESTAMP, 'CLOSE');
 
 INSERT INTO user_project (project_id, user_id)

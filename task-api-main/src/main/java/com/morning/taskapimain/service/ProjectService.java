@@ -70,7 +70,8 @@ public class ProjectService{
 
 
 
-    /*Проверяет, является ли запрашивающий юзер участником проекта*/
+    /*Проверяет, является ли запрашивающий юзер участником проекта
+     TESTED*/
     public Mono<Boolean> isParticipantOfProjectOrError(Long projectId, String token) {
         String username = jwtService.extractUsername(token);
 
@@ -104,6 +105,7 @@ public class ProjectService{
                         Mono.error(new AccessException("You are not manager of project!")) :
                         Mono.just(true));
     }
+    /*TESTED*/
     public Mono<Boolean> isAdminOfProjectOrError(Long projectId, String token) {
         String username = jwtService.extractUsername(token);
 
@@ -147,47 +149,48 @@ public class ProjectService{
                 .flatMap(Project::fromMap);
     }
 
+    /*tested*/
     public Flux<Project> findAllByUsername(String username) {
-        String query = String.format("%s WHERE users.username = '%s'", SELECT_QUERY, username);
+        String query = String.format("%s WHERE users.username = :username", SELECT_QUERY);
+
         return client.sql(query)
+                .bind("username", username) // Используем параметр
                 .fetch()
                 .all()
                 .flatMap(Project::fromMap)
-                .defaultIfEmpty(Project.defaultIfEmpty())
-                .flatMap(project -> project.isEmpty() ? Mono.error(new NotFoundException("No one project was found!")) : Mono.just(project));
+                .switchIfEmpty(Flux.error(new NotFoundException("No one project was found!"))); // Упрощаем обработку ошибки
     }
 
+    /*tested*/
     public Mono<Project> findByUsernameAndId(String username, Long id) {
-        String query = String.format("%s WHERE users.username = '%s' AND p.id = %s", SELECT_QUERY, username, id);
+        String query = String.format("%s WHERE users.username = :username AND p.id = :id", SELECT_QUERY);
+
         return client.sql(query)
+                .bind("username", username) // Параметр для username
+                .bind("id", id) // Параметр для id
                 .fetch()
                 .first()
                 .flatMap(Project::fromMap)
-                .defaultIfEmpty(Project.defaultIfEmpty())
-                .flatMap(project -> project.isEmpty() ? Mono.error(new NotFoundException("Such project was not found!")) : Mono.just(project));
-    }
-
-    public Mono<Boolean> doFieldBelongsToProject(Long fieldId, Long projectId){
-        Mono<Field> fieldMono = fieldRepository.findById(fieldId);
-        return fieldMono
-                .defaultIfEmpty(Field.defaultIfEmpty())
-                .flatMap(field -> {
-            if(field.getId() != -1L && field.getProjectId() == projectId){
-                return Mono.just(true);
-            }
-            return Mono.just(false);
-        });
+                .switchIfEmpty(Mono.error(new NotFoundException("Such project was not found!"))); // Упрощенная обработка ошибки
     }
 
 
-    public Mono<Project> findById(Long id){
+    /*tested*/
+    public Mono<Boolean> doFieldBelongsToProject(Long fieldId, Long projectId) {
+        return fieldRepository.findById(fieldId)
+                .filter(field -> field.getProjectId().equals(projectId))
+                .hasElement();
+    }
+
+    /*tested*/
+    public Mono<Project> findById(Long id) {
         return projectRepository.findById(id)
-                .defaultIfEmpty(Project.defaultIfEmpty())
-                .flatMap(project -> project.isEmpty() ? Mono.error(new NotFoundException("Project was not found!")) : Mono.just(project));
+                .switchIfEmpty(Mono.defer(() -> Mono.error(new NotFoundException("Project was not found!"))));
     }
+
 
     /*Выдает проект всем, если он открыт и только участникам в противном случае*/
-    public Mono<Project> findByIdAndVisibility(Long id, String token){
+/*    public Mono<Project> findByIdAndVisibility(Long id, String token){
         return findById(id).defaultIfEmpty(Project.defaultIfEmpty()).flatMap(project -> {
             if(project.isEmpty())
                 return Mono.error(new NotFoundException("Project was not found!"));
@@ -195,7 +198,23 @@ public class ProjectService{
                     Mono.just(project) :
                     findByUsernameAndId(jwtService.extractUsername(token), id);
         });
+    }*/
+    /*Выдает проект всем, если он открыт и только участникам в противном случае
+    tested*/
+    public Mono<Project> findByIdAndVisibility(Long id, String token) {
+        return findById(id)
+                .flatMap(project -> {
+                    if ("OPEN".equals(project.getVisibility())) {
+                        return Mono.just(project);
+                    }
+                    // Закрытый проект — проверяем пользователя
+                    String username = jwtService.extractUsername(token);
+                    return findByUsernameAndId(username, id)
+                            .onErrorMap(NotFoundException.class, ex -> new AccessException("Access denied!"));
+                })
+                .switchIfEmpty(Mono.error(new NotFoundException("Such project was not found!")));
     }
+
 
     public Mono<Project> findByIdAndVisibility(Long id){
         return findById(id).flatMap(project -> {

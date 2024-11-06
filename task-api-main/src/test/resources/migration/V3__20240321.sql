@@ -17,3 +17,11 @@ CREATE TABLE task (
     FOREIGN KEY (project_id) REFERENCES project(id) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (field_id) REFERENCES field(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
+INSERT INTO "field" (name, project_id)
+VALUES ('field1', 1),
+       ('field2', 2);
+
+INSERT INTO "task" (name, project_id,field_id , created_at, updated_at)
+VALUES ('task1', 1,1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP),
+       ('task2', 2,2,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP);
+

@@ -60,8 +60,8 @@ public class ProjectService{
     private static final String DELETE_USER_FROM_PROJECT =     """
     DELETE FROM public.user_project WHERE project_id = %s AND user_id = %s
     """;
-    private static final String INSERT_PROJECT_USER_QUERY =     """
-    INSERT INTO public.user_project (project_id, user_id, role) VALUES (%s, %s, 'ADMIN')
+    private static final String INSERT_PROJECT_USER_QUERY = """
+    INSERT INTO public.user_project (project_id, user_id, role) VALUES (:projectId, :userId, 'ADMIN')
     """;
 
     private static final String CHANGE_USER_ROLE =     """
@@ -225,81 +225,69 @@ public class ProjectService{
         });
     }
 
-    /*Добавляет проект в бд, а также привязывает проект к юзеру, который отправил запрос на создание*/
-    public Mono<Project> addProject(ProjectDTO dto, String token){
+    /* Добавляет проект в бд и привязывает проект к пользователю, который создал запрос
+     tested*/
+    public Mono<Project> addProject(ProjectDTO dto, String token) {
         String username = jwtService.extractUsername(token);
-        return projectRepository.save(dto.toInsertProject()).flatMap(project -> {
-            return userService.findUserByUsername(username).flatMap(user -> {
-                String query = String.format(INSERT_PROJECT_USER_QUERY, project.getId(),user.getId());
-                return client.sql(query)
-                        .fetch()
-                        .first()
-                        .flatMap(stringObjectMap -> Mono.just(project));
-            });
-        });
+
+        return projectRepository.save(dto.toInsertProject())
+                .flatMap(project ->
+                        userService.findUserByUsername(username)
+                                .flatMap(user -> client.sql(INSERT_PROJECT_USER_QUERY)
+                                        .bind("projectId", project.getId())
+                                        .bind("userId", user.getId())
+                                        .fetch()
+                                        .rowsUpdated()
+                                        .map(rows -> project)
+                                )
+                );
     }
 
-    public Mono<Void> deleteProjectById(Long id, String token){
+    /*tested*/
+    public Mono<Void> deleteProjectById(Long id, String token) {
         String username = jwtService.extractUsername(token);
         return findByUsernameAndId(username, id)
-                .defaultIfEmpty(Project.defaultIfEmpty())
-                .flatMap(project -> {
-                    if(!project.isEmpty()){
-                        return projectRepository.deleteById(id);
-                    }
-                    return Mono.error(new NotFoundException("Project was not found!"));
-                });
+                .switchIfEmpty(Mono.error(new NotFoundException("Project was not found!")))
+                .flatMap(project -> projectRepository.deleteById(id));
     }
 
-    /*Метод обновления проекта: если у пользователя, отправившего запрос, есть такой проект, то обновляем его*/
-    public Mono<Project> updateProject(ProjectDTO dto, String token){
+    /* Метод обновления проекта: если у пользователя есть проект с указанным ID, обновляем его */
+    /*tested*/
+    public Mono<Project> updateProject(ProjectDTO dto, String token) {
         String username = jwtService.extractUsername(token);
         return findByUsernameAndId(username, dto.getId())
-                .defaultIfEmpty(Project.defaultIfEmpty())
+                .switchIfEmpty(Mono.error(new NotFoundException("Project was not found!")))
                 .flatMap(project -> {
-                    if(!project.isEmpty()){
-                        project.update(dto.toProject());
-                        return projectRepository.save(project);
-                    }
-                    return Mono.error(new NotFoundException("Project was not found!"));
+                    project.update(dto.toProject());
+                    return projectRepository.save(project);
                 });
     }
-
-    public Flux<Field> findProjectFieldsByProjectId(Long projectId, String token){
+    /*tested*/
+    public Flux<Field> findProjectFieldsByProjectId(Long projectId, String token) {
         return hasAccessToProjectOrError(projectId, token)
                 .thenMany(fieldRepository.findByProjectIdOrderById(projectId));
     }
-
-    public Mono<Field> addField(FieldDTO dto, String token){ /////////////////////////////////////test
-        String username = jwtService.extractUsername(token);
+    /*tested*/
+    public Mono<Field> addField(FieldDTO dto, String token) {
         return isAdminOfProjectOrError(dto.getProjectId(), token)
                 .then(fieldRepository.save(dto.map()));
     }
-
-    public Mono<Field> updateField(FieldDTO dto, String token){
-    isAdminOfProjectOrError(dto.getProjectId(), token);
-    return fieldRepository.findById(dto.getId())
-            .defaultIfEmpty(Field.defaultIfEmpty())
-            .flatMap(field -> {
-                if(!field.isEmpty()){
-                    return isParticipantOfProjectOrError(dto.getProjectId(), token)
-                            .then(fieldRepository.save(dto.map()));
-                }
-                return Mono.error(new NotFoundException("Field was not found!"));
-            });
+    /*tested*/
+    public Mono<Field> updateField(FieldDTO dto, String token) {
+        return isAdminOfProjectOrError(dto.getProjectId(), token)
+                .then(fieldRepository.findById(dto.getId())
+                        .switchIfEmpty(Mono.error(new NotFoundException("Field was not found!")))
+                        .flatMap(existingField -> fieldRepository.save(dto.map())));
     }
 
-    public Mono<Void> deleteFieldById(Long fieldId, String token){
-    return fieldRepository.findById(fieldId)
-            .defaultIfEmpty(Field.defaultIfEmpty())
-            .flatMap(field -> {
-                if(!field.isEmpty()){
-                    return isAdminOfProjectOrError(field.getProjectId(), token)
-                            .then(fieldRepository.deleteById(fieldId));
-                }
-                return Mono.error(new NotFoundException("Field was not found!"));
-            });
+    /*tested*/
+    public Mono<Void> deleteFieldById(Long fieldId, String token) {
+        return fieldRepository.findById(fieldId)
+                .switchIfEmpty(Mono.error(new NotFoundException("Field was not found!")))
+                .flatMap(field -> isAdminOfProjectOrError(field.getProjectId(), token)
+                        .then(fieldRepository.deleteById(fieldId)));
     }
+
 
     public Flux<UserDTO> findUsersByProjectId(Long projectId, String token){
         String query =  String.format("%s WHERE p.id = '%s' order by users.id", SELECT_USERS_BY_PROJECT_ID_QUERY, projectId);

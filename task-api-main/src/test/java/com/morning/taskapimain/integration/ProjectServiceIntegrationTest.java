@@ -1,15 +1,13 @@
 package com.morning.taskapimain.integration;
 
 import com.morning.taskapimain.Init.PostgresDatabaseContainerInitializer;
+import com.morning.taskapimain.entity.dto.FieldDTO;
+import com.morning.taskapimain.entity.dto.ProjectDTO;
 import com.morning.taskapimain.exception.AccessException;
 import com.morning.taskapimain.exception.NotFoundException;
 import com.morning.taskapimain.service.ProjectService;
 import com.morning.taskapimain.service.security.JwtService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
@@ -19,7 +17,8 @@ import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.test.context.ContextConfiguration;
 import reactor.test.StepVerifier;
 
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -217,6 +216,270 @@ class ProjectServiceIntegrationTest {
         // Act & Assert
         StepVerifier.create(projectService.findByIdAndVisibility(projectId, token))
                 .expectError(NotFoundException.class)
+                .verify();
+    }
+
+    // addProject
+    @Test
+    void addProject_SuccessfulAddition_ReturnsProject() {
+        // Arrange
+        String username = "admin2";
+        ProjectDTO projectDTO = ProjectDTO.builder()
+                .id(123L)
+                .name("New Project")
+                .description("Description")
+                .visibility("CLOSE")
+                .build();
+        when(jwtService.extractUsername(token)).thenReturn(username);
+
+        // Act & Assert
+        StepVerifier.create(projectService.addProject(projectDTO, token))
+                .assertNext(project -> {
+                    assertNotNull(project.getId());
+                    assertEquals("New Project", project.getName());
+                    assertEquals("Description", project.getDescription());
+                })
+                .verifyComplete();
+        StepVerifier.create(projectService.findAllByUsername(username))
+                .expectNextMatches(project -> "New Project".equals(project.getName()))
+                .verifyComplete();
+    }
+
+    @Test
+    void addProject_UserNotFound_ThrowsNotFoundException() {
+        // Arrange
+        String username = "nonExistentUser";
+        ProjectDTO projectDTO = ProjectDTO.builder()
+                .id(123L)
+                .name("New Project")
+                .description("Description")
+                .visibility("CLOSE")
+                .build();
+
+        when(jwtService.extractUsername(token)).thenReturn(username);
+
+        // Act & Assert
+        StepVerifier.create(projectService.addProject(projectDTO, token))
+                .expectError(NotFoundException.class)
+                .verify();
+    }
+
+    // deleteProjectById
+    @Test
+    void deleteProjectById_ProjectExists_DeletesSuccessfully() {
+        // Arrange
+        Long projectId = 4L;
+        String username = "admin3";
+
+        when(jwtService.extractUsername(token)).thenReturn(username);
+
+        // Act & Assert
+        StepVerifier.create(projectService.deleteProjectById(projectId, token))
+                .verifyComplete();
+        StepVerifier.create(projectService.findByUsernameAndId(username, projectId))
+                .expectError(NotFoundException.class)
+                .verify();
+    }
+
+    @Test
+    void deleteProjectById_ProjectNotFound_ThrowsNotFoundException() {
+        // Arrange
+        Long projectId = 999L;  // Несуществующий ID
+        String username = "admin3";
+
+        when(jwtService.extractUsername(token)).thenReturn(username);
+
+        // Act & Assert
+        StepVerifier.create(projectService.deleteProjectById(projectId, token))
+                .expectError(NotFoundException.class)
+                .verify();
+    }
+
+    // updateProject
+    @Test
+    void updateProject_ProjectExists_UpdatesSuccessfully() {
+        // Arrange
+        Long projectId = 3L;
+        String username = "admin3";
+        ProjectDTO projectDTO = ProjectDTO.builder()
+                .id(projectId)
+                .name("Updated Project")
+                .description("UPD Description")
+                .visibility("OPEN")
+                .build();
+
+        when(jwtService.extractUsername(token)).thenReturn(username);
+
+        // Act & Assert
+        StepVerifier.create(projectService.updateProject(projectDTO, token))
+                .assertNext(updatedProject -> {
+                    assertEquals("Updated Project", updatedProject.getName());
+                    assertEquals("UPD Description", updatedProject.getDescription());
+                    assertEquals("OPEN", updatedProject.getVisibility());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void updateProject_ProjectNotFound_ThrowsNotFoundException() {
+        // Arrange
+        Long nonExistentProjectId = 999L;  // Несуществующий ID
+        String username = "admin3";
+        ProjectDTO projectDTO = ProjectDTO.builder()
+                .id(nonExistentProjectId)
+                .name("Updated Project")
+                .description("UPD Description")
+                .visibility("OPEN")
+                .build();
+
+        when(jwtService.extractUsername(token)).thenReturn(username);
+
+        // Act & Assert
+        StepVerifier.create(projectService.updateProject(projectDTO, token))
+                .expectError(NotFoundException.class)
+                .verify();
+    }
+    //findProjectFieldsByProjectId
+    @Test
+    void findProjectFieldsByProjectId_WithAccess_ReturnsFields() {
+        // Arrange
+        Long projectId = 1L;
+        when(jwtService.extractUsername(token)).thenReturn("admin1");
+
+        // Act & Assert
+        StepVerifier.create(projectService.findProjectFieldsByProjectId(projectId, token))
+                .expectNextMatches(field -> field.getProjectId().equals(projectId))
+                .verifyComplete();
+    }
+
+    @Test
+    void findProjectFieldsByProjectId_WithoutAccess_ThrowsAccessException() {
+        // Arrange
+        Long projectId = 1L;
+        when(jwtService.extractUsername(token)).thenReturn("userWithNoAccess");
+
+        // Act & Assert
+        StepVerifier.create(projectService.findProjectFieldsByProjectId(projectId, token))
+                .expectError(AccessException.class)
+                .verify();
+    }
+
+    // addField
+    @Test
+    void addField_AdminHasAccess_AddsField() {
+        // Arrange
+        Long projectId = 3L;
+        FieldDTO fieldDTO = FieldDTO.builder()
+                .projectId(projectId)
+                .name("Test Field")
+                .build();
+
+        when(jwtService.extractUsername(token)).thenReturn("admin3");
+
+        // Act & Assert
+        StepVerifier.create(projectService.addField(fieldDTO, token))
+                .assertNext(field -> {
+                    assertEquals("Test Field", field.getName());
+                    assertEquals(projectId, field.getProjectId());
+                })
+                .verifyComplete();
+        StepVerifier.create(projectService.findProjectFieldsByProjectId(projectId, token))
+                .expectNextMatches(field -> "Test Field".equals(field.getName()))
+                .verifyComplete();
+    }
+
+    @Test
+    void addField_NonAdmin_ThrowsAccessException() {
+        // Arrange
+        Long projectId = 4L;
+        FieldDTO fieldDTO = FieldDTO.builder()
+                .projectId(projectId)
+                .name("Test Field")
+                .build();
+
+        when(jwtService.extractUsername(token)).thenReturn("admin3");
+
+        // Act & Assert
+        StepVerifier.create(projectService.addField(fieldDTO, token))
+                .expectError(AccessException.class)
+                .verify();
+    }
+
+    @Test
+    void updateField_FieldExists_UpdatesSuccessfully() {
+        // Arrange
+        Long projectId = 1L;
+        FieldDTO fieldDTO = FieldDTO.builder()
+                .id(1L)
+                .projectId(projectId)
+                .name("Updated Field")
+                .build();
+
+        when(jwtService.extractUsername(token)).thenReturn("admin1");
+
+        // Act & Assert
+        StepVerifier.create(projectService.updateField(fieldDTO, token))
+                .assertNext(updatedField -> {
+                    assertEquals("Updated Field", updatedField.getName());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void updateField_FieldNotFound_ThrowsNotFoundException() {
+        // Arrange
+        Long projectId = 1L;
+        Long nonExistentFieldId = 999L;
+        FieldDTO fieldDTO = FieldDTO.builder()
+                .id(nonExistentFieldId)
+                .projectId(projectId)
+                .name("Updated Field")
+                .build();
+
+        when(jwtService.extractUsername(token)).thenReturn("admin1");
+
+        // Act & Assert
+        StepVerifier.create(projectService.updateField(fieldDTO, token))
+                .expectError(NotFoundException.class)
+                .verify();
+    }
+
+    // deleteFieldById
+    @Test
+    void deleteFieldById_AdminHasAccess_DeletesField() {
+        // Arrange
+        Long fieldId = 1L;
+        Long projectId = 1L;
+
+        when(jwtService.extractUsername(token)).thenReturn("admin1");
+
+        // Act & Assert
+        StepVerifier.create(projectService.deleteFieldById(fieldId, token))
+                .verifyComplete();
+    }
+
+    @Test
+    void deleteFieldById_FieldNotFound_ThrowsNotFoundException() {
+        // Arrange
+        Long fieldId = 999L;
+
+        // Act & Assert
+        StepVerifier.create(projectService.deleteFieldById(fieldId, token))
+                .expectError(NotFoundException.class)
+                .verify();
+    }
+
+    @Test
+    void deleteFieldById_NonAdminUser_ThrowsAccessException() {
+        // Arrange
+        Long fieldId = 3L;
+        Long projectId = 4L;
+
+        when(jwtService.extractUsername(token)).thenReturn("admin3");
+
+        // Act & Assert
+        StepVerifier.create(projectService.deleteFieldById(fieldId, token))
+                .expectError(AccessException.class)
                 .verify();
     }
 

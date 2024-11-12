@@ -146,7 +146,10 @@ public class UserService {
         return client.sql(query)
                 .fetch()
                 .first()
-                .flatMap(User::monoFromMap);
+                .flatMap(User::monoFromMap)
+                .switchIfEmpty(Mono.error(
+                        new NotFoundException(String.format("Such user (%s) was not found!", username)))
+                );
     }
 
     public Flux<User> findUsersByUsernameContains(String substring){

@@ -20,6 +20,7 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
+@Builder
 @EqualsAndHashCode(callSuper = false)
 public class ProjectDTO {
     private Long id;

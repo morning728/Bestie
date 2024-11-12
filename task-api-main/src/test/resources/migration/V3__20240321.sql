@@ -19,7 +19,8 @@ CREATE TABLE task (
 );
 INSERT INTO "field" (name, project_id)
 VALUES ('field1', 1),
-       ('field2', 2);
+       ('field2', 2),
+       ('field3', 4);
 
 INSERT INTO "task" (name, project_id,field_id , created_at, updated_at)
 VALUES ('task1', 1,1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP),

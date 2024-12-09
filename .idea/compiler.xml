@@ -41,15 +41,6 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="20">
-      <module name="api-gateway" target="17" />
-      <module name="api-gateway.main" target="17" />
-      <module name="api-gateway.test" target="17" />
-      <module name="eureka-server" target="17" />
-      <module name="eureka-server.main" target="17" />
-      <module name="eureka-server.test" target="17" />
-      <module name="mail-notification" target="17" />
-      <module name="mail-notification.main" target="17" />
-      <module name="mail-notification.test" target="17" />
       <module name="num-note.statistics-api" target="17" />
       <module name="num-note.statistics-api.main" target="17" />
       <module name="num-note.statistics-api.test" target="17" />
@@ -59,15 +50,9 @@
       <module name="open-request-handler" target="17" />
       <module name="open-request-handler.main" target="17" />
       <module name="open-request-handler.test" target="17" />
-      <module name="security" target="17" />
-      <module name="security.main" target="17" />
-      <module name="security.test" target="17" />
       <module name="statistics-api.main" target="17" />
       <module name="statistics-api.test" target="17" />
       <module name="task-api" target="17" />
-      <module name="task-api-main" target="17" />
-      <module name="task-api-main.main" target="17" />
-      <module name="task-api-main.test" target="17" />
       <module name="task-api.main" target="17" />
       <module name="task-api.test" target="17" />
       <module name="test.main" target="17" />

@@ -11,6 +11,7 @@ import com.morning.taskapimain.exception.AccessException;
 import com.morning.taskapimain.exception.BadRequestException;
 import com.morning.taskapimain.exception.NotFoundException;
 import com.morning.taskapimain.repository.UserRepository;
+import com.morning.taskapimain.service.feign.ProfileServiceClient;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -37,6 +39,10 @@ public class UserService {
     private final RestTemplate template;
     private final JwtService jwtService;
     private final DatabaseClient client;
+
+    private final ProfileServiceClient profileServiceClient;
+    private final WebClient webClient;
+
     @Value("${application.security.userInfoPath}")
     private String userInfoPath;
     @Value("${application.security.db}")
@@ -339,6 +345,22 @@ public class UserService {
         ObjectMapper objectMapper = new ObjectMapper();
         String jacksonData = objectMapper.writeValueAsString(map);
         return new HttpEntity<>((jacksonData), headers);
+    }
+
+    public Mono<ProfileDTO> findProfileByUsernameWithFeign(String usernameToGetProfile, String yourToken) {
+        return Mono.fromCallable(() -> profileServiceClient.getProfileByUsername(usernameToGetProfile, yourToken))
+                .subscribeOn(Schedulers.boundedElastic()); // Выполняется в неблокирующем пуле потоков
+    }
+
+    public Mono<ProfileDTO> findProfileByUsernameWithWebClient(String usernameToGetProfile, String yourToken) {
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/users/info")
+                        .queryParam("username", usernameToGetProfile)
+                        .build())
+                .header("Authorization",  yourToken)
+                .retrieve()
+                .bodyToMono(ProfileDTO.class);
     }
 
 

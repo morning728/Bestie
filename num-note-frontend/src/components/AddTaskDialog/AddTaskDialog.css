@@ -1,0 +1,9 @@
+.add-task-dialog {
+    padding: 24px;
+    width: 400px;
+  }
+  
+  .add-task-dialog .MuiTextField-root {
+    margin-bottom: 16px;
+  }
+  

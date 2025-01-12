@@ -1,0 +1,12 @@
+.header {
+    transition: background-color 0.3s ease;
+  }
+  
+  .header.day {
+    background-color: #9932CC;
+  }
+  
+  .header.night {
+    background-color: #2c2c54;
+  }
+  

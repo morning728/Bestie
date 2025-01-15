@@ -1,4 +1,4 @@
-import React, { createContext, useState } from "react";
+import React, { createContext, useState, useEffect } from "react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 
 // Создаем Context
@@ -6,7 +6,16 @@ export const ThemeContext = createContext();
 
 // Обертка для переключения темы
 export const ThemeContextProvider = ({ children }) => {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    // Проверяем сохранённое значение темы в localStorage
+    const savedTheme = localStorage.getItem("darkMode");
+    return savedTheme === "true"; // true, если сохранено "true", иначе false
+  });
+
+  useEffect(() => {
+    // Сохраняем текущее состояние темы в localStorage
+    localStorage.setItem("darkMode", darkMode);
+  }, [darkMode]);
 
   const theme = createTheme({
     palette: {
@@ -23,7 +32,7 @@ export const ThemeContextProvider = ({ children }) => {
     },
   });
 
-  const toggleTheme = () => setDarkMode(!darkMode);
+  const toggleTheme = () => setDarkMode((prev) => !prev);
 
   return (
     <ThemeContext.Provider value={{ darkMode, toggleTheme }}>

@@ -9,9 +9,7 @@ import {
   TextField,
   MenuItem,
 } from "@mui/material";
-import Sidebar from "../../components/Sidebar/Sidebar";
 import Header from "../../components/Header/Header";
-import Footer from "../../components/Footer/Footer";
 import TaskCard from "../../components/TaskCard/TaskCard";
 import AddTaskDialog from "../../components/AddTaskDialog/AddTaskDialog";
 import TaskDetailsDialog from "../../components/TaskDetailsDialog/TaskDetailsDialog";
@@ -84,97 +82,93 @@ const MainPage = () => {
   const filteredTasks = useFilteredTasks(tasks, filterTag, filterStatus);
 
   return (
-    <Box className="main-page">
-      <Sidebar />
-      <Box className={`main-content ${darkMode ? "night" : "day"}`}>
-        <Header />
-        <Box mt={2} sx={{ display: "flex", justifyContent: "space-between" }}>
-          <Typography variant="h4" gutterBottom>
-            Today's Tasks
+    <Box className={`main-content ${darkMode ? "night" : "day"}`}>
+      <Header />
+      <Box mt={2} sx={{ display: "flex", justifyContent: "space-between" }}>
+        <Typography variant="h4" gutterBottom>
+          Today's Tasks
+        </Typography>
+        {/* <Box display="flex" alignItems="center">
+          <Typography variant="body1" sx={{ mr: 1 }}>
+            {darkMode ? "Night Mode" : "Day Mode"}
           </Typography>
-          <Box display="flex" alignItems="center">
-            <Typography variant="body1" sx={{ mr: 1 }}>
-              {darkMode ? "Night Mode" : "Day Mode"}
-            </Typography>
-            <Switch checked={darkMode} onChange={toggleTheme} />
-          </Box>
-        </Box>
-
-        <Box display="flex" justifyContent="space-around" mb={2}>
-          <TextField
-            select
-            name="filter-tag"
-            label="Filter Tag"
-            fullWidth
-            margin="normal"
-            value={filterTag}
-            onChange={(e) => setFilterTag(e.target.value)}
-            sx={{ width: "40%" }}
-          >
-            <MenuItem value="">All</MenuItem>
-            <MenuItem value="Work">Work</MenuItem>
-            <MenuItem value="Health">Health</MenuItem>
-            <MenuItem value="Personal">Personal</MenuItem>
-            <MenuItem value="Study">Study</MenuItem>
-          </TextField>
-          <TextField
-            select
-            name="filter-status"
-            label="Filter Status"
-            fullWidth
-            margin="normal"
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            sx={{ width: "40%" }}
-          >
-            <MenuItem value="">All</MenuItem>
-            <MenuItem value="Completed">Completed</MenuItem>
-            <MenuItem value="Pending">Pending</MenuItem>
-            <MenuItem value="In Progress">In Progress</MenuItem>
-            <MenuItem value="Overdue">Overdue</MenuItem>
-          </TextField>
-        </Box>
-
-        <Divider sx={{ mb: 2 }} />
-
-        <Grid container spacing={2}>
-          {filteredTasks.map((task) => (
-            <Grid item xs={12} sm={6} md={4} key={task.id}>
-              <TaskCard task={task} onClick={() => handleOpenDetailsDialog(task)} />
-            </Grid>
-          ))}
-        </Grid>
-
-        <Box mt={4} textAlign="center">
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            onClick={handleOpenAddDialog}
-          >
-            + Add Task
-          </Button>
-        </Box>
-
-        <AddTaskDialog
-          open={openAddDialog.isOpen}
-          handleClose={handleCloseAddDialog}
-          handleAddTask={addTask}
-          task={selectedTask}// Опиши связь!!!!!! А то хуй разберешься
-          isEditing={isEditing}
-        />
-
-        {selectedTask && (
-          <TaskDetailsDialog
-            open={openDetailsDialog.isOpen}
-            task={selectedTask}
-            handleClose={handleCloseDetailsDialog}
-            onEdit={editTask}
-            onDelete={deleteTask}
-          />
-        )}
+          <Switch checked={darkMode} onChange={toggleTheme} />
+        </Box> */}
       </Box>
-      <Footer />
+
+      <Box display="flex" justifyContent="space-around" mb={2}>
+        <TextField
+          select
+          name="filter-tag"
+          label="Filter Tag"
+          fullWidth
+          margin="normal"
+          value={filterTag}
+          onChange={(e) => setFilterTag(e.target.value)}
+          sx={{ width: "40%" }}
+        >
+          <MenuItem value="">All</MenuItem>
+          <MenuItem value="Work">Work</MenuItem>
+          <MenuItem value="Health">Health</MenuItem>
+          <MenuItem value="Personal">Personal</MenuItem>
+          <MenuItem value="Study">Study</MenuItem>
+        </TextField>
+        <TextField
+          select
+          name="filter-status"
+          label="Filter Status"
+          fullWidth
+          margin="normal"
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          sx={{ width: "40%" }}
+        >
+          <MenuItem value="">All</MenuItem>
+          <MenuItem value="Completed">Completed</MenuItem>
+          <MenuItem value="Pending">Pending</MenuItem>
+          <MenuItem value="In Progress">In Progress</MenuItem>
+          <MenuItem value="Overdue">Overdue</MenuItem>
+        </TextField>
+      </Box>
+
+      <Divider sx={{ mb: 2 }} />
+
+      <Grid container spacing={2}>
+        {filteredTasks.map((task) => (
+          <Grid item xs={12} sm={6} md={4} key={task.id}>
+            <TaskCard task={task} onClick={() => handleOpenDetailsDialog(task)} />
+          </Grid>
+        ))}
+      </Grid>
+
+      <Box mt={4} textAlign="center">
+        <Button
+          variant="contained"
+          color="primary"
+          size="large"
+          onClick={handleOpenAddDialog}
+        >
+          + Add Task
+        </Button>
+      </Box>
+
+      <AddTaskDialog
+        open={openAddDialog.isOpen}
+        handleClose={handleCloseAddDialog}
+        handleAddTask={addTask}
+        task={selectedTask}// Опиши связь!!!!!! А то хуй разберешься
+        isEditing={isEditing}
+      />
+
+      {selectedTask && (
+        <TaskDetailsDialog
+          open={openDetailsDialog.isOpen}
+          task={selectedTask}
+          handleClose={handleCloseDetailsDialog}
+          onEdit={editTask}
+          onDelete={deleteTask}
+        />
+      )}
     </Box>
   );
 };

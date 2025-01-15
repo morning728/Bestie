@@ -1,27 +1,12 @@
-html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow-x: hidden;
-  }
-  
-  .main-page {
-    display: flex;
-    min-height: 100vh;
-  }
-/* Основной контейнер для страницы */
 .main-page {
   display: flex;
-  flex-direction: column; /* Выстраиваем элементы по вертикали */
-  min-height: 100vh; /* Высота страницы = высота окна браузера */
+  min-height: 100vh;
 }
 
-/* Контент между header и footer */
 .main-content {
-  flex-grow: 1; /* Заполняет всё доступное пространство */
-  padding: 24px;
-  margin-left: 240px; /* Отступ для Sidebar */
+  flex-grow: 1; /* Контент автоматически занимает оставшееся пространство */
+  padding: 1.5rem;
+  min-height: 100vh;
   transition: background-color 0.3s ease;
 }
 
@@ -30,17 +15,18 @@ html, body {
 }
 
 .main-content.night {
-  background-color: #2c2c54; /* Мягкий ночной фон */
+  background-color: #2c2c54;
 }
 
-/* Футер */
 .footer {
-  background-color: #9932CC; /* Цвет футера */
+  background-color: #9932CC;
   color: white;
-  padding: 16px;
+  padding: 1rem;
   text-align: center;
 }
 
-
-  
-  
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1rem;
+  }
+}

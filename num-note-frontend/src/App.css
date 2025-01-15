@@ -37,3 +37,16 @@
     transform: rotate(360deg);
   }
 }
+/* Основной контейнер для страницы */
+.main-box {
+  display: flex;
+  flex-direction: row; /* Размещаем элементы горизонтально */
+  min-height: 100vh; /* Высота страницы = высота окна браузера */
+}
+
+.content {
+  flex-grow: 1; /* Контент заполняет оставшееся пространство */
+  /* padding: 1.5rem; */
+  transition: margin-left 0.3s ease;
+}
+

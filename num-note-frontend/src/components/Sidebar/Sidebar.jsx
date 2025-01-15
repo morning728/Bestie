@@ -1,100 +1,69 @@
-import React from "react";
-import { Box, List, ListItem, ListItemIcon, ListItemText, Typography } from "@mui/material";
+import React, { useState, useContext } from "react";
+import { Box, List, ListItem, ListItemIcon, ListItemText, Typography, IconButton } from "@mui/material";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import SettingsIcon from "@mui/icons-material/Settings";
+import MenuIcon from "@mui/icons-material/Menu";
+import { ThemeContext } from "../../ThemeContext"; // Подключаем ThemeContext
+import "./Sidebar.css";
 
 const Sidebar = () => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { darkMode } = useContext(ThemeContext); // Получаем текущую тему
+
+  const toggleSidebar = () => {
+    setIsCollapsed((prev) => !prev);
+  };
+
   return (
     <Box
-      sx={{
-        width: 240,
-        backgroundColor: "primary.main",
-        color: "#fff",
-        display: "flex",
-        flexDirection: "column",
-        height: "100vh",
-        position: "fixed",
-        boxShadow: 3,
-      }}
+      className={`sidebar ${isCollapsed ? "collapsed" : "expanded"} ${darkMode ? "dark" : "light"}`}
     >
-      {/* Логотип и название приложения */}
-      <Box
-        sx={{
-          padding: 2,
-          textAlign: "center",
-          backgroundColor: "rgba(255, 255, 255, 0.1)",
-        }}
-      >
-        <Typography variant="h5" sx={{ fontWeight: "bold" }}>
-          Smart Calendar
-        </Typography>
+      {/* Кнопка для сворачивания */}
+      <Box className="sidebar-toggle">
+        <IconButton onClick={toggleSidebar} color="inherit">
+          <MenuIcon />
+        </IconButton>
       </Box>
 
+      {/* Логотип и название */}
+      {!isCollapsed && (
+        <Box className="sidebar-header">
+          <Typography variant="h5">Smart Calendar</Typography>
+        </Box>
+      )}
+
       {/* Список навигации */}
-      <List sx={{ marginTop: 2 }}>
-        <ListItem
-          button
-          sx={{
-            "&:hover": {
-              backgroundColor: "rgba(255, 255, 255, 0.2)",
-            },
-            padding: "10px 20px",
-          }}
-        >
+      <List className="sidebar-list">
+        <ListItem className="sidebar-item" button>
           <ListItemIcon>
-            <CalendarMonthIcon sx={{ color: "#fff" }} />
+            <CalendarMonthIcon />
           </ListItemIcon>
-          <ListItemText primary="Calendar" />
+          {!isCollapsed && <ListItemText primary="Calendar" />}
         </ListItem>
 
-        <ListItem
-          button
-          sx={{
-            "&:hover": {
-              backgroundColor: "rgba(255, 255, 255, 0.2)",
-            },
-            padding: "10px 20px",
-          }}
-        >
+        <ListItem className="sidebar-item" button>
           <ListItemIcon>
-            <BarChartIcon sx={{ color: "#fff" }} />
+            <BarChartIcon />
           </ListItemIcon>
-          <ListItemText primary="Analytics" />
+          {!isCollapsed && <ListItemText primary="Analytics" />}
         </ListItem>
 
-        <ListItem
-          button
-          sx={{
-            "&:hover": {
-              backgroundColor: "rgba(255, 255, 255, 0.2)",
-            },
-            padding: "10px 20px",
-          }}
-        >
+        <ListItem className="sidebar-item" button>
           <ListItemIcon>
-            <SettingsIcon sx={{ color: "#fff" }} />
+            <SettingsIcon />
           </ListItemIcon>
-          <ListItemText primary="Settings" />
+          {!isCollapsed && <ListItemText primary="Settings" />}
         </ListItem>
       </List>
 
       {/* Нижняя часть боковой панели */}
-      <Box
-        sx={{
-          marginTop: "auto",
-          padding: 2,
-          textAlign: "center",
-          borderTop: "1px solid rgba(255, 255, 255, 0.2)",
-        }}
-      >
-        <Typography variant="body2" sx={{ fontSize: "0.9rem" }}>
-          Welcome, User!
-        </Typography>
-        <Typography variant="caption" sx={{ fontSize: "0.8rem" }}>
-          Stay productive today 🚀
-        </Typography>
-      </Box>
+      {!isCollapsed && (
+        <Box className="sidebar-footer">
+          <Typography variant="body2">Welcome, User!</Typography>
+          <Typography variant="caption">Stay productive today 🚀</Typography>
+        </Box>
+      )}
     </Box>
   );
 };

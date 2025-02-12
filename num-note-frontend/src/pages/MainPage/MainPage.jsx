@@ -9,6 +9,7 @@ import {
   TextField,
   MenuItem,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import Header from "../../components/Header/Header";
 import TaskCard from "../../components/TaskCard/TaskCard";
 import AddTaskDialog from "../../components/AddTaskDialog/AddTaskDialog";
@@ -21,6 +22,7 @@ import "./MainPage.css";
 
 const MainPage = () => {
   const { darkMode, toggleTheme } = useContext(ThemeContext);
+  const { t, i18n } = useTranslation();
 
   const initialTasks = [
     {
@@ -85,15 +87,7 @@ const MainPage = () => {
     <Box className={`main-content ${darkMode ? "night" : "day"}`}>
       <Header />
       <Box mt={2} sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Typography variant="h4" gutterBottom>
-          Today's Tasks
-        </Typography>
-        {/* <Box display="flex" alignItems="center">
-          <Typography variant="body1" sx={{ mr: 1 }}>
-            {darkMode ? "Night Mode" : "Day Mode"}
-          </Typography>
-          <Switch checked={darkMode} onChange={toggleTheme} />
-        </Box> */}
+        <Typography variant="h4" gutterBottom>{t("main_page_title")}</Typography>
       </Box>
 
       <Box display="flex" justifyContent="space-around" mb={2}>
@@ -107,7 +101,7 @@ const MainPage = () => {
           onChange={(e) => setFilterTag(e.target.value)}
           sx={{ width: "40%" }}
         >
-          <MenuItem value="">All</MenuItem>
+          <MenuItem value="">{t("main_page_all")}</MenuItem>
           <MenuItem value="Work">Work</MenuItem>
           <MenuItem value="Health">Health</MenuItem>
           <MenuItem value="Personal">Personal</MenuItem>

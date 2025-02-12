@@ -1,0 +1,16 @@
+{
+    "main_page_title": "Today's Tasks",
+    "main_page_filter_tag": "Filter Tag",
+    "main_page_filter_status": "Filter Status",
+    "main_page_all": "All",
+    "main_page_work": "Work",
+    "main_page_health": "Health",
+    "main_page_personal": "Personal",
+    "main_page_study": "Study",
+    "main_page_completed": "Completed",
+    "main_page_pending": "Pending",
+    "main_page_in_progress": "In Progress",
+    "main_page_overdue": "Overdue",
+    "main_page_add_task": "+ Add Task"
+  }
+  

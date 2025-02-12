@@ -1,0 +1,16 @@
+{
+    "main_page_title": "Сегодняшние задачи",
+    "main_page_filter_tag": "Фильтр по тегам",
+    "main_page_filter_status": "Фильтр по статусу",
+    "main_page_all": "Все",
+    "main_page_work": "Работа",
+    "main_page_health": "Здоровье",
+    "main_page_personal": "Личное",
+    "main_page_study": "Учеба",
+    "main_page_completed": "Завершено",
+    "main_page_pending": "Предстоит",
+    "main_page_in_progress": "В процессе",
+    "main_page_overdue": "Просрочено",
+    "main_page_add_task": "+ Добавить задачу"
+  }
+  

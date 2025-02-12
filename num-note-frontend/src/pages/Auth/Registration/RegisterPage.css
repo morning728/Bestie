@@ -1,0 +1,51 @@
+.register-page {
+  flex-grow: 1; /* Контент занимает оставшееся пространство */
+  padding: 1.5rem; /* Относительные отступы для адаптивности */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh; /* Высота страницы = высота окна */
+  transition: background-color 0.3s ease;
+}
+
+.main-register-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: background-color 0.3s ease;
+}
+
+.register-title {
+  margin-bottom: 1.25rem;
+  color: #9932CC;
+  text-align: center;
+}
+
+.register-form {
+  width: 100%;
+  max-width: 25rem; /* Используем rem для относительных размеров */
+  padding: 1.25rem;
+  background: var(--form-bg);
+  color: var(--form-text);
+  box-shadow: 0 0.25rem 0.625rem rgba(0, 0, 0, 0.1);
+  border-radius: 0.625rem;
+}
+
+.register-button {
+  margin-top: 1.25rem;
+}
+
+.register-page.day {
+  background-color: #f5f5f5;
+  --form-bg: white;
+  --form-text: black;
+}
+
+.register-page.night {
+  background-color: #2c2c54; /* Мягкий ночной фон */
+  --form-bg: #2b2b60;
+  --form-text: #f5f5f5;
+}
+

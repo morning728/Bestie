@@ -3,7 +3,7 @@ import { Card, CardContent, Typography, Chip, Box } from "@mui/material";
 import "./TaskCard.css";
 
 const TaskCard = ({ task, onClick }) => {
-  const { title, time, tag, completed } = task;
+  const { title, time, tag, completed, date } = task;
 
   // Функция для выбора цвета
   const getChipColor = (status) => {
@@ -32,7 +32,7 @@ const TaskCard = ({ task, onClick }) => {
           />
         </Box>
         <Typography variant="body2" color="textSecondary">
-          Time: {time}
+          Time: {time} Date: {date}
         </Typography>
         <Typography variant="body2" color="textSecondary">
           Category: {tag}

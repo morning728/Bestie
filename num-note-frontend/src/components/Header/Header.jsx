@@ -16,6 +16,7 @@ const Header = () => {
         </Typography>
 
         <Select
+          className="lang-change"
           value={i18n.language}
           onChange={(e) => {
             const lang = e.target.value;

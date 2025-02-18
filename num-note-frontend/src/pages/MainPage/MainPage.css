@@ -10,6 +10,10 @@
   transition: background-color 0.3s ease;
 }
 
+.date-picker {
+
+}
+
 .main-content.day {
   background-color: #f5f5f5;
 }

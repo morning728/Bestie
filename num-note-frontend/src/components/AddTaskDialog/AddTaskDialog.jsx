@@ -24,6 +24,8 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing }) =>
       status: "Pending",
       reminder: false,
       reminderTime: "", 
+      start_date: "",
+      end_date: "",
     }
   );
 

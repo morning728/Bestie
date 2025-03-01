@@ -1,10 +1,15 @@
 .sidebar {
+  position: fixed; /* 🚨 Закрепляем сайдбар */
+  top: 0;
+  left: 0;
   height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center; /* Центрируем содержимое по горизонтали */
   box-shadow: 3px 0 5px rgba(0, 0, 0, 0.1);
   transition: width 0.3s ease;
+  flex-shrink: 0; /* 🚨 Запрещаем сжимать сайдбар */
+  z-index: 1000; /* Поверх основного контента */
 }
 
 .css-cokf1l-MuiListItemIcon-root {
@@ -21,10 +26,21 @@
 
 .sidebar.expanded {
   width: 240px;
+  min-width: 240px; /* 🚨 Минимальная ширина для предотвращения сжатия */
 }
 
 .sidebar.collapsed {
   width: 60px;
+  min-width: 60px; /* 🚨 Минимальная ширина для предотвращения сжатия */
+}
+.content {
+  flex-grow: 1;
+  overflow-x: auto; /* Если контент не влезает, добавляется скролл */
+  margin-left: 240px; /* 🚨 Отступ под сайдбар в развернутом состоянии */
+  transition: margin-left 0.3s ease;
+}
+.sidebar.collapsed ~ .content {
+  margin-left: 60px; /* 🚨 Отступ под сайдбар в свернутом состоянии */
 }
 
 .sidebar.collapsed .sidebar-item {

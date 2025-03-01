@@ -9,12 +9,3 @@
     transform: scale(1.03);
   }
   
-  .task-card.completed {
-    border-left-color: #28a745;
-    background-color: #d4edda;
-  }
-  
-  .task-card.pending {
-    border-left-color: #ffc107;
-  }
-  

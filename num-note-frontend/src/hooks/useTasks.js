@@ -17,7 +17,7 @@ export const useTasks = (initialTasks = []) => {
     if (isEditing) {
       setTasks((prev) => prev.map((t) => (t.id === newTask.id ? newTask : t)));
     } else {
-      setTasks((prev) => [...prev, { ...newTask, id: prev.length + 1 }]);
+      setTasks((prev) => [...prev, { ...newTask, id: prev.length + 1, is_archived: false }]);
     }
     handleCloseAddDialog();
   };
@@ -28,10 +28,14 @@ export const useTasks = (initialTasks = []) => {
     openAddDialog.openModal();
   };
 
-  const deleteTask = (taskId) => {
-    setTasks((prev) => prev.filter((task) => task.id !== taskId));
+  const archiveTask = (taskId) => {
+    setTasks((prev) =>
+        prev.map((task) =>
+            task.id === taskId ? { ...task, is_archived: true } : task
+        )
+    );
     handleCloseDetailsDialog();
-  };
+};
 
   const handleOpenAddDialog = () => {
     setSelectedTask(null);
@@ -63,7 +67,7 @@ export const useTasks = (initialTasks = []) => {
     openDetailsDialog,
     addTask,
     editTask,
-    deleteTask,
+    archiveTask,
     handleOpenAddDialog,
     handleOpenDetailsDialog,
     handleCloseAddDialog,

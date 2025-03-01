@@ -11,7 +11,7 @@ export const useFilteredTasks = (tasks, filterTag, filterStatus) => {
 };
 
 
-export const useFilteredTasksWithDates = (tasks, filterTag, filterStatus, startDate, endDate) => {
+export const useFilteredTasksWithDates = (tasks, filterTag, filterStatus, filterTitle, startDate, endDate, showArchived) => {
   return useMemo(() => {
     return tasks.filter(task => {
       const taskStartDate = new Date(task.start_date);
@@ -27,6 +27,10 @@ export const useFilteredTasksWithDates = (tasks, filterTag, filterStatus, startD
       // Фильтрация по тегу и статусу
       const matchesTag = filterTag ? task.tag === filterTag : true;
       const matchesStatus = filterStatus ? task.status === filterStatus : true;
+      const matchesShowArchived = task.is_archived === showArchived;
+
+      // Фильтрация по названию задачи
+      const matchesTitle = filterTitle ? task.title.toLowerCase().includes(filterTitle.toLowerCase()) : true;
 
       // Фильтрация по датам (учет пересечения диапазонов)
       let matchesDate = true;
@@ -42,8 +46,8 @@ export const useFilteredTasksWithDates = (tasks, filterTag, filterStatus, startD
         matchesDate = taskStartDate <= selectedEndDate && taskEndDate >= selectedStartDate;
       }
 
-      return matchesTag && matchesStatus && matchesDate;
+      return matchesTag && matchesStatus && matchesDate && matchesShowArchived && matchesTitle;
     });
-  }, [tasks, filterTag, filterStatus, startDate, endDate]);
+  }, [tasks, filterTag, filterStatus, filterTitle, startDate, endDate, showArchived]);
 };
 

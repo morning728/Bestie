@@ -1,0 +1,15 @@
+.project-details-dialog {
+  padding: 1.5rem;
+}
+
+.members-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.member-chip {
+  background-color: #9932CC;
+  color: white;
+}

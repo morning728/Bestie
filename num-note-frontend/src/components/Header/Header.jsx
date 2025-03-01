@@ -31,7 +31,7 @@ const Header = () => {
 
         <Box display="flex" alignItems="center">
           <Typography variant="body1" sx={{ mr: 1 }}>
-            {darkMode ? "Night Mode" : "Day Mode"}
+            {darkMode ? t("night_mode") : t("day_mode")}
           </Typography>
           <Switch checked={darkMode} onChange={toggleTheme} />
         </Box>

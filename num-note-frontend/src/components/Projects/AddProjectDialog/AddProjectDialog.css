@@ -1,0 +1,48 @@
+.add-project-dialog {
+  padding: 1.5rem;
+  background-color: #f5f5f5; /* Светлая тема */
+  color: black;
+}
+
+.add-project-dialog.dark {
+  background-color: #2b2b60; /* Темная тема */
+  color: white;
+}
+
+.project-meta {
+  display: flex;
+  gap: 10px;
+}
+
+.project-options {
+  display: flex;
+  gap: 10px;
+}
+
+.resource-input {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+.members-input {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.resource-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 15px;
+}
+
+.resource-chip {
+  background-color: #dad4dd;
+  color: rgb(0, 0, 0);
+}
+
+.dark .resource-chip {
+  background-color: #404080; /* Темный фон для чипов */
+  color: white;
+}

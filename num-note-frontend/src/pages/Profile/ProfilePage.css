@@ -1,0 +1,43 @@
+.profile-page {
+  padding: 2rem;
+  transition: background-color 0.3s ease;
+  min-height: 100%;
+}
+
+/* Заголовок профиля */
+.profile-title {
+  text-align: center;
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem; /* Уменьшили отступ */
+}
+
+/* Стили для формы */
+.profile-form .MuiTextField-root {
+  margin-bottom: 1rem; /* Уменьшили отступы */
+  width: 100%;
+  max-width: 100%; /* Уменьшили размер */
+}
+
+/* Стили для кнопок */
+.profile-form .MuiButton-root {
+  margin-top: 1rem;
+  padding: 8px 16px; /* Уменьшили отступы внутри кнопки */
+  font-size: 0.9rem; /* Уменьшили размер текста в кнопках */
+  width: auto; /* Кнопки не растягиваются на всю ширину */
+  max-width: 180px; /* Установили максимальную ширину кнопок */
+}
+
+/* Стили для кнопок в ночном и дневном режиме */
+.profile-page.dark {
+  background-color: #2c2c54;
+  color: #fff;
+}
+
+.profile-page.light {
+  background-color: #f5f5f5;
+  color: #000;
+}
+
+.profile-btn {
+  margin-right: 5% !important;
+}

@@ -7,16 +7,17 @@ import {
   Divider,
   TextField,
   MenuItem,
-  IconButton
+  IconButton,
+  Autocomplete
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import ClearIcon from "@mui/icons-material/Whatshot"; // 🔥 Иконка для очистки
 import Header from "../../components/Header/Header";
-import TaskCard from "../../components/TaskCard/TaskCard";
-import AddTaskDialog from "../../components/AddTaskDialog/AddTaskDialog";
-import TaskDetailsDialog from "../../components/TaskDetailsDialog/TaskDetailsDialog";
+import TaskCard from "../../components/Tasks/TaskCard/TaskCard";
+import AddTaskDialog from "../../components/Tasks/AddTaskDialog/AddTaskDialog";
+import TaskDetailsDialog from "../../components/Tasks/TaskDetailsDialog/TaskDetailsDialog";
 import { ThemeContext } from "../../ThemeContext";
 import { useFilteredTasksWithDates } from "../../hooks/useFilteredTasks";
 import { useTasks } from "../../hooks/useTasks";
@@ -26,14 +27,38 @@ const MainPage = () => {
   const { darkMode } = useContext(ThemeContext);
   const { t, i18n } = useTranslation();
 
-  const initialTasks = [
-    { id: 1, title: "Morning Meeting", time: "09:00", tag: "Work", status: "Completed", start_date: "2025-02-16", end_date: "2025-02-17" },
-    { id: 2, title: "Workout Session", time: "18:00", tag: "Health", status: "Pending", start_date: "2025-02-18", end_date: "2025-02-20" },
-    { id: 3, title: "Grocery Shopping", time: "14:00", tag: "Personal", status: "Overdue", start_date: "2025-02-21", end_date: "2025-02-24" }
+  const tags = [
+    { id: 0, name: "Health", color: "#008000" },
+    { id: 1, name: "Work", color: "#ff0000" },
+    { id: 2, name: "Personal", color: "#0000ff" },
+    { id: 3, name: "Study", color: "#ff00ff" },
+    { id: 4, name: "Business", color: "#00ffff" },
   ];
 
+  const statuses = [
+    { id: 0, name: "In Progress", color: "#ffff00" },
+    { id: 1, name: "Overdue", color: "#00f00f" },
+    { id: 2, name: "Completed", color: "#00ff00" },
+    { id: 3, name: "Pendding", color: "#ff0000" },
+  ];
+
+  // Преобразуем массив объектов в массив строк
+  const tagNames = tags.map(tag => tag.name);
+  const statusNames = statuses.map(status => status.name);
+
+  const initialTasks = [
+    { id: 1, title: "Morning Meeting", is_archived: false, start_time: "09:00", end_time: "15:00", tag: "Work", status: "Completed", start_date: "2025-02-16", end_date: "2025-02-17" },
+    { id: 2, title: "Workout Session", is_archived: false, start_time: "18:00", end_time: "15:00", tag: "Health", status: "Pending", start_date: "2025-02-18", end_date: "2025-02-20" },
+    { id: 3, title: "Grocery Shopping", is_archived: false, start_time: "14:00", end_time: "15:00", tag: "Personal", status: "Overdue", start_date: "2025-02-21", end_date: "2025-02-24" },
+    { id: 4, title: "Training", is_archived: true, start_time: "14:00", end_time: "15:00", tag: "Personal", status: "Overdue", start_date: "2025-02-21", end_date: "2025-02-24" },
+    { id: 5, title: "CCooking", is_archived: true, start_time: "14:00", end_time: "15:00", tag: "Personal", status: "Overdue", start_date: "2025-02-21", end_date: "2025-02-24" },
+    { id: 6, title: "Sleep", is_archived: true, start_time: "14:00", end_time: "15:00", tag: "Personal", status: "Overdue", start_date: "2025-02-21", end_date: "2025-02-24" },
+  ];
+
+  const [showArchived, setShowArchived] = useState(false);
   const [filterTag, setFilterTag] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [filterTitle, setFilterTitle] = useState("");
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
 
@@ -45,21 +70,38 @@ const MainPage = () => {
     openDetailsDialog,
     addTask,
     editTask,
-    deleteTask,
+    archiveTask,
     handleOpenAddDialog,
     handleOpenDetailsDialog,
     handleCloseAddDialog,
     handleCloseDetailsDialog
   } = useTasks(initialTasks);
 
+  const handleToggleArchived = () => {
+    setShowArchived((prev) => !prev);
+  };
+
   // Фильтрация задач по тегу, статусу и дате
-  const filteredTasks = useFilteredTasksWithDates(tasks, filterTag, filterStatus, startDate, endDate);
+  const filteredTasks = useFilteredTasksWithDates(tasks, filterTag, filterStatus, filterTitle, startDate, endDate, showArchived);
 
   return (
     <Box className={`main-content ${darkMode ? "night" : "day"}`}>
       <Header />
       <Box mt={2} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Typography variant="h4" gutterBottom>{t("main_page_title")}</Typography>
+        <Typography className={`main-title ${darkMode ? "night" : "day"}`} variant="h4" gutterBottom>{t("main_page_title")}</Typography>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <TextField
+            sx={{ width: "30em" }}
+            label={t("filter_title")}
+            value={filterTitle}
+            onChange={(e) => setFilterTitle(e.target.value)}
+            fullWidth
+            margin="normal"
+          />
+        </Box>
+        <Button variant="contained" sx={{ backgroundcolor: "#9932CC" }} onClick={handleToggleArchived}>
+          {showArchived ? t("hide_archive") : t("show_archive")}
+        </Button>
       </Box>
 
       {/* Фильтры */}
@@ -67,35 +109,25 @@ const MainPage = () => {
 
         {/* Фильтры (слева) */}
         <Box display="flex" gap={2} sx={{ width: "50%" }}>
-          <TextField
-            select
-            label="Filter Tag"
-            fullWidth
-            margin="normal"
-            value={filterTag}
-            onChange={(e) => setFilterTag(e.target.value)}
-          >
-            <MenuItem value="">{t("main_page_all")}</MenuItem>
-            <MenuItem value="Work">Work</MenuItem>
-            <MenuItem value="Health">Health</MenuItem>
-            <MenuItem value="Personal">Personal</MenuItem>
-            <MenuItem value="Study">Study</MenuItem>
-          </TextField>
+          {/* Filter Tag */}
+          <Autocomplete
+            sx={{ width: "50%" }}
+            options={tagNames} // Передаем список строк
+            value={filterTag} // Сохраняем строку
+            onChange={(event, newValue) => setFilterTag(newValue)} // Сохраняем выбранную строку
+            renderInput={(params) => <TextField {...params} label={t("filter_tag")} fullWidth margin="normal" />}
+            freeSolo // Разрешаем вводить произвольные значения
+          />
 
-          <TextField
-            select
-            label="Filter Status"
-            fullWidth
-            margin="normal"
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-          >
-            <MenuItem value="">All</MenuItem>
-            <MenuItem value="Completed">Completed</MenuItem>
-            <MenuItem value="Pending">Pending</MenuItem>
-            <MenuItem value="In Progress">In Progress</MenuItem>
-            <MenuItem value="Overdue">Overdue</MenuItem>
-          </TextField>
+          {/* Filter Status */}
+          <Autocomplete
+            sx={{ width: "50%" }}
+            options={statusNames} // Передаем список строк
+            value={filterStatus} // Сохраняем строку
+            onChange={(event, newValue) => setFilterStatus(newValue)} // Сохраняем выбранную строку
+            renderInput={(params) => <TextField {...params} label={t("filter_status")} fullWidth margin="normal" />}
+            freeSolo // Разрешаем вводить произвольные значения
+          />
         </Box>
 
         {/* Даты (справа) */}
@@ -105,13 +137,13 @@ const MainPage = () => {
             {/* Start Date + кнопка очистки */}
             <Box display="flex" alignItems="center">
               <DatePicker
-                label={t("Start_date")}
+                label={t("start_date")}
                 value={startDate}
                 onChange={setStartDate}
                 renderInput={(params) => <TextField {...params} fullWidth margin="normal" />}
               />
               {startDate && (
-                 <IconButton onClick={() => setStartDate(null)} sx={{ color: "#A020F0" }}>
+                <IconButton onClick={() => setStartDate(null)} sx={{ color: "#A020F0" }}>
                   <ClearIcon />
                 </IconButton>
               )}
@@ -120,13 +152,13 @@ const MainPage = () => {
             {/* End Date + кнопка очистки */}
             <Box display="flex" alignItems="center">
               <DatePicker
-                label={t("End_date")}
+                label={t("end_date")}
                 value={endDate}
                 onChange={setEndDate}
                 renderInput={(params) => <TextField {...params} fullWidth margin="normal" />}
               />
               {endDate && (
-                 <IconButton onClick={() => setEndDate(null)} sx={{ color: "#A020F0" }}>
+                <IconButton onClick={() => setEndDate(null)} sx={{ color: "#A020F0" }}>
                   <ClearIcon />
                 </IconButton>
               )}
@@ -143,17 +175,17 @@ const MainPage = () => {
       <Grid container spacing={2}>
         {filteredTasks.map((task) => (
           <Grid item xs={12} sm={6} md={4} key={task.id}>
-            <TaskCard task={task} onClick={() => handleOpenDetailsDialog(task)} />
+            <TaskCard task={task} tags={tags} statuses={statuses} onClick={() => handleOpenDetailsDialog(task)} />
           </Grid>
         ))}
       </Grid>
-
-      <Box mt={4} textAlign="center">
-        <Button variant="contained" color="primary" size="large" onClick={handleOpenAddDialog}>
-          + Add Task
-        </Button>
-      </Box>
-
+      {!showArchived &&
+        <Box mt={4} textAlign="center">
+          <Button variant="contained" color="primary" size="large" onClick={handleOpenAddDialog}>
+            {t("main_page_add_task")}
+          </Button>
+        </Box>
+      }
       {/* Диалоги */}
       <AddTaskDialog
         open={openAddDialog.isOpen}
@@ -169,7 +201,7 @@ const MainPage = () => {
           task={selectedTask}
           handleClose={handleCloseDetailsDialog}
           onEdit={editTask}
-          onDelete={deleteTask}
+          onArchive={archiveTask}
         />
       )}
     </Box>

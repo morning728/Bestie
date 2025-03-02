@@ -1,4 +1,4 @@
-package com.morning.taskapimain.entity;
+package com.morning.taskapimain.entity.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

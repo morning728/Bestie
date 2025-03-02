@@ -20,8 +20,8 @@ public class ProfileController {
     private final ProjectService projectService;
     private final JwtService jwtService;
 
-    @GetMapping("")
+/*    @GetMapping("")
     public Mono<ProfileDTO> getUserProfile(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token){
         return userService.findProfileByToken(token);
-    }
+    }*/
 }

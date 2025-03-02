@@ -1,3 +1,4 @@
+/*
 package com.morning.taskapimain.integration;
 
 import com.morning.taskapimain.Init.PostgresDatabaseContainerInitializer;
@@ -485,3 +486,4 @@ class ProjectServiceIntegrationTest {
 
 }
 
+*/

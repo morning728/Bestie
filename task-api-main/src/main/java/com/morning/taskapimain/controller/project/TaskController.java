@@ -1,6 +1,7 @@
+/*
 package com.morning.taskapimain.controller.project;
 
-import com.morning.taskapimain.entity.Task;
+import com.morning.taskapimain.entity.task.Task;
 import com.morning.taskapimain.entity.dto.TaskDTO;
 import com.morning.taskapimain.exception.annotation.AccessExceptionHandler;
 import com.morning.taskapimain.exception.annotation.BadRequestExceptionHandler;
@@ -37,12 +38,14 @@ public class TaskController {
         return taskService.getTasksByProjectId(projectId, token);
     }
 
+*/
 /*    @GetMapping("/{projectId}/tasks")
     public Flux<Task> getAllProjectTasksWithParams(@RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String token,
                                          @PathVariable(name = "projectId") Long projectId,
                                          @RequestParam(name = "field_id") Long fieldId){
         return taskService.getTasksByProjectIdAndFieldId(projectId,fieldId, token);
-    }*/
+    }*//*
+
     @GetMapping("/{projectId}/tasks/{id}")
     public Mono<?> getTaskById(@RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String token,
                                @PathVariable(name = "projectId") Long projectId,
@@ -73,3 +76,4 @@ public class TaskController {
                 .thenReturn(new ResponseEntity<String>("Task was successfully deleted!", HttpStatus.OK));
     }
 }
+*/

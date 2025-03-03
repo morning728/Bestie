@@ -1,79 +1,113 @@
-/*
 package com.morning.taskapimain.controller.project;
 
 import com.morning.taskapimain.entity.task.Task;
-import com.morning.taskapimain.entity.dto.TaskDTO;
+import com.morning.taskapimain.entity.task.TaskComment;
+import com.morning.taskapimain.entity.task.TaskReminder;
 import com.morning.taskapimain.exception.annotation.AccessExceptionHandler;
 import com.morning.taskapimain.exception.annotation.BadRequestExceptionHandler;
 import com.morning.taskapimain.exception.annotation.CrudExceptionHandler;
-import com.morning.taskapimain.service.ProjectService;
 import com.morning.taskapimain.service.TaskService;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("api/v1/projects")
+@RequestMapping("/api/v1/tasks")
 @RequiredArgsConstructor
 @CrudExceptionHandler
 @AccessExceptionHandler
 @BadRequestExceptionHandler
 public class TaskController {
-    private final JwtService jwtService;
-    private final ProjectService projectService;
+
     private final TaskService taskService;
+    private final JwtService jwtService;
 
-    @GetMapping("/{projectId}/tasks")
-    public Flux<TaskDTO> getAllProjectTasks(@RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String token,
-                                         @PathVariable(name = "projectId") Long projectId,
-                                         @RequestParam(name = "field_id", required = false) Long fieldId){
-        if(fieldId != null){
-            return taskService.getTasksByProjectIdAndFieldId(projectId,fieldId, token);
-        }
-        return taskService.getTasksByProjectId(projectId, token);
+    /**
+     * ✅ Создание новой задачи
+     */
+    @PostMapping
+    public Mono<ResponseEntity<Task>> createTask(@RequestBody Task task,
+                                                 @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
+        return taskService.createTask(task, token)
+                .map(ResponseEntity::ok);
     }
 
-*/
-/*    @GetMapping("/{projectId}/tasks")
-    public Flux<Task> getAllProjectTasksWithParams(@RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String token,
-                                         @PathVariable(name = "projectId") Long projectId,
-                                         @RequestParam(name = "field_id") Long fieldId){
-        return taskService.getTasksByProjectIdAndFieldId(projectId,fieldId, token);
-    }*//*
-
-    @GetMapping("/{projectId}/tasks/{id}")
-    public Mono<?> getTaskById(@RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String token,
-                               @PathVariable(name = "projectId") Long projectId,
-                               @PathVariable(name = "id") Long taskId){
-        return taskService.getTaskIfHaveAccess(taskId, projectId, token);
+    /**
+     * ✅ Получение всех задач проекта
+     */
+    @GetMapping("/project/{projectId}")
+    public Flux<Task> getTasksByProject(@PathVariable Long projectId) {
+        return taskService.getTasksByProject(projectId);
     }
 
-    @PostMapping("/{projectId}/tasks")
-    public Mono<Task> addTask(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
-                              @PathVariable(name = "projectId") Long projectId,
-                              @RequestBody TaskDTO dto){
-        return taskService.addTask(dto, token);
-    }
-    @PutMapping("/{projectId}/tasks/{id}")
-    public Mono<Task> updateTask(@RequestHeader(name = HttpHeaders.AUTHORIZATION, required = false) String token,
-                                 @RequestBody TaskDTO dto,
-                                 @PathVariable(name = "projectId") Long projectId,
-                                 @PathVariable(name = "id") Long taskId){
-        return taskService.updateTask(dto, token);
+    /**
+     * ✅ Обновление задачи
+     */
+    @PutMapping("/{taskId}")
+    public Mono<ResponseEntity<Task>> updateTask(@PathVariable Long taskId,
+                                                 @RequestBody Task updatedTask,
+                                                 @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
+        return taskService.updateTask(taskId, updatedTask, token)
+                .map(ResponseEntity::ok);
     }
 
-    @DeleteMapping("/{projectId}/tasks/{id}")
-    public Mono<ResponseEntity<String>> deleteTask(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
-                                                   @PathVariable(name = "projectId") Long projectId,
-                                                   @PathVariable(name = "id") Long taskId){
+    /**
+     * ✅ Архивирование задачи
+     */
+    @PatchMapping("/{taskId}/archive")
+    public Mono<ResponseEntity<Void>> archiveTask(@PathVariable Long taskId,
+                                                  @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
+        return taskService.archiveTask(taskId, token)
+                .then(Mono.just(ResponseEntity.noContent().build()));
+    }
 
-        return taskService.deleteTaskById(taskId, projectId, token)
-                .thenReturn(new ResponseEntity<String>("Task was successfully deleted!", HttpStatus.OK));
+    /**
+     * ✅ Удаление задачи
+     */
+    @DeleteMapping("/{taskId}")
+    public Mono<ResponseEntity<Void>> deleteTask(@PathVariable Long taskId,
+                                                 @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
+        return taskService.deleteTask(taskId, token)
+                .then(Mono.just(ResponseEntity.noContent().build()));
+    }
+
+    /**
+     * ✅ Добавление комментария к задаче
+     */
+    @PostMapping("/{taskId}/comments")
+    public Mono<ResponseEntity<TaskComment>> addComment(@PathVariable Long taskId,
+                                                        @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+                                                        @RequestParam String comment) {
+        return taskService.addComment(taskId, token, comment)
+                .map(ResponseEntity::ok);
+    }
+
+    /**
+     * ✅ Добавление напоминания к задаче
+     */
+    @PostMapping("/{taskId}/reminders")
+    public Mono<ResponseEntity<TaskReminder>> addReminder(@PathVariable Long taskId,
+                                                          @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+                                                          @RequestParam String reminderDate,
+                                                          @RequestParam String reminderTime) {
+        return taskService.addReminder(taskId, token, reminderDate, reminderTime)
+                .map(ResponseEntity::ok);
+    }
+
+    /**
+     * ✅ Управление тегами задачи (добавление/удаление)
+     */
+    @PutMapping("/{taskId}/tags")
+    public Mono<ResponseEntity<Void>> manageTaskTags(@PathVariable Long taskId,
+                                                     @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
+                                                     @RequestBody List<Long> tagIds) {
+        return taskService.manageTaskTags(taskId, token, tagIds)
+                .then(Mono.just(ResponseEntity.ok().build()));
     }
 }
-*/

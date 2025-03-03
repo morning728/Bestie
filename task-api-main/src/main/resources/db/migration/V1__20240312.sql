@@ -45,7 +45,7 @@ CREATE TABLE project_resource (
     description TEXT
 );
 
-CREATE TABLE project_statuse (
+CREATE TABLE project_status (
     id SERIAL PRIMARY KEY,
     project_id INT REFERENCES project(id) ON DELETE CASCADE,
     name VARCHAR(50) NOT NULL,
@@ -67,8 +67,7 @@ CREATE TABLE task (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    status_id INT REFERENCES project_statuse(id) ON DELETE SET NULL,
-    tag_id INT REFERENCES project_tag(id) ON DELETE SET NULL,
+    status_id INT REFERENCES project_status(id) ON DELETE SET NULL,
     priority VARCHAR(20) DEFAULT 'Medium',
     start_date DATE,
     end_date DATE,

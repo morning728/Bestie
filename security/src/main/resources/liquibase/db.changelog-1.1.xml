@@ -71,7 +71,7 @@
             <column name="email" value="adminEmail"/>
             <column name="telegram_id" value="adminTg"/>
             <column name="password" value="$2a$10$UIX9XplJoFf30Sso2K2Vd.25iak6n6y0Bx5P7E8w2a/1LDoqfpCHK"/>
-            <column name="role" value="USER"/>
+            <column name="role" value="ADMIN"/>
             <column name="username" value="admin"/>
         </insert>
     </changeSet>

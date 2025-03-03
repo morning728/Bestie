@@ -8,7 +8,10 @@ public enum Permission {
     CAN_ARCHIVE_TASKS,
     CAN_RESTORE_TASKS,
     CAN_COMMENT_TASKS,
-    CAN_ADD_REMINDERS,
+    CAN_MANAGE_REMINDERS,
+    CAN_MANAGE_TASK_TAGS,
+    CAN_MANAGE_TASK_STATUSES,
+
 
     // 🔹 Доступ к проекту
     CAN_EDIT_PROJECT,

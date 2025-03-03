@@ -8,7 +8,7 @@ import com.morning.taskapimain.entity.dto.ProfileDTO;
 import com.morning.taskapimain.exception.AccessException;
 import com.morning.taskapimain.exception.NotFoundException;
 import com.morning.taskapimain.repository.ProjectRepository;
-import com.morning.taskapimain.repository.TaskRepository;
+import com.morning.taskapimain.repository.task.TaskRepository;
 import com.morning.taskapimain.repository.UserRepository;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;

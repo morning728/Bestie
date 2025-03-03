@@ -13,7 +13,7 @@ import java.util.Map;
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@Table("user")
+@Table("app_user")
 public class User {
     @Id
     @Column(name = "id")

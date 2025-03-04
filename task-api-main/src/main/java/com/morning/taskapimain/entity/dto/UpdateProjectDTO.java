@@ -5,6 +5,7 @@ import com.morning.taskapimain.entity.project.ProjectStatus;
 import com.morning.taskapimain.entity.project.ProjectTag;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,7 +20,7 @@ public class UpdateProjectDTO {
     private String icon;
     private String priority;
     private String status;
-    private LocalDateTime deadline;
+    private LocalDate deadline;
 
     private List<ProjectTag> tags;
     private List<ProjectStatus> statuses;

@@ -82,6 +82,7 @@ public class ProjectService {
      * ✅ Обновление проекта с учетом тегов, статусов и ресурсов
      */
     public Mono<Project> updateProject(Long projectId, UpdateProjectDTO updatedProject, String token) {
+        System.out.println(updatedProject.toString());
         return validateRequesterHasPermission(projectId, token, Permission.CAN_EDIT_PROJECT)
                 .then(projectRepository.findById(projectId)
                         .switchIfEmpty(Mono.error(new NotFoundException("Project not found")))
@@ -162,14 +163,14 @@ public class ProjectService {
     }
 
     /**
-     * ✅ Добавление пользователя в проект (по умолчанию "Member")
+     * ✅ Добавление пользователя в проект
      */
-    public Mono<Void> addUserToProject(Long projectId, String username, String token) {
+    public Mono<Void> addUserToProject(Long projectId, String username, String roleName, String token) {
         return validateRequesterHasPermission(projectId, token, Permission.CAN_MANAGE_MEMBERS)
                 .then(userRepository.findByUsername(username)
                         .switchIfEmpty(Mono.error(new NotFoundException("User not found")))
-                        .flatMap(user -> projectRoleRepository.findRoleByProjectIdAndName(projectId, "Member")
-                                .switchIfEmpty(Mono.error(new NotFoundException("Role 'Member' not found")))
+                        .flatMap(user -> projectRoleRepository.findRoleByProjectIdAndName(projectId, roleName)
+                                .switchIfEmpty(Mono.error(new NotFoundException(String.format("Role %s not found", roleName))))
                                 .flatMap(role -> projectUserRepository.assignUserToProject(projectId, user.getId(), role.getName())))
                 );
     }
@@ -202,7 +203,8 @@ public class ProjectService {
      * ✅ Получение всех пользователей в проекте
      */
     public Flux<User> getAllUsersInProject(Long projectId) {
-        return projectUserRepository.findUsersByProjectId(projectId);
+        return projectUserRepository.findUsersByProjectId(projectId)
+                .switchIfEmpty(Mono.error(new NotFoundException("Project not found")));
     }
 
     /**

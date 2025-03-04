@@ -19,7 +19,7 @@ public interface ProjectUserRepository extends R2dbcRepository<User, Long> {
     Mono<Void> removeUserFromProject(@Param("projectId") Long projectId, @Param("userId") Long userId);
 
     // 🔹 Получение всех пользователей проекта
-    @Query("SELECT u.* FROM user_project up JOIN \"user\" u ON up.user_id = u.id WHERE up.project_id = :projectId")
+    @Query("SELECT u.* FROM user_project up JOIN app_user u ON up.user_id = u.id WHERE up.project_id = :projectId")
     Flux<User> findUsersByProjectId(@Param("projectId") Long projectId);
 
     // 🔹 Получение роли пользователя в проекте

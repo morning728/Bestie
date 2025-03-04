@@ -2,10 +2,12 @@ package com.morning.taskapimain.controller.project;
 
 import com.morning.taskapimain.entity.dto.UpdateProjectDTO;
 import com.morning.taskapimain.entity.project.Project;
+import com.morning.taskapimain.entity.project.ProjectRole;
 import com.morning.taskapimain.entity.user.User;
 import com.morning.taskapimain.exception.annotation.AccessExceptionHandler;
 import com.morning.taskapimain.exception.annotation.BadRequestExceptionHandler;
 import com.morning.taskapimain.exception.annotation.CrudExceptionHandler;
+import com.morning.taskapimain.repository.ProjectRoleRepository;
 import com.morning.taskapimain.service.ProjectService;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +26,11 @@ import reactor.core.publisher.Mono;
 public class ProjectController {
 
     private final ProjectService projectService;
-
+    private final ProjectRoleRepository projectRoleRepository;
+    @GetMapping("/test")
+    public Mono<ProjectRole> test(){
+        return projectRoleRepository.findRoleByProjectIdAndName(16L, "Owner");
+    }
     /**
      * ✅ Создание нового проекта
      */
@@ -74,13 +80,14 @@ public class ProjectController {
     }
 
     /**
-     * ✅ Добавление пользователя в проект
+     * ✅ Добавление пользователя в проект с ролью
      */
     @PostMapping("/{projectId}/users/{username}")
     public Mono<ResponseEntity<Void>> addUserToProject(@PathVariable Long projectId,
                                                        @PathVariable String username,
+                                                       @RequestParam(name = "role-name") String roleName,
                                                        @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
-        return projectService.addUserToProject(projectId, username, token)
+        return projectService.addUserToProject(projectId, username, roleName, token)
                 .then(Mono.just(ResponseEntity.ok().build()));
     }
 

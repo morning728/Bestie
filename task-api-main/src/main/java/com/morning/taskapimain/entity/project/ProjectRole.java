@@ -1,5 +1,8 @@
 package com.morning.taskapimain.entity.project;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import jakarta.persistence.Column;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -20,14 +23,13 @@ public class ProjectRole {
     private Long projectId;
     private String name;
 
-    // 🔹 Используем Map<Permission, Boolean> вместо множества полей
-    private Map<Permission, Boolean> permissions = new EnumMap<>(Permission.class);
 
-    /**
-     * ✅ Проверка, имеет ли роль разрешение
-     */
-    public boolean hasPermission(Permission permission) {
-        return permissions.getOrDefault(permission, false);
+    // 🔹 Используем Map<Permission, Boolean> вместо множества полей
+    @Column(name = "permissions")
+    private String permissions = String.valueOf(new EnumMap<>(Permission.class));
+
+    public JsonObject permissionsToJsonObject() {
+        return new Gson().fromJson(permissions, JsonObject.class);
     }
 }
 

@@ -31,7 +31,6 @@ dependencies {
 	// https://mvnrepository.com/artifact/org.postgresql/r2dbc-postgresql
 	//implementation 'org.postgresql:r2dbc-postgresql:1.0.0.RELEASE'
 	implementation 'org.postgresql:r2dbc-postgresql:1.0.7.RELEASE'
-	//implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.0' // Для обработки JSON
 	implementation 'com.google.code.gson:gson:2.11.0'
 	implementation "org.postgresql:postgresql:$postgreSqlVersion"
 
@@ -46,6 +45,9 @@ dependencies {
 	implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.12.2'
 	runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.12.2'
 	runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.12.2'
+	implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.3'
+	implementation 'com.fasterxml.jackson.core:jackson-core:2.15.3'
+	implementation 'com.fasterxml.jackson.core:jackson-annotations:2.15.3'
 	implementation "javax.xml.bind:jaxb-api:$jaxbApiVersion"
 	implementation 'org.projectlombok:lombok:1.18.30'
 

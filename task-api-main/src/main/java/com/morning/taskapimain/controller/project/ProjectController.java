@@ -131,4 +131,36 @@ public class ProjectController {
         return projectService.isProjectOwner(projectId, token)
                 .map(ResponseEntity::ok);
     }
+
+    @PostMapping("/{projectId}/roles")
+    public Mono<ResponseEntity<ProjectRole>> addRole(@PathVariable Long projectId,
+                                                     @RequestBody ProjectRole projectRole,
+                                                     @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.addRole(projectId, projectRole, token)
+                .map(ResponseEntity::ok);
+    }
+
+
+    @PutMapping("/{projectId}/roles/{projectRoleId}")
+    public Mono<ResponseEntity<ProjectRole>> updateRole(@PathVariable Long projectId,
+                                                        @RequestBody ProjectRole projectRole,
+                                                        @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.updateRole(projectId, projectRole, token)
+                .map(ResponseEntity::ok);
+    }
+
+    @DeleteMapping("/{projectId}/roles/{projectRoleId}")
+    public Mono<ResponseEntity<Void>> deleteRole(@PathVariable Long projectId,
+                                                 @PathVariable Long projectRoleId,
+                                                 @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.deleteRole(projectId, projectRoleId, token)
+                .then(Mono.just(ResponseEntity.noContent().build()));
+    }
+
+    @GetMapping("/{projectId}/roles")
+    public Flux<ProjectRole> getRolesByProjectId(@PathVariable Long projectId,
+                                                 @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.getRolesByProjectId(projectId, token);
+    }
+
 }

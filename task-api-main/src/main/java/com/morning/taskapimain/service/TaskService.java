@@ -40,13 +40,21 @@ public class TaskService {
      */
     private Mono<Void> validateRequesterHasPermission(Long projectId, String token, Permission permission) {
         String requesterUsername = jwtService.extractUsername(token);
+
         return userRepository.findByUsername(requesterUsername)
                 .switchIfEmpty(Mono.error(new NotFoundException("User not found")))
-                .flatMap(user -> projectUserRepository.getUserRoleInProject(projectId, user.getId())
-                        .flatMap(role -> projectRoleRepository.hasPermission(role, projectId, permission)
-                                .filter(Boolean::booleanValue)
-                                .switchIfEmpty(Mono.error(new AccessException("You don't have permission for this action!")))))
-                .then();
+                .flatMap(user -> projectRoleRepository.findRoleByProjectIdAndUserId(projectId, user.getId())
+                        .switchIfEmpty(Mono.error(new AccessException("User does not have a role in this project!")))
+                        .flatMap(role -> {
+                            role.deserializePermissions();
+                            // Проверяем наличие разрешения
+                            if (Boolean.TRUE.equals(role.getPermissionsJson().get(permission))) {
+                                return Mono.empty(); // Разрешение есть, продолжаем
+                            } else {
+                                return Mono.error(new AccessException("You don't have permission for this action!"));
+                            }
+                        })
+                );
     }
 
     /**

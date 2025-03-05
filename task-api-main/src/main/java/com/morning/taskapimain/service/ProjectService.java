@@ -1,5 +1,7 @@
 package com.morning.taskapimain.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.morning.taskapimain.entity.dto.UpdateProjectDTO;
 import com.morning.taskapimain.entity.project.*;
 import com.morning.taskapimain.entity.user.User;
@@ -18,6 +20,7 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -40,14 +43,23 @@ public class ProjectService {
      */
     private Mono<Void> validateRequesterHasPermission(Long projectId, String token, Permission permission) {
         String requesterUsername = jwtService.extractUsername(token);
+
         return userRepository.findByUsername(requesterUsername)
                 .switchIfEmpty(Mono.error(new NotFoundException("User not found")))
-                .flatMap(user -> projectUserRepository.getUserRoleInProject(projectId, user.getId())
-                        .flatMap(roleName -> projectRoleRepository.hasPermission(roleName, projectId, permission)
-                                .filter(Boolean::booleanValue)
-                                .switchIfEmpty(Mono.error(new AccessException("You don't have permission for this action!")))))
-                .then();
+                .flatMap(user -> projectRoleRepository.findRoleByProjectIdAndUserId(projectId, user.getId())
+                        .switchIfEmpty(Mono.error(new AccessException("User does not have a role in this project!")))
+                        .flatMap(role -> {
+                            role.deserializePermissions();
+                            // Проверяем наличие разрешения
+                            if (Boolean.TRUE.equals(role.getPermissionsJson().get(permission))) {
+                                return Mono.empty(); // Разрешение есть, продолжаем
+                            } else {
+                                return Mono.error(new AccessException("You don't have permission for this action!"));
+                            }
+                        })
+                );
     }
+
 
 
     /**
@@ -141,8 +153,8 @@ public class ProjectService {
     /**
      * ✅ Получение всех проектов пользователя
      */
-    public Flux<Project> getUserProjects(String username) {
-        return userRepository.findByUsername(username)
+    public Flux<Project> getUserProjects(String token) {
+        return userRepository.findByUsername(jwtService.extractUsername(token))
                 .flatMapMany(user -> projectRepository.findByOwnerId(user.getId()));
     }
 
@@ -225,4 +237,50 @@ public class ProjectService {
                 .map(User::getId)
                 .switchIfEmpty(Mono.error(new NotFoundException("User not found")));
     }
+
+    public Mono<ProjectRole> addRole(Long projectId, ProjectRole projectRole, String token) {
+        projectRole.serializePermissions();
+        return validateRequesterHasPermission(projectId, token, Permission.CAN_MANAGE_ROLES)
+                .then(projectRoleRepository.addRole(projectId, projectRole.getName(), projectRole.getPermissions()));
+    }
+
+
+    public Mono<ProjectRole> updateRole(Long projectId, ProjectRole projectRole, String token) {
+        projectRole.serializePermissions();
+        return validateRequesterHasPermission(projectId, token, Permission.CAN_MANAGE_ROLES)
+                .then(projectRoleRepository.updateRole(projectId, projectRole.getId(), projectRole.getName(), projectRole.getPermissions()));
+    }
+
+    public Mono<Void> deleteRole(Long projectId, Long projectRoleId, String token) {
+        String requesterUsername = jwtService.extractUsername(token);
+
+        return validateRequesterHasPermission(projectId, token, Permission.CAN_MANAGE_ROLES)
+                .then(userRepository.findByUsername(requesterUsername)
+                        .switchIfEmpty(Mono.error(new NotFoundException("User not found"))))
+                .flatMap(user -> projectRoleRepository.countRolesByProjectId(projectId)
+                        .flatMap(roleCount -> {
+                            if (roleCount <= 1) {
+                                return Mono.error(new BadRequestException("Cannot delete the only role in the project!"));
+                            }
+                            return projectRoleRepository.findRoleByProjectIdAndUserId(projectId, user.getId());
+                        })
+                        .flatMap(userRole -> {
+                            return projectRoleRepository.countUsersWithRole(projectRoleId)
+                                    .flatMap(userCount -> {
+                                        if (userCount > 0) {
+                                            return Mono.error(new BadRequestException("Cannot delete a role that is assigned to users!"));
+                                        }
+                                        return projectRoleRepository.deleteRole(projectRoleId);
+                                    });
+                        })
+                );
+    }
+
+
+
+    public Flux<ProjectRole> getRolesByProjectId(Long projectId, String token) {
+        return validateRequesterHasPermission(projectId, token, Permission.CAN_MANAGE_ROLES)
+                .thenMany(projectRoleRepository.getRolesByProjectId(projectId));
+    }
+
 }

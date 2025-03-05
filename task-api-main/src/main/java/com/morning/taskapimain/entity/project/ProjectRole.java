@@ -1,14 +1,16 @@
 package com.morning.taskapimain.entity.project;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import jakarta.persistence.Column;
+import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.util.EnumMap;
 import java.util.Map;
 
 @Data
@@ -24,12 +26,37 @@ public class ProjectRole {
     private String name;
 
 
-    // 🔹 Используем Map<Permission, Boolean> вместо множества полей
+    // Это поле в БД (JSONB)
     @Column(name = "permissions")
-    private String permissions = String.valueOf(new EnumMap<>(Permission.class));
+    private String permissions;
 
-    public JsonObject permissionsToJsonObject() {
-        return new Gson().fromJson(permissions, JsonObject.class);
+    // Это поле в Java-коде
+    @Transient
+    private Map<Permission, Boolean> permissionsJson;
+
+    @PostLoad
+    public void deserializePermissions() {
+        if (permissions != null) {
+            try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                permissionsJson = objectMapper.readValue(permissions, new TypeReference<Map<Permission, Boolean>>() {});
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Failed to parse permissions JSON", e);
+            }
+        }
+    }
+
+    @PrePersist
+    @PreUpdate
+    public void serializePermissions() {
+        if (permissionsJson != null) {
+            try {
+                ObjectMapper objectMapper = new ObjectMapper();
+                permissions = objectMapper.writeValueAsString(permissionsJson);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Failed to serialize permissions JSON", e);
+            }
+        }
     }
 }
 

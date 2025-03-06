@@ -1,8 +1,7 @@
 package com.morning.taskapimain.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.morning.taskapimain.entity.dto.UpdateProjectDTO;
+import com.morning.taskapimain.entity.dto.UserWithRoleDTO;
 import com.morning.taskapimain.entity.project.*;
 import com.morning.taskapimain.entity.user.User;
 import com.morning.taskapimain.exception.AccessException;
@@ -76,7 +75,7 @@ public class ProjectService {
                     return projectRepository.save(project)
                             .flatMap(savedProject ->
                                     projectRoleRepository.createDefaultRoles(savedProject.getId())
-                                            .then(projectUserRepository.assignUserToProject(savedProject.getId(), owner.getId(), "Owner"))
+                                            .flatMap(projectRole -> projectUserRepository.assignUserToProject(savedProject.getId(), owner.getId(), projectRole.getId()))
                                             .thenReturn(savedProject)
                             );
                 });
@@ -177,13 +176,13 @@ public class ProjectService {
     /**
      * ✅ Добавление пользователя в проект
      */
-    public Mono<Void> addUserToProject(Long projectId, String username, String roleName, String token) {
+    public Mono<Void> addUserToProject(Long projectId, String username, Long roleId, String token) {
         return validateRequesterHasPermission(projectId, token, Permission.CAN_MANAGE_MEMBERS)
                 .then(userRepository.findByUsername(username)
                         .switchIfEmpty(Mono.error(new NotFoundException("User not found")))
-                        .flatMap(user -> projectRoleRepository.findRoleByProjectIdAndName(projectId, roleName)
-                                .switchIfEmpty(Mono.error(new NotFoundException(String.format("Role %s not found", roleName))))
-                                .flatMap(role -> projectUserRepository.assignUserToProject(projectId, user.getId(), role.getName())))
+                        .flatMap(user -> projectRoleRepository.findRoleById(roleId)
+                                .switchIfEmpty(Mono.error(new NotFoundException("Role not found")))
+                                .flatMap(role -> projectUserRepository.assignUserToProject(projectId, user.getId(), roleId)))
                 );
     }
 
@@ -192,7 +191,7 @@ public class ProjectService {
      */
     public Mono<Void> removeUserFromProject(Long projectId, String username, String token) {
         return validateRequesterHasPermission(projectId, token, Permission.CAN_MANAGE_MEMBERS)
-                .then(userRepository.findByUsername(username)
+                .then(userRepository.findByUsernameAndProjectId(username, projectId)
                         .switchIfEmpty(Mono.error(new NotFoundException("User not found")))
                         .flatMap(user -> projectUserRepository.removeUserFromProject(projectId, user.getId())));
     }
@@ -200,24 +199,25 @@ public class ProjectService {
     /**
      * ✅ Смена роли пользователя в проекте
      */
-    public Mono<Void> changeUserRole(Long projectId, String username, String newRole, String token) {
+    public Mono<Void> changeUserRole(Long projectId, String username, Long newRoleId, String token) {
         return validateRequesterHasPermission(projectId, token, Permission.CAN_MANAGE_ROLES)
-                .then(userRepository.findByUsername(username)
+                .then(userRepository.findByUsernameAndProjectId(username, projectId)
                         .switchIfEmpty(Mono.error(new NotFoundException("User not found")))
-                        .flatMap(user -> projectRoleRepository.findRoleByProjectIdAndName(projectId, newRole)
+                        .flatMap(user -> projectRoleRepository.findRoleById(newRoleId)
                                 .switchIfEmpty(Mono.error(new NotFoundException("Role does not exist")))
-                                .flatMap(role -> projectUserRepository.updateUserRole(projectId, user.getId(), role.getName()))
+                                .flatMap(role -> projectUserRepository.updateUserRole(projectId, user.getId(), newRoleId))
                         )
                 );
     }
 
     /**
-     * ✅ Получение всех пользователей в проекте
+     * ✅ Получение всех пользователей в проекте с их ролями
      */
-    public Flux<User> getAllUsersInProject(Long projectId) {
-        return projectUserRepository.findUsersByProjectId(projectId)
+    public Flux<UserWithRoleDTO> getAllUsersInProject(Long projectId) {
+        return projectUserRepository.findUsersWithRolesByProjectId(projectId)
                 .switchIfEmpty(Mono.error(new NotFoundException("Project not found")));
     }
+
 
     /**
      * ✅ Проверка, является ли пользователь владельцем проекта
@@ -281,6 +281,11 @@ public class ProjectService {
     public Flux<ProjectRole> getRolesByProjectId(Long projectId, String token) {
         return validateRequesterHasPermission(projectId, token, Permission.CAN_MANAGE_ROLES)
                 .thenMany(projectRoleRepository.getRolesByProjectId(projectId));
+    }
+
+    public Mono<ProjectRole> getMyRoleByProjectId(Long projectId, String token) {
+        return getUserId(jwtService.extractUsername(token))
+                .flatMap(userId -> projectRoleRepository.findRoleByProjectIdAndUserId(projectId, userId));
     }
 
 }

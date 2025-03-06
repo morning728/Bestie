@@ -1,6 +1,9 @@
 package com.morning.taskapimain.controller.project;
 
+
 import com.morning.taskapimain.entity.dto.UpdateProjectDTO;
+import com.morning.taskapimain.entity.dto.UserToProjectDTO;
+import com.morning.taskapimain.entity.dto.UserWithRoleDTO;
 import com.morning.taskapimain.entity.project.Project;
 import com.morning.taskapimain.entity.project.ProjectRole;
 import com.morning.taskapimain.entity.user.User;
@@ -27,10 +30,7 @@ public class ProjectController {
 
     private final ProjectService projectService;
     private final ProjectRoleRepository projectRoleRepository;
-    @GetMapping("/test")
-    public Mono<ProjectRole> test(){
-        return projectRoleRepository.findRoleByProjectIdAndName(16L, "Owner");
-    }
+
     /**
      * ✅ Создание нового проекта
      */
@@ -82,12 +82,11 @@ public class ProjectController {
     /**
      * ✅ Добавление пользователя в проект с ролью
      */
-    @PostMapping("/{projectId}/users/{username}")
+    @PostMapping("/{projectId}/users")
     public Mono<ResponseEntity<Void>> addUserToProject(@PathVariable Long projectId,
-                                                       @PathVariable String username,
-                                                       @RequestParam(name = "role-name") String roleName,
+                                                       @RequestBody UserToProjectDTO userToProjectDTO,
                                                        @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
-        return projectService.addUserToProject(projectId, username, roleName, token)
+        return projectService.addUserToProject(projectId, userToProjectDTO.getUsername(), userToProjectDTO.getRoleId(), token)
                 .then(Mono.just(ResponseEntity.ok().build()));
     }
 
@@ -105,12 +104,11 @@ public class ProjectController {
     /**
      * ✅ Смена роли пользователя в проекте
      */
-    @PatchMapping("/{projectId}/users/{username}/role")
+    @PutMapping("/{projectId}/users")
     public Mono<ResponseEntity<Void>> changeUserRole(@PathVariable Long projectId,
-                                                     @PathVariable String username,
-                                                     @RequestParam String newRole,
+                                                     @RequestBody UserToProjectDTO userToProjectDTO,
                                                      @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
-        return projectService.changeUserRole(projectId, username, newRole, token)
+        return projectService.changeUserRole(projectId, userToProjectDTO.getUsername(), userToProjectDTO.getRoleId(), token)
                 .then(Mono.just(ResponseEntity.ok().build()));
     }
 
@@ -118,7 +116,7 @@ public class ProjectController {
      * ✅ Получение всех пользователей в проекте
      */
     @GetMapping("/{projectId}/users")
-    public Flux<User> getAllUsersInProject(@PathVariable Long projectId) {
+    public Flux<UserWithRoleDTO> getAllUsersInProject(@PathVariable Long projectId) {
         return projectService.getAllUsersInProject(projectId);
     }
 
@@ -141,7 +139,7 @@ public class ProjectController {
     }
 
 
-    @PutMapping("/{projectId}/roles/{projectRoleId}")
+    @PutMapping("/{projectId}/roles")
     public Mono<ResponseEntity<ProjectRole>> updateRole(@PathVariable Long projectId,
                                                         @RequestBody ProjectRole projectRole,
                                                         @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
@@ -161,6 +159,12 @@ public class ProjectController {
     public Flux<ProjectRole> getRolesByProjectId(@PathVariable Long projectId,
                                                  @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
         return projectService.getRolesByProjectId(projectId, token);
+    }
+
+    @GetMapping("/{projectId}/roles/my")
+    public Mono<ProjectRole> getMyRoleByProjectId(@PathVariable Long projectId,
+                                                 @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.getMyRoleByProjectId(projectId, token);
     }
 
 }

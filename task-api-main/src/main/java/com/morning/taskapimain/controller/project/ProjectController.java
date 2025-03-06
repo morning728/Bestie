@@ -1,121 +1,166 @@
 package com.morning.taskapimain.controller.project;
 
-import com.morning.taskapimain.entity.Field;
-import com.morning.taskapimain.entity.Project;
-import com.morning.taskapimain.entity.dto.FieldDTO;
-import com.morning.taskapimain.entity.dto.ProjectDTO;
-import com.morning.taskapimain.entity.dto.UserDTO;
+import com.morning.taskapimain.entity.dto.UpdateProjectDTO;
+import com.morning.taskapimain.entity.project.Project;
+import com.morning.taskapimain.entity.project.ProjectRole;
+import com.morning.taskapimain.entity.user.User;
 import com.morning.taskapimain.exception.annotation.AccessExceptionHandler;
 import com.morning.taskapimain.exception.annotation.BadRequestExceptionHandler;
 import com.morning.taskapimain.exception.annotation.CrudExceptionHandler;
+import com.morning.taskapimain.repository.ProjectRoleRepository;
 import com.morning.taskapimain.service.ProjectService;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("api/v1/projects")
+@RequestMapping("/api/v1/projects")
 @RequiredArgsConstructor
 @CrudExceptionHandler
 @AccessExceptionHandler
 @BadRequestExceptionHandler
 public class ProjectController {
 
-    private final JwtService jwtService;
     private final ProjectService projectService;
-
-    @GetMapping("")
-    public Flux<ProjectDTO> getProjectsByUsername(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token){
-        return projectService.findAllByUsername(jwtService.extractUsername(token)).map(ProjectDTO::fromProject);
+    private final ProjectRoleRepository projectRoleRepository;
+    @GetMapping("/test")
+    public Mono<ProjectRole> test(){
+        return projectRoleRepository.findRoleByProjectIdAndName(16L, "Owner");
+    }
+    /**
+     * ✅ Создание нового проекта
+     */
+    @PostMapping
+    public Mono<ResponseEntity<Project>> createProject(@RequestBody Project project,
+                                                       @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.createProject(project, token)
+                .map(ResponseEntity::ok);
     }
 
-    @GetMapping("/{id}")
-    public Mono<?> getProjectById(@RequestHeader(name = HttpHeaders.AUTHORIZATION,required = false) String token, @PathVariable String id) {
-        return token == null ?
-                projectService.findByIdAndVisibility(Long.valueOf(id)).map(ProjectDTO::fromProject) :
-                projectService.findByIdAndVisibility(Long.valueOf(id), token).map(ProjectDTO::fromProject);
+    /**
+     * ✅ Получение информации о проекте по ID
+     */
+    @GetMapping("/{projectId}")
+    public Mono<ResponseEntity<Project>> getProjectById(@PathVariable Long projectId) {
+        return projectService.getProjectById(projectId)
+                .map(ResponseEntity::ok);
     }
 
-    @PostMapping("")
-    public Mono<Project> addProject(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token, @RequestBody ProjectDTO dto){
-        return projectService.addProject(dto, token);
-    }
-    @PutMapping("/{id}")
-    public Mono<Project> updateProject(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
-                                 @RequestBody ProjectDTO dto,
-                                 @PathVariable(value = "id") Long id){
-        return projectService.updateProject(dto, token);
-    }
-
-    @DeleteMapping("/{id}")
-    public Mono<ResponseEntity<String>> deleteProject(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
-                                                   @PathVariable(value = "id") Long id){
-
-        return projectService.deleteProjectById(id, token)
-                .thenReturn(new ResponseEntity<>("Project was successfully deleted!", HttpStatus.OK));
+    /**
+     * ✅ Обновление проекта (название, описание, цвет, статусы, теги, ресурсы)
+     */
+    @PutMapping("/{projectId}")
+    public Mono<ResponseEntity<Project>> updateProject(@PathVariable Long projectId,
+                                                       @RequestBody UpdateProjectDTO updateProjectDTO,
+                                                       @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.updateProject(projectId, updateProjectDTO, token)
+                .map(ResponseEntity::ok);
     }
 
-    @GetMapping("/{id}/fields")
-    public Flux<Field> getProjectFields(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
-                                        @PathVariable(value = "id") Long projectId){
-        return projectService.findProjectFieldsByProjectId(projectId, token);
+    /**
+     * ✅ Удаление проекта
+     */
+    @DeleteMapping("/{projectId}")
+    public Mono<ResponseEntity<Void>> deleteProject(@PathVariable Long projectId,
+                                                    @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.deleteProject(projectId, token)
+                .then(Mono.just(ResponseEntity.noContent().build()));
     }
 
-    @PutMapping("/{id}/fields/{fieldId}")
-    public Mono<Field> updateField(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
-                                       @RequestBody FieldDTO dto,
-                                       @PathVariable(value = "id") Long id,
-                                   @PathVariable(value = "fieldId") Long fieldId){
-        return projectService.updateField(dto, token);
+    /**
+     * ✅ Получение всех проектов пользователя
+     */
+    @GetMapping("/my")
+    public Flux<Project> getUserProjects(@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.getUserProjects(token);
     }
 
-    @PostMapping("/{id}/fields")
-    public Mono<Field> addField(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
-                                   @RequestBody FieldDTO dto,
-                                   @PathVariable(value = "id") Long id){
-        return projectService.addField(dto, token);
+    /**
+     * ✅ Добавление пользователя в проект с ролью
+     */
+    @PostMapping("/{projectId}/users/{username}")
+    public Mono<ResponseEntity<Void>> addUserToProject(@PathVariable Long projectId,
+                                                       @PathVariable String username,
+                                                       @RequestParam(name = "role-name") String roleName,
+                                                       @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.addUserToProject(projectId, username, roleName, token)
+                .then(Mono.just(ResponseEntity.ok().build()));
     }
 
-    @DeleteMapping("/{id}/fields/{fieldId}")
-    public Mono<ResponseEntity<String>> deleteField(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
-                                   @PathVariable(value = "id") Long id,
-                                   @PathVariable(value = "fieldId") Long fieldId){
-        return projectService.deleteFieldById(fieldId, token)
-                .thenReturn(new ResponseEntity<>("Field was successfully deleted!", HttpStatus.OK));
+    /**
+     * ✅ Удаление пользователя из проекта
+     */
+    @DeleteMapping("/{projectId}/users/{username}")
+    public Mono<ResponseEntity<Void>> removeUserFromProject(@PathVariable Long projectId,
+                                                            @PathVariable String username,
+                                                            @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.removeUserFromProject(projectId, username, token)
+                .then(Mono.just(ResponseEntity.noContent().build()));
+    }
+
+    /**
+     * ✅ Смена роли пользователя в проекте
+     */
+    @PatchMapping("/{projectId}/users/{username}/role")
+    public Mono<ResponseEntity<Void>> changeUserRole(@PathVariable Long projectId,
+                                                     @PathVariable String username,
+                                                     @RequestParam String newRole,
+                                                     @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.changeUserRole(projectId, username, newRole, token)
+                .then(Mono.just(ResponseEntity.ok().build()));
+    }
+
+    /**
+     * ✅ Получение всех пользователей в проекте
+     */
+    @GetMapping("/{projectId}/users")
+    public Flux<User> getAllUsersInProject(@PathVariable Long projectId) {
+        return projectService.getAllUsersInProject(projectId);
+    }
+
+    /**
+     * ✅ Проверка, является ли пользователь владельцем проекта
+     */
+    @GetMapping("/{projectId}/is-owner")
+    public Mono<ResponseEntity<Boolean>> isProjectOwner(@PathVariable Long projectId,
+                                                        @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.isProjectOwner(projectId, token)
+                .map(ResponseEntity::ok);
+    }
+
+    @PostMapping("/{projectId}/roles")
+    public Mono<ResponseEntity<ProjectRole>> addRole(@PathVariable Long projectId,
+                                                     @RequestBody ProjectRole projectRole,
+                                                     @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.addRole(projectId, projectRole, token)
+                .map(ResponseEntity::ok);
     }
 
 
-    @GetMapping("/{id}/users")
-    public Flux<UserDTO> getProjectUsers(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
-                                         @PathVariable(value = "id") Long projectId){
-        return projectService.findUsersByProjectId(projectId, token);
-    }
-    @DeleteMapping("/{id}/users")
-    public Flux<UserDTO> deleteUserFromProject(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
-                                               @PathVariable(value = "id") Long projectId,
-                                               @RequestParam(name = "username", required = true) String username){
-        return projectService.deleteUserFromProject(projectId, username, token);
+    @PutMapping("/{projectId}/roles/{projectRoleId}")
+    public Mono<ResponseEntity<ProjectRole>> updateRole(@PathVariable Long projectId,
+                                                        @RequestBody ProjectRole projectRole,
+                                                        @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.updateRole(projectId, projectRole, token)
+                .map(ResponseEntity::ok);
     }
 
-    @GetMapping("/{id}/users/change-role")
-    public Mono<Object> changeUserRole(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
-                                          @PathVariable(value = "id") Long projectId,
-                                          @RequestParam(name = "username", required = true) String username,
-                                          @RequestParam(name = "role", required = true) String newRole){
-        return projectService.changeUserRole(projectId, username, newRole, token);
+    @DeleteMapping("/{projectId}/roles/{projectRoleId}")
+    public Mono<ResponseEntity<Void>> deleteRole(@PathVariable Long projectId,
+                                                 @PathVariable Long projectRoleId,
+                                                 @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.deleteRole(projectId, projectRoleId, token)
+                .then(Mono.just(ResponseEntity.noContent().build()));
     }
 
-    @GetMapping("/{id}/users/invite")
-    public Mono<Void> inviteUserToProject(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
-                                          @PathVariable(value = "id") Long projectId,
-                                          @RequestParam(name = "username", required = true) String username){
-        return projectService.inviteUserToProject(projectId, username, token);
+    @GetMapping("/{projectId}/roles")
+    public Flux<ProjectRole> getRolesByProjectId(@PathVariable Long projectId,
+                                                 @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.getRolesByProjectId(projectId, token);
     }
-
 
 }

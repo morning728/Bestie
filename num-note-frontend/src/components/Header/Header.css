@@ -1,0 +1,15 @@
+.header {
+  transition: background-color 0.3s ease;
+}
+
+.header.day {
+  background-color: #9932CC;
+}
+
+.header.night {
+  background-color: #2b2b60;
+}
+
+.lang-change {
+  margin: 0 1em;
+}

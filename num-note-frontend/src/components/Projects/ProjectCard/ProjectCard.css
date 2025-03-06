@@ -1,0 +1,24 @@
+.project-card {
+    border-left: 5px solid #9932CC;
+    transition: all 0.3s ease;
+    padding: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+  }
+  
+  .project-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  .project-card .MuiTypography-h6 {
+    color: #9932CC;
+  }
+  
+  .project-card .project-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  

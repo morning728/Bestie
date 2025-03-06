@@ -53,10 +53,12 @@ public class AuthenticationService {
         .verified(false)
         .build();
     var savedUser = repository.save(user);
-    kafkaMailProducer.sendMailNotification(request.getUsername(), request.getEmail());
+    if(request.getEmail() != null){
+      kafkaMailProducer.sendMailNotification(request.getUsername(), request.getEmail());
+    }
     Connection connection = DriverManager.getConnection(dbUrl,
             "postgres", "root");
-    String insertQuery = "INSERT INTO \"users\" (username, created_at, updated_at, status ) VALUES (?, ?, ?, ?)";
+    String insertQuery = "INSERT INTO \"app_user\" (username, created_at, updated_at, status ) VALUES (?, ?, ?, ?)";
     PreparedStatement statement = connection.prepareStatement(insertQuery);
 
     statement.setString(1, request.getUsername());

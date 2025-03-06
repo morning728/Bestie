@@ -2,12 +2,10 @@
 <project version="4">
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/open-request-handler/src/main/java/com/morning/openrequesthandler/service/ProjectService.java" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/task-api-main/src/main/java/com/morning/taskapimain/repository/task/TaskRepository.java" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/task-api-main/src/main/java/com/morning/taskapimain/service/UserService.java" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/task-api-main/src/main/resources/db/migration/V1__20240312.sql" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/task-api-main/src/main/resources/db/migration/V2__20240313.sql" dialect="GenericSQL" />
-    <file url="file://$PROJECT_DIR$/task-api-main/src/main/resources/db/migration/V3__20240321.sql" dialect="GenericSQL" />
-    <file url="file://$PROJECT_DIR$/task-api-main/src/main/resources/db/migration/V4__20240403.sql" dialect="GenericSQL" />
-    <file url="file://$PROJECT_DIR$/task-api-main/src/main/resources/db/migration/V5__20240423.sql" dialect="GenericSQL" />
-    <file url="file://$PROJECT_DIR$/task-api-main/src/main/resources/db/migration/V8__20240912.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/task-api-main/src/main/resources/db/migration/V3__20240314.sql" dialect="GenericSQL" />
   </component>
 </project>

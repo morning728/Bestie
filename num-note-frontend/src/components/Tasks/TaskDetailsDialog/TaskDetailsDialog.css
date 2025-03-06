@@ -1,0 +1,13 @@
+.task-details-dialog {
+    padding: 24px;
+    width: 400px;
+  }
+  
+  .task-details-dialog .MuiTypography-body1 {
+    margin-top: 16px;
+  }
+  
+  .task-details-dialog .MuiButton-contained {
+    width: 30%;
+  }
+  

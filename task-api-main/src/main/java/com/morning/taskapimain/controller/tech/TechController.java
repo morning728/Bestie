@@ -22,9 +22,9 @@ public class TechController {
     private final ProjectService projectService;
 
 
-    @GetMapping("/accept")
+/*    @GetMapping("/accept")
     public Flux<Object> addUserToProject(@RequestParam(name = "data") String acceptationToken){
         return projectService.addUserToProjectByAcceptationToken(acceptationToken);
 
-    }
+    }*/
 }

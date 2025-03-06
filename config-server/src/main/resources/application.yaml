@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: config-server
+  profiles:
+    active: dev # Активный профиль Config Server
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/morning728/task-tracker # URL вашего Git-репозитория
+          default-label: master # Укажите текущую ветку
+          username: morning728
+          password: NeSmeshno0
+server:
+  port: 8888

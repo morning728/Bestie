@@ -1,0 +1,44 @@
+.main-page {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex-grow: 1; /* Контент автоматически занимает оставшееся пространство */
+  padding: 1.5rem;
+  min-height: 100vh;
+  transition: background-color 0.3s ease;
+}
+
+.date-picker {
+
+}
+
+.main-content.day {
+  background-color: #f5f5f5;
+}
+
+.main-content.night {
+  background-color: #2c2c54;
+}
+
+.main-title.day {
+  color: #9932CC;
+}
+
+.main-title.night {
+  color: #f5f5f5;
+}
+
+.footer {
+  background-color: #9932CC;
+  color: white;
+  padding: 1rem;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1rem;
+  }
+}

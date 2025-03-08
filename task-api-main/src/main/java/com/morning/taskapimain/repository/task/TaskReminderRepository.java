@@ -7,7 +7,19 @@ import org.springframework.data.repository.query.Param;
 import reactor.core.publisher.Mono;
 
 public interface TaskReminderRepository extends R2dbcRepository<TaskReminder, Long> {
+    // 🔹 Получение напоминания по ID
+    @Query("SELECT * FROM task_reminder WHERE id = :reminderId")
+    Mono<TaskReminder> findReminderById(@Param("reminderId") Long reminderId);
 
+    // 🔹 Удаление напоминания
+    @Query("DELETE FROM task_reminder WHERE id = :reminderId")
+    Mono<Void> deleteReminder(@Param("reminderId") Long reminderId);
+
+    // 🔹 Обновление напоминания
+    @Query("UPDATE task_reminder SET reminder_date = :newDate, reminder_time = :newTime WHERE id = :reminderId")
+    Mono<Void> updateReminder(@Param("reminderId") Long reminderId,
+                              @Param("newDate") String newDate,
+                              @Param("newTime") String newTime);
     Mono<TaskReminder> findByTaskId(Long taskId);
     // 🔹 Добавление напоминания к задаче
     @Query("INSERT INTO task_reminder (task_id, reminder_date, reminder_time) VALUES (:taskId, :reminderDate, :reminderTime) RETURNING *")

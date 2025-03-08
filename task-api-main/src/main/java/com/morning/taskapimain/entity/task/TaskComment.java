@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table("task_comments")
+@Table("task_comment")
 public class TaskComment {
     @Id
     private Long id;

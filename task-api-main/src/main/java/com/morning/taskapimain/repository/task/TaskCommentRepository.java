@@ -8,7 +8,11 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface TaskCommentRepository extends R2dbcRepository<TaskComment, Long> {
+    // 🔹 Получение комментария по ID
+    @Query("SELECT * FROM task_comment WHERE id = :commentId")
+    Mono<TaskComment> findCommentById(@Param("commentId") Long commentId);
 
+    Mono<TaskComment> findTaskCommentById(@Param("id") Long id);
     // 🔹 Получение комментариев к задаче
     @Query("SELECT * FROM task_comment WHERE task_id = :taskId ORDER BY created_at DESC")
     Flux<TaskComment> findCommentsByTaskId(@Param("taskId") Long taskId);

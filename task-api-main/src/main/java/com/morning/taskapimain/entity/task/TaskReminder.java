@@ -11,7 +11,7 @@ import java.time.LocalTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table("task_reminders")
+@Table("task_reminder")
 public class TaskReminder {
     @Id
     private Long id;

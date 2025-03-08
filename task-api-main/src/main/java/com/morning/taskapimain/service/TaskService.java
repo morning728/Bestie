@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -34,6 +35,7 @@ public class TaskService {
     private final UserRepository userRepository;
     private final UserService userService;
     private final JwtService jwtService;
+    private final ProjectService projectService;
 
     /**
      * ✅ Проверка, имеет ли пользователь право на действие с задачей
@@ -58,11 +60,55 @@ public class TaskService {
     }
 
     /**
-     * ✅ Создание задачи
+     * ✅ Создание задачи (с тегами и статусом)
      */
-    public Mono<Task> createTask(Task task, String token) {
+    public Mono<Task> createTask(Task task, String token, List<Long> tagIds) {
         return validateRequesterHasPermission(task.getProjectId(), token, Permission.CAN_CREATE_TASKS)
-                .then(taskRepository.save(task));
+                .then(userService.getUserId(jwtService.extractUsername(token)))
+                .flatMap(userId -> {
+                    task.setUpdatedAt(LocalDateTime.now());
+                    task.setCreatedAt(LocalDateTime.now());
+                    task.setCreatedBy(userId);
+
+                    return taskRepository.save(task)
+                            .flatMap(savedTask -> updateTaskTags(savedTask.getId(), tagIds)
+                                    .thenReturn(savedTask));
+                });
+    }
+
+
+    /**
+     * ✅ Обновление задачи (с тегами, статусами и напоминаниями)
+     */
+    public Mono<Task> updateTask(Long taskId, Task updatedTask, String token, List<Long> tagIds) {
+        return validateRequesterHasPermission(updatedTask.getProjectId(), token, Permission.CAN_EDIT_TASKS)
+                .then(taskRepository.findById(taskId))
+                .switchIfEmpty(Mono.error(new NotFoundException("Task not found")))
+                .flatMap(existingTask -> {
+                    existingTask.setTitle(updatedTask.getTitle());
+                    existingTask.setDescription(updatedTask.getDescription());
+                    existingTask.setPriority(updatedTask.getPriority());
+                    existingTask.setStatusId(updatedTask.getStatusId());
+                    existingTask.setStartDate(updatedTask.getStartDate());
+                    existingTask.setEndDate(updatedTask.getEndDate());
+                    existingTask.setStartTime(updatedTask.getStartTime());
+                    existingTask.setEndTime(updatedTask.getEndTime());
+                    existingTask.setUpdatedAt(LocalDateTime.now());
+
+                    return taskRepository.save(existingTask)
+                            .flatMap(savedTask -> updateTaskTags(savedTask.getId(), tagIds)
+                                    .thenReturn(savedTask));
+                });
+    }
+
+    /**
+     * ✅ Обновление тегов задачи
+     */
+    private Mono<Void> updateTaskTags(Long taskId, List<Long> tagIds) {
+        return taskTagRepository.deleteTagsByTaskId(taskId)
+                .thenMany(Flux.fromIterable(tagIds)
+                        .flatMap(tagId -> taskTagRepository.addTagToTask(taskId, tagId)))
+                .then();
     }
 
     /**
@@ -71,15 +117,6 @@ public class TaskService {
     public Flux<Task> getTasksByProject(Long projectId) {
         return taskRepository.findByProjectId(projectId);
     }
-
-    /**
-     * ✅ Обновление задачи
-     */
-    public Mono<Task> updateTask(Long taskId, Task updatedTask, String token) {
-        return validateRequesterHasPermission(updatedTask.getProjectId(), token, Permission.CAN_EDIT_TASKS)
-                .then(taskRepository.save(updatedTask));
-    }
-
     /**
      * ✅ Архивирование задачи
      */
@@ -114,25 +151,46 @@ public class TaskService {
      * ✅ Добавление комментария к задаче
      */
     public Mono<TaskComment> addComment(Long taskId, String token, String comment) {
-        String username = jwtService.extractUsername(token);
-
         return taskRepository.findById(taskId)
                 .switchIfEmpty(Mono.error(new NotFoundException("Task not found")))
-                .flatMap(task -> validateRequesterHasPermission(task.getProjectId(), token, Permission.CAN_COMMENT_TASKS)
-                        .then(userService.getUserByUsername(username)) // Получаем User по username
-                        .flatMap(user -> taskCommentRepository.addComment(taskId, user.getId(), comment))
-                );
+                .flatMap(task -> validateRequesterHasPermission(task.getProjectId(), token, Permission.CAN_COMMENT_TASKS))
+                .then(userService.getUserId(jwtService.extractUsername(token)))
+                .flatMap(userId -> taskCommentRepository.addComment(taskId, userId, comment));
     }
 
+    /**
+     * ✅ Удаление комментария по ID
+     */
+    public Mono<Void> deleteComment(Long commentId) {
+        return taskCommentRepository.findCommentById(commentId)
+                .switchIfEmpty(Mono.error(new NotFoundException("Comment not found")))
+                .flatMap(comment -> taskCommentRepository.deleteComment(commentId));
+    }
 
     /**
      * ✅ Добавление напоминания
      */
     public Mono<TaskReminder> addReminder(Long taskId, String token, String reminderDate, String reminderTime) {
-        return taskRepository.findById(taskId)
-                .switchIfEmpty(Mono.error(new NotFoundException("Task not found")))
-                .flatMap(task -> validateRequesterHasPermission(task.getProjectId(), token, Permission.CAN_MANAGE_REMINDERS))
+        return validateRequesterHasPermission(taskId, token, Permission.CAN_MANAGE_REMINDERS)
                 .then(taskReminderRepository.addReminder(taskId, reminderDate, reminderTime));
+    }
+
+    /**
+     * ✅ Удаление напоминания по ID
+     */
+    public Mono<Void> deleteReminder(Long reminderId) {
+        return taskReminderRepository.findReminderById(reminderId)
+                .switchIfEmpty(Mono.error(new NotFoundException("Reminder not found")))
+                .flatMap(reminder -> taskReminderRepository.deleteReminder(reminderId));
+    }
+
+    /**
+     * ✅ Обновление напоминания
+     */
+    public Mono<Void> updateReminder(Long reminderId, String newDate, String newTime) {
+        return taskReminderRepository.findReminderById(reminderId)
+                .switchIfEmpty(Mono.error(new NotFoundException("Reminder not found")))
+                .flatMap(reminder -> taskReminderRepository.updateReminder(reminderId, newDate, newTime));
     }
 
     /**

@@ -81,6 +81,7 @@ public class UserService {
                 .subscribeOn(Schedulers.boundedElastic()); // Выполняем асинхронно
     }
 
+
     /**
      * ✅ Получение пользователя по username
      */
@@ -148,11 +149,10 @@ public class UserService {
     /**
      * ✅ Получение ID пользователя по username
      */
-    private Long getUserId(String username) {
+    public Mono<Long> getUserId(String username) {
         return userRepository.findByUsername(username)
                 .map(User::getId)
-                .switchIfEmpty(Mono.error(new NotFoundException("User not found")))
-                .block();
+                .switchIfEmpty(Mono.error(new NotFoundException("User not found")));
     }
 
 

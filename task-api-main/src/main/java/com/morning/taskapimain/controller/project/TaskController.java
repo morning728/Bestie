@@ -1,5 +1,6 @@
 package com.morning.taskapimain.controller.project;
 
+import com.morning.taskapimain.entity.dto.TaskDTO;
 import com.morning.taskapimain.entity.task.Task;
 import com.morning.taskapimain.entity.task.TaskComment;
 import com.morning.taskapimain.entity.task.TaskReminder;
@@ -32,9 +33,9 @@ public class TaskController {
      * ✅ Создание новой задачи
      */
     @PostMapping
-    public Mono<ResponseEntity<Task>> createTask(@RequestBody Task task,
+    public Mono<ResponseEntity<Task>> createTask(@RequestBody TaskDTO taskDTO,
                                                  @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
-        return taskService.createTask(task, token)
+        return taskService.createTask(taskDTO, token)
                 .map(ResponseEntity::ok);
     }
 
@@ -45,25 +46,44 @@ public class TaskController {
     public Flux<Task> getTasksByProject(@PathVariable Long projectId) {
         return taskService.getTasksByProject(projectId);
     }
+    /**
+     * ✅ Обновление задачи
+     */
+    @GetMapping("/{taskId}")
+    public Mono<ResponseEntity<TaskDTO>> getTask(@PathVariable Long taskId,
+                                                 @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
+        return taskService.getFullTaskInfoById(taskId)
+                .map(ResponseEntity::ok);
+    }
 
     /**
      * ✅ Обновление задачи
      */
     @PutMapping("/{taskId}")
     public Mono<ResponseEntity<Task>> updateTask(@PathVariable Long taskId,
-                                                 @RequestBody Task updatedTask,
+                                                 @RequestBody TaskDTO updatedTask,
                                                  @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
         return taskService.updateTask(taskId, updatedTask, token)
                 .map(ResponseEntity::ok);
     }
 
+
     /**
      * ✅ Архивирование задачи
      */
-    @PatchMapping("/{taskId}/archive")
+    @PutMapping("/{taskId}/archive")
     public Mono<ResponseEntity<Void>> archiveTask(@PathVariable Long taskId,
                                                   @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
         return taskService.archiveTask(taskId, token)
+                .then(Mono.just(ResponseEntity.noContent().build()));
+    }
+    /**
+     * ✅ Архивирование задачи
+     */
+    @PutMapping("/{taskId}/restore")
+    public Mono<ResponseEntity<Void>> restoreTask(@PathVariable Long taskId,
+                                                  @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
+        return taskService.restoreTask(taskId, token)
                 .then(Mono.just(ResponseEntity.noContent().build()));
     }
 
@@ -91,14 +111,14 @@ public class TaskController {
     /**
      * ✅ Добавление напоминания к задаче
      */
-    @PostMapping("/{taskId}/reminders")
+/*    @PostMapping("/{taskId}/reminders")
     public Mono<ResponseEntity<TaskReminder>> addReminder(@PathVariable Long taskId,
                                                           @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
                                                           @RequestParam String reminderDate,
                                                           @RequestParam String reminderTime) {
         return taskService.addReminder(taskId, token, reminderDate, reminderTime)
                 .map(ResponseEntity::ok);
-    }
+    }*/
 
     /**
      * ✅ Управление тегами задачи (добавление/удаление)

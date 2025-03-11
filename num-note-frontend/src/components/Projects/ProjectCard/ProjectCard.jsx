@@ -18,14 +18,14 @@ const ProjectCard = ({ project, onClick, onEdit }) => {
         <Typography variant="body2">{t("priority")}: {project.priority}</Typography>
         <Typography variant="body2">{t("deadline")}: {project.deadline || t("no_deadline")}</Typography>
 
-        <Box mt={1}>
+        {/* <Box mt={1}>
           <Typography variant="subtitle2">{t("members")}:</Typography>
           <Box display="flex" gap={1} flexWrap="wrap">
             {project.members.map((member, index) => (
               <Chip key={index} label={member} size="small" />
             ))}
           </Box>
-        </Box>
+        </Box> */}
       </CardContent>
     </Card>
   );

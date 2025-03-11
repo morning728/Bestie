@@ -13,6 +13,7 @@ import {
   MenuItem,
 } from "@mui/material";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import { useProjects } from '../../../hooks/useProjects.js';
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import { SketchPicker } from "react-color"; // 🎨 Выбор цвета
 import { useContext } from "react";
@@ -28,6 +29,8 @@ const AddProjectDialog = ({ open, project, handleClose = () => { }, onSave = () 
   const { darkMode } = useContext(ThemeContext);
   const { t } = useTranslation();
 
+  const { addMemberToProject, removeMemberFromProject, fetchProjectMembers } = useProjects();
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [members, setMembers] = useState([]);
@@ -41,10 +44,11 @@ const AddProjectDialog = ({ open, project, handleClose = () => { }, onSave = () 
   const [newResource, setNewResource] = useState("");
 
   useEffect(() => {
+    console.log(project);
     if (project) {
       setTitle(project.title || "");
       setDescription(project.description || "");
-      setMembers(project.members || []);
+      setMembers(project.members ? project.members.map((m) => `${m.username}`) : []);
       setDeadline(project.deadline || "");
       setPriority(project.priority || "Medium");
       setStatus(project.status || "Planned");
@@ -63,18 +67,28 @@ const AddProjectDialog = ({ open, project, handleClose = () => { }, onSave = () 
       setResourceLinks([]);
     }
   }, [project]);
-
+  // Добавляем нового пользователя (нужно указать username и roleId!)
   const handleAddMember = () => {
-    if (newMember.trim() && !members.includes(newMember)) {
-      setMembers([...members, newMember]);
-      setNewMember("");
+    if (newMember.trim()) {
+      // укажи нужную роль, например, роль участника (roleId нужно узнать заранее!)
+      const defaultRoleId = 2; // пример
+      addMemberToProject(project.id, newMember, defaultRoleId)
+        .then(() => {
+          fetchProjectMembers(project.id).then(setMembers);
+          setNewMember('');
+        })
+        .catch(err => console.error('Ошибка добавления участника:', err));
     }
   };
 
-  const handleDeleteMember = (memberToDelete) => {
-    setMembers(members.filter((member) => member !== memberToDelete));
+  // Удаляем пользователя по его username
+  const handleDeleteMember = (memberUsername) => {
+    removeMemberFromProject(project.id, memberUsername)
+      .then(() => {
+        fetchProjectMembers(project.id).then(setMembers);
+      })
+      .catch(err => console.error('Ошибка удаления участника:', err));
   };
-
   const handleAddResource = () => {
     if (newResource.trim() && !resourceLinks.includes(newResource)) {
       setResourceLinks([...resourceLinks, newResource]);
@@ -195,13 +209,18 @@ const AddProjectDialog = ({ open, project, handleClose = () => { }, onSave = () 
         <Box mt={2}>
           <Typography variant="subtitle1">{t("members")}</Typography>
           <Box className="members-input">
-            <TextField label={t("add_member")} value={newMember} onChange={(e) => setNewMember(e.target.value)} fullWidth  />
+            <TextField label={t("add_member")} value={newMember} onChange={(e) => setNewMember(e.target.value)} fullWidth />
             <Button variant="contained" color="primary" onClick={handleAddMember} startIcon={<PersonAddIcon />}>{t("add")}</Button>
           </Box>
 
           <Box className="members-list">
-            {members.map((member, index) => (
-              <Chip key={index} label={member} onDelete={() => handleDeleteMember(member)} deleteIcon={<HighlightOffIcon />} />
+            {members.map((memberName, index) => (
+              <Chip
+                key={index}
+                label={memberName}
+                onDelete={() => handleDeleteMember(memberName)}
+                deleteIcon={<HighlightOffIcon />}
+              />
             ))}
           </Box>
         </Box>

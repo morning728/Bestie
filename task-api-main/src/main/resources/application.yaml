@@ -1,5 +1,10 @@
 server:
   port: 8085
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
 spring:
   r2dbc:
     url: r2dbc:pool:postgres://localhost:5432/task_api_db

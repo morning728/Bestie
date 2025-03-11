@@ -2,10 +2,30 @@ import React, { useContext, useState } from "react";
 import { Box, TextField, Button, Typography } from "@mui/material";
 import "./LoginPage.css";
 import { ThemeContext } from "../../../ThemeContext";
+import { loginUser } from '../../../services/api';
 import Header from "../../../components/Header/Header";
 
 const LoginPage = () => {
   const { darkMode, toggleTheme } = useContext(ThemeContext);
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+
+      const handleLogin = async (event) => {
+        event.preventDefault();
+    
+        try {
+          const response = await loginUser(username, password);
+          const { access_token, refresh_token } = response.data;
+    
+          // сохраняем токены в localStorage
+          localStorage.setItem('token', access_token);
+          localStorage.setItem('refreshToken', refresh_token);
+    
+          console.log('Логин успешен!');
+        } catch (error) {
+          console.error('Ошибка при авторизации:', error);
+        }
+      };
   return (
     <Box className={`login-page ${darkMode ? "night" : "day"}`}>
       <Header />
@@ -15,8 +35,9 @@ const LoginPage = () => {
         </Typography>
         <form className="login-form">
           <TextField
-            label="Email"
+            label="Login"
             fullWidth
+            onChange={(e) => setUsername(e.target.value)}
             margin="normal"
             required
           />
@@ -24,6 +45,7 @@ const LoginPage = () => {
             label="Password"
             type="password"
             fullWidth
+            onChange={(e) => setPassword(e.target.value)}
             margin="normal"
             required
           />
@@ -33,6 +55,7 @@ const LoginPage = () => {
             size="large"
             fullWidth
             className="login-button"
+            onClick={e=> {handleLogin(e)}}
           >
             Login
           </Button>

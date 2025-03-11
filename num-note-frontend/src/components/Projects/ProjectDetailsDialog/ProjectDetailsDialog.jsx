@@ -45,16 +45,20 @@ const ProjectDetailsDialog = ({ open, project, handleClose, onEdit, onDelete, on
 
         <Box mt={2}>
           <Typography variant="subtitle1">{t("members")}:</Typography>
-          <Box className="members-list">
-            {project.members.map((member, index) => (
-              <Chip
-                key={index}
-                label={member}
-                deleteIcon={<HighlightOffIcon />}
-                onDelete={() => onRemoveMember(project.id, member)}
-                className="member-chip"
-              />
-            ))}
+          <Box className="members-box">
+            {project.members && project.members.length > 0 ? (
+              project.members.map((member) => (
+                <Chip
+                  key={member.userId}
+                  label={`${member.firstName} ${member.lastName}`}
+                  deleteIcon={<HighlightOffIcon />}
+                  // onDelete={() => removeMember(project.id, member.username)}
+                  className="member-chip"
+                />
+              ))
+            ) : (
+              <Typography variant="caption">{t("no_members")}</Typography>
+            )}
           </Box>
         </Box>
       </DialogContent>
@@ -64,7 +68,7 @@ const ProjectDetailsDialog = ({ open, project, handleClose, onEdit, onDelete, on
           color: darkMode ? "white" : "black",
         }}>
         <Button onClick={handleClose}>{t("close")}</Button>
-        <Button onClick={() => onEdit(project)} color="primary">{t("edit")}</Button>
+        <Button onClick={() => onEdit(project.id)} color="primary">{t("edit")}</Button>
         <Button onClick={() => onDelete(project.id)} color="error">{t("delete")}</Button>
       </DialogActions>
     </Dialog>

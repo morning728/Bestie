@@ -1,0 +1,31 @@
+.roles-tab {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .create-role-section,
+  .role-item {
+    padding: 16px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .permissions-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 12px 0;
+  }
+  
+  .role-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .existing-roles-title {
+    margin-top: 20px;
+  }
+  

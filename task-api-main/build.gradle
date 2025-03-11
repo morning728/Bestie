@@ -51,6 +51,8 @@ dependencies {
 	implementation "javax.xml.bind:jaxb-api:$jaxbApiVersion"
 	implementation 'org.projectlombok:lombok:1.18.30'
 
+	implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.3.0'
+
 	implementation 'org.springframework.kafka:spring-kafka'
 
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'

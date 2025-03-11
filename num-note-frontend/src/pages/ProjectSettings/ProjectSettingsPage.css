@@ -1,0 +1,27 @@
+.settings-page.day {
+    background-color: #f4f4f9;
+    color: #333;
+    min-height: 100vh;
+  }
+  
+  .settings-page.night {
+    background-color: #121212;
+    color: #fff;
+    min-height: 100vh;
+  }
+  
+  .settings-container {
+    padding: 20px;
+    max-width: 900px;
+    margin: auto;
+  }
+  
+  .settings-tabs {
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .tab-content {
+    padding-top: 10px;
+  }
+  

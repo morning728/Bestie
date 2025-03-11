@@ -10,6 +10,13 @@ import reactor.core.publisher.Mono;
 
 public interface ProjectRepository extends R2dbcRepository<Project, Long> {
 
+    Mono<Project> findById(Long aLong);
+
     Flux<Project> findByOwnerId(Long ownerId);
     Mono<Project> findByTitle(String title);
+
+    // 🔹 Удаление всех ресурсов проекта
+    @Query("SELECT p.id, p.title, p.description, p.color, p.icon, p.priority, p.status, p.deadline, p.owner_id" +
+            " FROM project p JOIN user_project up ON p.id = up.project_id WHERE  up.user_id = :userId")
+    Flux<Project> findAllByUserId(@Param("userId") Long userId);
 }

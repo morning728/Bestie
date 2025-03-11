@@ -1,11 +1,11 @@
 package com.morning.taskapimain.controller.project;
 
 
+import com.morning.taskapimain.entity.dto.ProjectDTO;
 import com.morning.taskapimain.entity.dto.UpdateProjectDTO;
 import com.morning.taskapimain.entity.dto.UserToProjectDTO;
 import com.morning.taskapimain.entity.dto.UserWithRoleDTO;
-import com.morning.taskapimain.entity.project.Project;
-import com.morning.taskapimain.entity.project.ProjectRole;
+import com.morning.taskapimain.entity.project.*;
 import com.morning.taskapimain.entity.user.User;
 import com.morning.taskapimain.exception.annotation.AccessExceptionHandler;
 import com.morning.taskapimain.exception.annotation.BadRequestExceptionHandler;
@@ -19,6 +19,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/projects")
@@ -51,7 +53,16 @@ public class ProjectController {
     }
 
     /**
-     * ✅ Обновление проекта (название, описание, цвет, статусы, теги, ресурсы)
+     * ✅ Получение информации о проекте по ID
+     */
+    @GetMapping("/{projectId}/full-info")
+    public Mono<ResponseEntity<ProjectDTO>> getFullProjectInfoById(@PathVariable Long projectId) {
+        return projectService.getFullProjectInfoById(projectId)
+                .map(ResponseEntity::ok);
+    }
+
+    /**
+     * ✅ Обновление проекта (название, описание, цвет)
      */
     @PutMapping("/{projectId}")
     public Mono<ResponseEntity<Project>> updateProject(@PathVariable Long projectId,
@@ -61,6 +72,124 @@ public class ProjectController {
                 .map(ResponseEntity::ok);
     }
 
+    /**
+     * ✅ Обновление тегов проекта
+     */
+    @PutMapping("/{projectId}/tags")
+    public Mono<ResponseEntity<ProjectTag>> updateProjectTag(@PathVariable Long projectId,
+                                                          @RequestBody ProjectTag updatedTag,
+                                                          @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.updateProjectTag(projectId, updatedTag, token)
+                .map(ResponseEntity::ok);
+    }
+    /**
+     * ✅ Обновление тегов проекта
+     */
+    @PostMapping("/{projectId}/tags")
+    public Mono<ResponseEntity<ProjectTag>> addProjectTag(@PathVariable Long projectId,
+                                                              @RequestBody ProjectTag newTag,
+                                                              @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.addProjectTag(projectId, newTag, token)
+                .map(ResponseEntity::ok);
+    }
+
+    /**
+     * ✅ Обновление статусов проекта
+     */
+    @PutMapping("/{projectId}/statuses")
+    public Mono<ResponseEntity<ProjectStatus>> updateProjectStatuses(@PathVariable Long projectId,
+                                                                     @RequestBody ProjectStatus updatedStatus,
+                                                                     @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.updateProjectStatus(projectId, updatedStatus, token)
+                .map(ResponseEntity::ok);
+    }
+    /**
+     * ✅ Добавление статусов проекта
+     */
+    @PostMapping("/{projectId}/statuses")
+    public Mono<ResponseEntity<ProjectStatus>> addProjectStatuses(@PathVariable Long projectId,
+                                                                     @RequestBody ProjectStatus newStatus,
+                                                                     @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.addProjectStatus(projectId, newStatus, token)
+                .map(ResponseEntity::ok);
+    }
+
+    /**
+     * ✅ Обновление ресурсов проекта
+     */
+    @PutMapping("/{projectId}/resources")
+    public Mono<ResponseEntity<ProjectResource>> updateProjectResource(@PathVariable Long projectId,
+                                                               @RequestBody ProjectResource updatedResource,
+                                                               @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.updateProjectResources(projectId, updatedResource, token)
+                .map(ResponseEntity::ok);
+    }
+    /**
+     * ✅ Добавление ресурс проекта
+     */
+    @PostMapping("/{projectId}/resources")
+    public Mono<ResponseEntity<ProjectResource>> addProjectResource(@PathVariable Long projectId,
+                                                                       @RequestBody ProjectResource newResource,
+                                                                       @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.addProjectResource(projectId, newResource, token)
+                .map(ResponseEntity::ok);
+    }
+    /**
+     * ✅ Получение тегов проекта
+     */
+    @GetMapping("/{projectId}/tags")
+    public Flux<ProjectTag> updateProjectTags(@PathVariable Long projectId,
+                                                              @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.getProjectTags(projectId);
+    }
+
+    /**
+     * ✅ Получение статусов проекта
+     */
+    @GetMapping("/{projectId}/statuses")
+    public Flux<ProjectStatus> updateProjectStatuses(@PathVariable Long projectId,
+                                                                     @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.getProjectStatuses(projectId);
+    }
+
+    /**
+     * ✅ Получение ресурсов проекта
+     */
+    @GetMapping("/{projectId}/resources")
+    public Flux<ProjectResource> updateProjectResources(@PathVariable Long projectId,
+                                                                        @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.getProjectResources(projectId);
+    }
+    /**
+     * ✅ Удаление тегов проекта
+     */
+    @DeleteMapping("/{projectId}/tags/{tagId}")
+    public Mono<ResponseEntity<Void>> deleteProjectTag(@PathVariable Long projectId,
+                                              @PathVariable Long tagId,
+                                              @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.deleteProjectTag(projectId, tagId, token)
+                .map(ResponseEntity::ok);
+    }
+    /**
+     * ✅ Удаление status проекта
+     */
+    @DeleteMapping("/{projectId}/statuses/{statusId}")
+    public Mono<ResponseEntity<Void>> deleteProjectStatus(@PathVariable Long projectId,
+                                                        @PathVariable Long statusId,
+                                                        @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.deleteProjectStatus(projectId, statusId, token)
+                .map(ResponseEntity::ok);
+    }
+    /**
+     * ✅ Удаление resource проекта
+     */
+    @DeleteMapping("/{projectId}/resources/{resourceId}")
+    public Mono<ResponseEntity<Void>> deleteProjectResource(@PathVariable Long projectId,
+                                                          @PathVariable Long resourceId,
+                                                          @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
+        return projectService.deleteProjectResource(projectId, resourceId, token)
+                .map(ResponseEntity::ok);
+    }
     /**
      * ✅ Удаление проекта
      */
@@ -158,7 +287,7 @@ public class ProjectController {
     @GetMapping("/{projectId}/roles")
     public Flux<ProjectRole> getRolesByProjectId(@PathVariable Long projectId,
                                                  @RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
-        return projectService.getRolesByProjectId(projectId, token);
+        return projectService.getRolesByProjectId(projectId);
     }
 
     @GetMapping("/{projectId}/roles/my")

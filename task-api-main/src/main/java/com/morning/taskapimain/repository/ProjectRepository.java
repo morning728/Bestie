@@ -1,7 +1,6 @@
 package com.morning.taskapimain.repository;
 
-import com.morning.taskapimain.entity.project.*;
-import com.morning.taskapimain.entity.user.User;
+import com.morning.taskapimain.entity.project.Project;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import org.springframework.data.repository.query.Param;
@@ -13,6 +12,7 @@ public interface ProjectRepository extends R2dbcRepository<Project, Long> {
     Mono<Project> findById(Long aLong);
 
     Flux<Project> findByOwnerId(Long ownerId);
+
     Mono<Project> findByTitle(String title);
 
     // 🔹 Удаление всех ресурсов проекта

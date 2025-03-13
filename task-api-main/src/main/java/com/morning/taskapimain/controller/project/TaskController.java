@@ -43,11 +43,11 @@ public class TaskController {
      * ✅ Получение всех задач проекта
      */
     @GetMapping("/project/{projectId}")
-    public Flux<Task> getTasksByProject(@PathVariable Long projectId) {
-        return taskService.getTasksByProject(projectId);
+    public Flux<TaskDTO> getTasksByProject(@PathVariable Long projectId) {
+        return taskService.getFullInfoTasksByProject(projectId);
     }
     /**
-     * ✅ Обновление задачи
+     * ✅ Получение полной инфы задачи
      */
     @GetMapping("/{taskId}")
     public Mono<ResponseEntity<TaskDTO>> getTask(@PathVariable Long taskId,

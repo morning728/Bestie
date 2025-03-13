@@ -2,6 +2,7 @@ package com.morning.taskapimain.entity.dto;
 
 import com.morning.taskapimain.entity.project.ProjectTag;
 import com.morning.taskapimain.entity.task.Task;
+import com.morning.taskapimain.entity.task.TaskAssignee;
 import com.morning.taskapimain.entity.task.TaskReminder;
 import lombok.Builder;
 import lombok.Data;
@@ -20,6 +21,8 @@ public class TaskDTO {
     private Long statusId;
     private List<Long> tagIds;
     private List<ProjectTag> tags;
+    private List<TaskAssignee> assignees; // Список ответственных
+    private List<Long> assigneeIds; // Список ответственных id
     private String priority;
     private LocalDate startDate;
     private LocalDate endDate;
@@ -50,13 +53,14 @@ public class TaskDTO {
                 .build();
     }
 
-    public static TaskDTO fromTask(Task task, List<ProjectTag> tags, TaskReminder reminder) {
+    public static TaskDTO fromTask(Task task, List<ProjectTag> tags, TaskReminder reminder, List<TaskAssignee> assignees) {
         return TaskDTO.builder()
                 .id(task.getId())
                 .title(task.getTitle())
                 .description(task.getDescription())
                 .statusId(task.getStatusId())
                 .tags(tags) // Передаем список тегов
+                .assignees(assignees)
                 .priority(task.getPriority())
                 .startDate(task.getStartDate())
                 .endDate(task.getEndDate())

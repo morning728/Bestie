@@ -6,6 +6,7 @@ import {
   Button,
   Paper,
   IconButton,
+  Popover,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
@@ -14,7 +15,12 @@ import AddIcon from "@mui/icons-material/Add";
 import { SketchPicker } from "react-color";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "../../../ThemeContext";
-import { getProjectTags, addProjectTag, deleteProjectTag, updateProjectTag } from "../../../services/api";
+import {
+  getProjectTags,
+  addProjectTag,
+  deleteProjectTag,
+  updateProjectTag,
+} from "../../../services/api";
 import "../ProjectSettingsPage.css";
 
 const TagsTab = ({ projectId }) => {
@@ -27,6 +33,10 @@ const TagsTab = ({ projectId }) => {
   const [editingTag, setEditingTag] = useState(null);
   const [editTagName, setEditTagName] = useState("");
   const [editTagColor, setEditTagColor] = useState("#9932CC");
+
+  // Для popover выбора цвета
+  const [colorAnchor, setColorAnchor] = useState(null);
+  const [editColorAnchor, setEditColorAnchor] = useState(null);
 
   // Функция загрузки тегов
   const fetchTags = () => {
@@ -74,7 +84,12 @@ const TagsTab = ({ projectId }) => {
 
   // Функция сохранения изменений тега
   const handleSaveTag = (tagId) => {
-    updateProjectTag(projectId, { id: tagId, name: editTagName, color: editTagColor, projectId: projectId })
+    updateProjectTag(projectId, {
+      id: tagId,
+      name: editTagName,
+      color: editTagColor,
+      projectId: projectId,
+    })
       .then(() => {
         setEditingTag(null);
         fetchTags();
@@ -83,103 +98,152 @@ const TagsTab = ({ projectId }) => {
   };
 
   return (
-    <Box className={darkMode ? "settings-tab-content dark" : "settings-tab"}>
-      <Typography variant="h6" gutterBottom>{t("tags")}</Typography>
+    <Box className={darkMode ? "settings-tab-content dark" : "settings-tab"} sx={{ p: 3 }}>
+      <Typography variant="h6" gutterBottom>
+        {t("tags")}
+      </Typography>
 
       {/* Блок добавления нового тега */}
-      <Box className="tag-input">
+      <Paper sx={{ p: 3, mb: 3, display: "flex", alignItems: "center", gap: 2 }}>
         <TextField
           fullWidth
           label={t("new_tag")}
           value={newTagName}
           onChange={(e) => setNewTagName(e.target.value)}
-          sx={{ mr: 2 }}
         />
-        <SketchPicker
-          color={newTagColor}
-          onChangeComplete={(color) => setNewTagColor(color.hex)}
-          width="200px"
-          styles={{
-            default: {
-              picker: { borderRadius: "10px", boxShadow: "0 4px 12px rgba(0,0,0,0.15)" },
-            },
+        <Box
+          sx={{
+            width: 40,
+            height: 40,
+            borderRadius: "8px",
+            background: `linear-gradient(135deg, ${newTagColor},rgb(130, 127, 127))`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            border: "1px solid #ccc",
+            cursor: "pointer",
+            transition: "0.3s",
+            "&:hover": { opacity: 0.8 },
           }}
-        />
+          onClick={(e) => setColorAnchor(e.currentTarget)}
+        >
+          🎨
+        </Box>
+        <Popover
+          open={Boolean(colorAnchor)}
+          anchorEl={colorAnchor}
+          onClose={() => setColorAnchor(null)}
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "left",
+          }}
+        >
+          <SketchPicker
+            color={newTagColor}
+            onChangeComplete={(color) => {
+              setNewTagColor(color.hex);
+              setColorAnchor(null);
+            }}
+          />
+        </Popover>
         <Button
           variant="contained"
-          sx={{ backgroundColor: newTagColor, color: "#fff", fontWeight: "bold" }}
+          color="primary"
           onClick={handleAddTag}
           startIcon={<AddIcon />}
+          sx={{ whiteSpace: "nowrap" }}
         >
           {t("add")}
         </Button>
-      </Box>
+      </Paper>
 
       {/* Список существующих тегов */}
-      <Box mt={3}>
-        <Typography variant="subtitle1">{t("existing_tags")}</Typography>
-        <Box className="tags-list">
-          {tags.length > 0 ? tags.map((tag) => (
+      <Box>
+        <Typography variant="subtitle1" sx={{ mb: 2 }}>
+          {t("existing_tags")}
+        </Typography>
+        {tags.length > 0 ? (
+          tags.map((tag) => (
             <Paper
               key={tag.id}
-              className="tag-item"
               sx={{
+                p: 2,
                 display: "flex",
                 alignItems: "center",
-                padding: 2,
-                marginBottom: 1,
-                background: `linear-gradient(135deg, ${tag.color} 0%, #000000 100%)`,
+                justifyContent: "space-between",
+                background: `linear-gradient(135deg, ${tag.color},rgb(44, 43, 43))`,
+                color: "#fff",
                 borderRadius: "12px",
-                boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  transform: "scale(1.05)",
-                  boxShadow: "0 6px 15px rgba(0,0,0,0.4)",
-                },
+                transition: "0.3s",
+                "&:hover": { opacity: 0.9 },
+                mb: 1,
               }}
             >
               {editingTag === tag.id ? (
-                <>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <TextField
                     value={editTagName}
                     onChange={(e) => setEditTagName(e.target.value)}
-                    sx={{ flexGrow: 1, backgroundColor: "#fff", borderRadius: 1, padding: "2px 8px" }}
+                    size="small"
+                    sx={{ backgroundColor: "#fff", borderRadius: "4px" }}
                   />
-                  <SketchPicker
-                    color={editTagColor}
-                    onChangeComplete={(color) => setEditTagColor(color.hex)}
-                    width="160px"
-                  />
-                  <IconButton color="success" onClick={() => handleSaveTag(tag.id)}>
-                    <SaveIcon />
-                  </IconButton>
-                </>
-              ) : (
-                <>
-                  <Typography
+                  <Box
                     sx={{
-                      flexGrow: 1,
-                      fontSize: "16px",
-                      fontWeight: "bold",
-                      color: "#fff",
-                      padding: "6px 12px",
+                      width: 40,
+                      height: 40,
+                      borderRadius: "8px",
+                      background: `linear-gradient(135deg, ${editTagColor},rgb(21, 20, 20))`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      border: "1px solid #ccc",
+                      cursor: "pointer",
+                      transition: "0.3s",
+                      "&:hover": { opacity: 0.8 },
+                    }}
+                    onClick={(e) => setEditColorAnchor(e.currentTarget)}
+                  >
+                    🎨
+                  </Box>
+                  <Popover
+                    open={Boolean(editColorAnchor)}
+                    anchorEl={editColorAnchor}
+                    onClose={() => setEditColorAnchor(null)}
+                    anchorOrigin={{
+                      vertical: "bottom",
+                      horizontal: "left",
                     }}
                   >
-                    {tag.name}
-                  </Typography>
-                  <IconButton color="primary" onClick={() => startEditingTag(tag)}>
+                    <SketchPicker
+                      color={editTagColor}
+                      onChangeComplete={(color) => {
+                        setEditTagColor(color.hex);
+                        setEditColorAnchor(null);
+                      }}
+                    />
+                  </Popover>
+                  <IconButton onClick={() => handleSaveTag(tag.id)} color="success">
+                    <SaveIcon />
+                  </IconButton>
+                </Box>
+              ) : (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <Typography variant="subtitle1">{tag.name}</Typography>
+                  <IconButton onClick={() => startEditingTag(tag)} color="default">
                     <EditIcon />
                   </IconButton>
-                  <IconButton color="error" onClick={() => handleDeleteTag(tag.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </>
+                </Box>
               )}
+              <IconButton onClick={() => handleDeleteTag(tag.id)} color="error">
+                <DeleteIcon />
+              </IconButton>
             </Paper>
-          )) : (
-            <Typography variant="body2" color="textSecondary">{t("no_tags_available")}</Typography>
-          )}
-        </Box>
+          ))
+        ) : (
+          <Typography variant="body2" color="textSecondary">
+            {t("no_tags_available")}
+          </Typography>
+        )}
       </Box>
     </Box>
   );

@@ -1,11 +1,11 @@
 spring:
+  config:
+    import: optional:file:./src/main/resources/application-secrets.yaml
   application:
     name: mail-notification
   kafka:
     bootstrap-servers: localhost:9092
   mail:
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
     host: smtp.gmail.com
     port: 587
     properties:

@@ -38,6 +38,9 @@ public class User implements UserDetails {
   @OneToMany(mappedBy = "user")
   private List<Token> tokens;
 
+  @Column(name = "chat_id", unique = true, nullable = true)
+  private Long chatId;
+
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
     return role.getAuthorities();

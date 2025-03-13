@@ -16,13 +16,14 @@ const RegisterPage = () => {
 
     try {
       const response = await registerUser(username, password, email, 'USER');
-      const { access_token, refresh_token } = response.data;
 
-      // сохраняем токены в localStorage
+      const { access_token } = response.data;
+
+      // Сохраняем access_token в localStorage
       localStorage.setItem('token', access_token);
-      localStorage.setItem('refreshToken', refresh_token);
 
       console.log('Регистрация успешна!');
+      window.location.href = '/';
     } catch (error) {
       console.error('Ошибка при регистрации:', error);
     }

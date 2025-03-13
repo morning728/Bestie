@@ -65,6 +65,14 @@
         </createTable>
     </changeSet>
 
+    <changeSet id="1.0.2" author="morning728">
+        <addColumn tableName="token">
+            <column name="chat_id" type="BIGINT">
+                <constraints nullable="true" unique="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
     <changeSet id="1.0.3" author="morning728">
         <insert tableName="auth_user" >
             <column name="id" value="1"/>
@@ -75,5 +83,14 @@
             <column name="username" value="admin"/>
         </insert>
     </changeSet>
+
+    <changeSet id="1.0.4" author="morning728">
+        <addColumn tableName="auth_user">
+            <column name="chat_id" type="BIGINT">
+                <constraints nullable="true" unique="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
 
 </databaseChangeLog>

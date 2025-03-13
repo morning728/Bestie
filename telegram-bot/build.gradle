@@ -1,0 +1,61 @@
+plugins {
+    id 'org.springframework.boot' version '3.2.1'
+    id 'io.spring.dependency-management' version '1.1.3'
+    id 'java'
+}
+
+group = 'com.morning'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+ext {
+    set('springCloudVersion', "2022.0.4")
+}
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+dependencies {
+    // Spring Boot
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // Telegram Bots API
+    implementation 'org.telegram:telegrambots:6.5.0'
+
+    // Feign Client (для общения с API таск-трекера)
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+    // Eureka Client (для регистрации в сервисе)
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
+
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // Валидация
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // Поддержка конфигурационных аннотаций
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+    // Тестирование
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

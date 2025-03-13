@@ -1,0 +1,40 @@
+server:
+  port: 8087 # Порт для микросервиса телеграм-бота
+
+spring:
+  cache:
+    type: redis
+  application:
+    name: telegram-bot-service
+  config:
+    import: optional:classpath:application-secrets.yaml
+  data:
+    redis:
+      host: host.docker.internal # Используй это, если приложение запущено ЛОКАЛЬНО
+      port: 6379
+      timeout: 60000
+      client-type: lettuce
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+  instance:
+    prefer-ip-address: true
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: basic
+
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.openfeign: DEBUG
+    org.telegram: DEBUG
+task-tracker:
+  url: http://localhost:8765/api/v1
+

@@ -1,15 +1,13 @@
 package com.morning.taskapimain.service;
 
-import com.morning.taskapimain.entity.dto.ProjectDTO;
 import com.morning.taskapimain.entity.dto.TaskDTO;
-import com.morning.taskapimain.entity.dto.UserWithRoleDTO;
 import com.morning.taskapimain.entity.project.Permission;
-import com.morning.taskapimain.entity.project.ProjectRole;
-import com.morning.taskapimain.entity.project.ProjectStatus;
 import com.morning.taskapimain.entity.project.ProjectTag;
 import com.morning.taskapimain.entity.task.Task;
+import com.morning.taskapimain.entity.task.TaskAssignee;
 import com.morning.taskapimain.entity.task.TaskComment;
 import com.morning.taskapimain.entity.task.TaskReminder;
+import com.morning.taskapimain.entity.user.User;
 import com.morning.taskapimain.exception.AccessException;
 import com.morning.taskapimain.exception.NotFoundException;
 import com.morning.taskapimain.repository.*;
@@ -21,7 +19,6 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import javax.annotation.Nullable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -34,17 +31,17 @@ import java.util.List;
 public class TaskService {
 
     private final TaskRepository taskRepository;
-    private final ProjectRepository projectRepository;
     private final ProjectRoleRepository projectRoleRepository;
-    private final ProjectUserRepository projectUserRepository;
     private final TaskReminderRepository taskReminderRepository;
     private final TaskCommentRepository taskCommentRepository;
+    private final ProjectTagRepository projectTagRepository;
+    private final ProjectStatusRepository projectStatusRepository;
     private final TaskTagRepository taskTagRepository;
-    private final TaskStatusRepository taskStatusRepository;
+    private final TaskAssigneeRepository taskAssigneeRepository;
     private final UserRepository userRepository;
     private final UserService userService;
     private final JwtService jwtService;
-    private final ProjectService projectService;
+    private final ProjectUserRepository projectUserRepository;
 
     /**
      * ✅ Проверка, имеет ли пользователь право на действие с задачей
@@ -78,10 +75,18 @@ public class TaskService {
                     Mono<List<ProjectTag>> tagsMono = taskTagRepository.findTagsByTaskId(taskId).collectList();
                     Mono<TaskReminder> reminderMono = taskReminderRepository.findByTaskId(taskId)
                             .switchIfEmpty(Mono.just(new TaskReminder())); // ⬅️ Избегаем `null`
-
-                    return Mono.zip(tagsMono, reminderMono)
-                            .map(tuple -> TaskDTO.fromTask(task, tuple.getT1(), tuple.getT2()));
+                    Mono<List<TaskAssignee>> assingeesMono = taskAssigneeRepository.findByTaskId(taskId).collectList();
+                    return Mono.zip(tagsMono, reminderMono, assingeesMono)
+                            .map(tuple -> TaskDTO.fromTask(task, tuple.getT1(), tuple.getT2(), tuple.getT3()));
                 });
+    }
+
+    /**
+     * ✅ Получение всех задач проекта
+     */
+    public Flux<TaskDTO> getFullInfoTasksByProject(Long projectId) {
+        return taskRepository.findByProjectId(projectId)
+                .flatMap(task -> getFullTaskInfoById(task.getId()));
     }
 
     public Flux<ProjectTag> getTagsByTaskId(Long taskId) {
@@ -104,17 +109,20 @@ public class TaskService {
                     taskDTO.setCreatedAt(LocalDateTime.now());
                     taskDTO.setCreatedBy(userId);
                     taskDTO.setTagIds(taskDTO.getTagIds() == null ? new ArrayList<>() : taskDTO.getTagIds());
+                    taskDTO.setAssigneeIds(taskDTO.getAssigneeIds() == null ? new ArrayList<>() : taskDTO.getAssigneeIds());
 
                     Task task = taskDTO.toTask(); // Конвертация DTO в Task
                     task.setIsArchived(false);
                     return taskRepository.save(task)
                             .flatMap(savedTask ->
                                     manageTaskTags(savedTask.getId(), token, taskDTO.getTagIds())
+                                            .then(taskDTO.getAssigneeIds().isEmpty() ?
+                                                    manageTaskAssignees(savedTask.getId(), token, List.of(savedTask.getCreatedBy())) :
+                                                    manageTaskAssignees(savedTask.getId(), token, taskDTO.getAssigneeIds()))
                                             .then(manageReminder(savedTask.getId(), token, taskDTO.getReminderDate(), taskDTO.getReminderTime()))
                                             .thenReturn(savedTask));
                 });
     }
-
 
 
     /**
@@ -134,15 +142,18 @@ public class TaskService {
                     existingTask.setStartTime(updatedTask.getStartTime());
                     existingTask.setEndTime(updatedTask.getEndTime());
                     existingTask.setUpdatedAt(LocalDateTime.now());
+                    updatedTask.setTagIds(updatedTask.getTagIds() == null ? new ArrayList<>() : updatedTask.getTagIds());
+                    updatedTask.setAssigneeIds(updatedTask.getAssigneeIds() == null ? new ArrayList<>() : updatedTask.getAssigneeIds());
 
                     return taskRepository.save(existingTask)
                             .flatMap(savedTask -> manageTaskTags(savedTask.getId(), token, updatedTask.getTagIds())
+                                    .then(manageTaskAssignees(savedTask.getId(), token, updatedTask.getAssigneeIds()))
                                     .then(manageReminder(taskId, token, updatedTask.getReminderDate(), updatedTask.getReminderTime()))
                                     .thenReturn(savedTask));
                 });
     }
 
-/*    *//**
+    /*    *//**
      * ✅ Обновление тегов задачи
      *//*
     private Mono<Void> updateTaskTags(Long taskId, List<Long> tagIds) {
@@ -158,6 +169,7 @@ public class TaskService {
     public Flux<Task> getTasksByProject(Long projectId) {
         return taskRepository.findByProjectId(projectId);
     }
+
     /**
      * ✅ Архивирование задачи
      */
@@ -244,7 +256,6 @@ public class TaskService {
     }
 
 
-
     /**
      * ✅ Управление тегами задачи (добавление/удаление)
      */
@@ -252,19 +263,21 @@ public class TaskService {
         return taskRepository.findById(taskId)
                 .switchIfEmpty(Mono.error(new NotFoundException("Task not found")))
                 .flatMap(task -> validateRequesterHasPermission(task.getProjectId(), token, Permission.CAN_MANAGE_TASK_TAGS)
-                        .thenMany(taskTagRepository.findTagsByTaskId(taskId)
+                        .thenMany((taskTagRepository.findTagsByTaskId(taskId)
                                 .collectList()
-                                .flatMap(existingTags -> {
-                                    List<Long> existingTagIds = existingTags.stream().map(ProjectTag::getId).toList();
+                                .zipWith(projectTagRepository.findTagsByProjectId(task.getProjectId()).collectList()))
+                                .flatMap(objects -> {
+                                    List<Long> existingProjectTagIds = objects.getT2().stream().map(ProjectTag::getId).toList();
+                                    List<Long> existingTaskTagIds = objects.getT1().stream().map(ProjectTag::getId).toList();
 
                                     // Определяем теги, которые нужно удалить
-                                    List<Long> tagsToRemove = existingTagIds.stream()
+                                    List<Long> tagsToRemove = existingTaskTagIds.stream()
                                             .filter(id -> !tagIds.contains(id))
                                             .toList();
 
                                     // Определяем теги, которые нужно добавить
                                     List<Long> tagsToAdd = tagIds.stream()
-                                            .filter(id -> !existingTagIds.contains(id))
+                                            .filter(id -> !existingTaskTagIds.contains(id) && existingProjectTagIds.contains(id))
                                             .toList();
 
                                     // Удаляем старые теги и добавляем новые
@@ -278,7 +291,41 @@ public class TaskService {
                 .then(); // ⬅️ Финальный then(), чтобы вернуть Mono<Void>
     }
 
+    /**
+     * ✅ Управление тегами задачи (добавление/удаление)
+     */
+    public Mono<Void> manageTaskAssignees(Long taskId, String token, List<Long> userIds) {
+        return taskRepository.findById(taskId)
+                .switchIfEmpty(Mono.error(new NotFoundException("Task not found")))
+                .flatMap(task -> validateRequesterHasPermission(task.getProjectId(), token, Permission.CAN_MANAGE_ASSIGNEES)
+                        .thenMany((taskAssigneeRepository.findByTaskId(taskId)
+                                .collectList()
+                                .zipWith(projectUserRepository.findUsersByProjectId(task.getProjectId()).collectList()))
+                                .flatMap(objects -> {
 
+                                    List<Long> existingProjectUsersIds = objects.getT2().stream().map(User::getId).toList();
+                                    List<Long> existingTaskAssigneesIds = objects.getT1().stream().map(TaskAssignee::getId).toList();
+
+                                    // Определяем ответственных, которые нужно удалить
+                                    List<Long> assigneesToRemove = existingTaskAssigneesIds.stream()
+                                            .filter(id -> !userIds.contains(id))
+                                            .toList();
+
+                                    // Определяем ответственных, которые нужно добавить
+                                    List<Long> assigneesToAdd = userIds.stream()
+                                            .filter(id -> !existingTaskAssigneesIds.contains(id) && existingProjectUsersIds.contains(id))
+                                            .toList();
+
+                                    // Удаляем старые теги и добавляем новые
+                                    return Flux.concat(
+                                            Flux.fromIterable(assigneesToRemove)
+                                                    .flatMap(userId -> taskAssigneeRepository.deleteByTaskIdAndAndUserId(taskId, userId)),
+                                            Flux.fromIterable(assigneesToAdd)
+                                                    .flatMap(userId -> taskAssigneeRepository.addAssigneeToTask(taskId, userId))
+                                    ).then(); // ⬅️ Преобразуем Flux в Mono<Void>
+                                })).then())
+                .then(); // ⬅️ Финальный then(), чтобы вернуть Mono<Void>
+    }
 
     /**
      * ✅ Управление статусом задачи

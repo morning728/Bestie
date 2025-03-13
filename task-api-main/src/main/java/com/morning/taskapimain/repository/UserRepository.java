@@ -8,10 +8,11 @@ import reactor.core.publisher.Mono;
 
 public interface UserRepository extends R2dbcRepository<User, Long> {
     Mono<User> findByUsername(String username);
+
     @Query("""
-    SELECT u.id, u.username, u.first_name, u.last_name
-    FROM user_project up
-    JOIN app_user u ON up.user_id = u.id
-    WHERE up.project_id = :projectId AND username = :username""")
+            SELECT u.id, u.username, u.first_name, u.last_name
+            FROM user_project up
+            JOIN app_user u ON up.user_id = u.id
+            WHERE up.project_id = :projectId AND username = :username""")
     Mono<User> findByUsernameAndProjectId(@Param("username") String username, @Param("projectId") Long projectId);
 }

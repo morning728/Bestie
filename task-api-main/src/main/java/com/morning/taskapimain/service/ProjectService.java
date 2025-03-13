@@ -20,7 +20,6 @@ import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -59,10 +58,11 @@ public class ProjectService {
                         })
                 );
     }
+
     /**
      * ✅ Получение полной информации по проекту
      */
-    public Mono<ProjectDTO> getFullProjectInfoById(Long projectId){
+    public Mono<ProjectDTO> getFullProjectInfoById(Long projectId) {
 
         return getProjectById(projectId)
                 .map(project -> new ProjectDTO(project))
@@ -140,22 +140,25 @@ public class ProjectService {
      */
     public Mono<ProjectTag> updateProjectTag(Long projectId, ProjectTag updatedTag, String token) {
         return validateRequesterHasPermission(projectId, token, Permission.CAN_EDIT_PROJECT)
-                .then( projectTagRepository.save(updatedTag));
+                .then(projectTagRepository.save(updatedTag));
     }
+
     /**
      * ✅
      */
     public Mono<ProjectTag> addProjectTag(Long projectId, ProjectTag tag, String token) {
         return validateRequesterHasPermission(projectId, token, Permission.CAN_EDIT_PROJECT)
-                .then( projectTagRepository.saveTag(projectId, tag.getName(), tag.getColor()));
+                .then(projectTagRepository.saveTag(projectId, tag.getName(), tag.getColor()));
     }
+
     /**
      * ✅
      */
     public Mono<Void> deleteProjectTag(Long projectId, Long tagId, String token) {
         return validateRequesterHasPermission(projectId, token, Permission.CAN_EDIT_PROJECT)
-                .then( projectTagRepository.deleteById(tagId));
+                .then(projectTagRepository.deleteById(tagId));
     }
+
     /**
      * ✅
      */
@@ -170,6 +173,7 @@ public class ProjectService {
         return validateRequesterHasPermission(projectId, token, Permission.CAN_EDIT_PROJECT)
                 .then(projectStatusRepository.save(updatedStatus));
     }
+
     /**
      * ✅
      */
@@ -177,12 +181,14 @@ public class ProjectService {
         return validateRequesterHasPermission(projectId, token, Permission.CAN_EDIT_PROJECT)
                 .then(projectStatusRepository.saveStatus(projectId, newStatus.getName(), newStatus.getColor()));
     }
+
     /**
      * ✅
      */
     public Flux<ProjectStatus> getProjectStatuses(Long projectId) {
         return projectStatusRepository.findStatusesByProjectId(projectId);
     }
+
     /**
      * ✅
      */
@@ -198,6 +204,7 @@ public class ProjectService {
         return validateRequesterHasPermission(projectId, token, Permission.CAN_EDIT_PROJECT)
                 .then(projectResourceRepository.save(updatedResource));
     }
+
     /**
      * ✅
      */
@@ -205,6 +212,7 @@ public class ProjectService {
         return validateRequesterHasPermission(projectId, token, Permission.CAN_EDIT_PROJECT)
                 .then(projectResourceRepository.saveResource(projectId, newResource.getUrl(), newResource.getDescription()));
     }
+
     /**
      * ✅
      */
@@ -212,6 +220,7 @@ public class ProjectService {
         return validateRequesterHasPermission(projectId, token, Permission.CAN_EDIT_PROJECT)
                 .then(projectResourceRepository.deleteById(resourceId));
     }
+
     /**
      * ✅
      */
@@ -234,13 +243,13 @@ public class ProjectService {
         String username = jwtService.extractUsername(token);
         return getUserId(username)
                 .flatMap(userId -> projectRepository.findById(projectId)
-                .switchIfEmpty(Mono.error(new NotFoundException("Project not found")))
-                .flatMap(project -> {
-                    if (!project.getOwnerId().equals(userId)) {
-                        return Mono.error(new AccessException("You are not the owner of this project!"));
-                    }
-                    return projectRepository.delete(project);
-                }));
+                        .switchIfEmpty(Mono.error(new NotFoundException("Project not found")))
+                        .flatMap(project -> {
+                            if (!project.getOwnerId().equals(userId)) {
+                                return Mono.error(new AccessException("You are not the owner of this project!"));
+                            }
+                            return projectRepository.delete(project);
+                        }));
     }
 
     /**
@@ -287,8 +296,8 @@ public class ProjectService {
     public Mono<Boolean> isProjectOwner(Long projectId, String token) {
         return getUserId(jwtService.extractUsername(token))
                 .flatMap(userId -> projectRepository.findById(projectId)
-                .map(project -> project.getOwnerId().equals(userId))
-                .defaultIfEmpty(false));
+                        .map(project -> project.getOwnerId().equals(userId))
+                        .defaultIfEmpty(false));
     }
 
     /**

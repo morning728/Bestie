@@ -17,6 +17,7 @@
             <option value="$PROJECT_DIR$/open-request-handler" />
             <option value="$PROJECT_DIR$/security" />
             <option value="$PROJECT_DIR$/task-api-main" />
+            <option value="$PROJECT_DIR$/telegram-bot" />
           </set>
         </option>
       </GradleProjectSettings>
@@ -96,6 +97,15 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$/task-api-main" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/telegram-bot" />
+        <option name="gradleJvm" value="#JAVA_HOME" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/telegram-bot" />
           </set>
         </option>
       </GradleProjectSettings>

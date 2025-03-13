@@ -1,5 +1,6 @@
 package com.morning.security.config.security;
 
+import com.morning.security.user.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -43,6 +44,15 @@ public class JwtService {
       UserDetails userDetails
   ) {
     return buildToken(extraClaims, userDetails, jwtExpiration);
+  }
+
+  public String generateLongLivedToken(User user) {
+    return Jwts.builder()
+            .setSubject(user.getUsername())
+            .setIssuedAt(new Date(System.currentTimeMillis()))
+            .setExpiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 365 * 99)) // 99 лет
+            .signWith(getSignInKey(), SignatureAlgorithm.RS256)
+            .compact();
   }
 
   public String generateRefreshToken(

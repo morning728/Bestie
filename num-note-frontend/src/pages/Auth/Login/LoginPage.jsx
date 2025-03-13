@@ -7,25 +7,26 @@ import Header from "../../../components/Header/Header";
 
 const LoginPage = () => {
   const { darkMode, toggleTheme } = useContext(ThemeContext);
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
-      const handleLogin = async (event) => {
-        event.preventDefault();
-    
-        try {
-          const response = await loginUser(username, password);
-          const { access_token, refresh_token } = response.data;
-    
-          // сохраняем токены в localStorage
-          localStorage.setItem('token', access_token);
-          localStorage.setItem('refreshToken', refresh_token);
-    
-          console.log('Логин успешен!');
-        } catch (error) {
-          console.error('Ошибка при авторизации:', error);
-        }
-      };
+  const handleLogin = async (event) => {
+    event.preventDefault();
+
+    try {
+      const response = await loginUser(username, password);
+
+      const { access_token } = response.data;
+
+      // Сохраняем access_token в localStorage
+      localStorage.setItem('token', access_token);
+
+      console.log('Логин успешен!');
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Ошибка при авторизации:', error);
+    }
+  };
   return (
     <Box className={`login-page ${darkMode ? "night" : "day"}`}>
       <Header />
@@ -55,7 +56,7 @@ const LoginPage = () => {
             size="large"
             fullWidth
             className="login-button"
-            onClick={e=> {handleLogin(e)}}
+            onClick={e => { handleLogin(e) }}
           >
             Login
           </Button>

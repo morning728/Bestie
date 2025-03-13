@@ -44,7 +44,6 @@ const AddProjectDialog = ({ open, project, handleClose = () => { }, onSave = () 
   const [newResource, setNewResource] = useState("");
 
   useEffect(() => {
-    console.log(project);
     if (project) {
       setTitle(project.title || "");
       setDescription(project.description || "");

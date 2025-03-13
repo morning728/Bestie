@@ -15,11 +15,11 @@ public interface ProjectUserRepository extends R2dbcRepository<User, Long> {
     Mono<Void> assignUserToProject(@Param("projectId") Long projectId, @Param("userId") Long userId, @Param("roleId") Long roleId);
 
     @Query("""
-    SELECT u.id AS user_id, u.username, u.first_name, u.last_name, r.name AS role_name, r.id AS role_id
-    FROM user_project up
-    JOIN app_user u ON up.user_id = u.id
-    JOIN project_role r ON up.role_id = r.id
-    WHERE up.project_id = :projectId""")
+            SELECT u.id AS user_id, u.username, u.first_name, u.last_name, r.name AS role_name, r.id AS role_id
+            FROM user_project up
+            JOIN app_user u ON up.user_id = u.id
+            JOIN project_role r ON up.role_id = r.id
+            WHERE up.project_id = :projectId""")
     Flux<UserWithRoleDTO> findUsersWithRolesByProjectId(@Param("projectId") Long projectId);
 
     // 🔹 Удаление пользователя из проекта

@@ -1,4 +1,5 @@
-import React, { useContext, useState, useEffect, useNavigation } from "react";
+import React, { useContext, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Grid,
@@ -21,7 +22,7 @@ import "./ProjectsPage.css";
 const ProjectsPage = () => {
   const { darkMode } = useContext(ThemeContext);
   const { t, i18n } = useTranslation();
-  const navigation = useNavigation();
+  const navigate = useNavigate();
 
   const [filterTitle, setFilterTitle] = useState("");
 
@@ -98,7 +99,7 @@ const ProjectsPage = () => {
               <ProjectCard
                 project={project}
                 onClick={() => handleOpenDetailsDialog(project.id)}
-                onEdit={() => navigation.navigate(`/projects/${project.id}/settings`)}
+                onEdit={() => navigate(`/projects/${project.id}/settings`)}
               />
             </Grid>
           ))}
@@ -119,7 +120,7 @@ const ProjectsPage = () => {
           open={openDetailsDialog.isOpen}
           project={selectedProject}
           handleClose={handleCloseDetailsDialog}
-          onEdit={navigation.navigate(`/projects/${selectedProject.id}/settings`)}
+          onEdit={() => navigate(`/projects/${selectedProject.id}/settings`)}
           onDelete={deleteProject}
         />
       )}

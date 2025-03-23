@@ -25,6 +25,7 @@ bin/
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+!**/src/main/resources/application-secrets.yaml
 
 ### NetBeans ###
 /nbproject/private/
@@ -36,5 +37,5 @@ out/
 ### VS Code ###
 .vscode/
 
-src/main/resources/application-secrets.yaml
+!**/src/main/resources/application-secrets.yaml
 

@@ -4,7 +4,7 @@ import com.morning.telegrambot.dto.project.ProjectDTO;
 import com.morning.telegrambot.service.AuthService;
 import com.morning.telegrambot.service.ProjectService;
 import com.morning.telegrambot.service.TaskService;
-import com.morning.telegrambot.service.UserTokenService;
+import com.morning.telegrambot.service.TokenCacheService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -17,11 +17,11 @@ import java.util.stream.Collectors;
 public class ProjectHandler {
 
     private final ProjectService projectService;
-    private final UserTokenService userTokenService;
+    private final TokenCacheService tokenCacheService;
 
 
     public String handleProjectCommand(Long chatId, String command) {
-        String token = userTokenService.getToken(chatId);
+        String token = tokenCacheService.getToken(chatId);
 
         if (token == null) {
             return "❌ Вы не авторизованы. Используйте /login.";

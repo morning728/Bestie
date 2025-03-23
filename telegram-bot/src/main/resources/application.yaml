@@ -5,7 +5,7 @@ spring:
   cache:
     type: redis
   application:
-    name: telegram-bot-service
+    name: TELEGRAM-BOT
   config:
     import: optional:classpath:application-secrets.yaml
   data:
@@ -14,13 +14,6 @@ spring:
       port: 6379
       timeout: 60000
       client-type: lettuce
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
-  instance:
-    prefer-ip-address: true
 
 feign:
   client:

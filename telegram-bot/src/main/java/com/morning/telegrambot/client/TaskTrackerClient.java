@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 
-@FeignClient(name = "task-tracker-service", url = "http://localhost:8765/api/v1")
+@FeignClient(name = "taskTrackerClient", url = "http://localhost:8765/api/v1")
 public interface TaskTrackerClient {
 
     // 🔹 Методы для задач

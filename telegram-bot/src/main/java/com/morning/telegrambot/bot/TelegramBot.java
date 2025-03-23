@@ -19,15 +19,16 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final AuthHandler authHandler;
     private final TaskHandler taskHandler;
     private final ProjectHandler projectHandler;
+    private final BotConfig botConfig;
 
     @Override
     public String getBotUsername() {
-        return "YOUR_BOT_USERNAME";
+        return botConfig.getBotUsername();
     }
 
     @Override
     public String getBotToken() {
-        return "YOUR_BOT_TOKEN";
+        return botConfig.getBotToken();
     }
 
     @Override

@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
-@EnableFeignClients // Включаем Feign для работы с API таск-трекера
+@EnableFeignClients(basePackages = "com.morning.telegrambot.client") // обязательно укажи пакет, где лежат твои Feign-интерфейсы
 public class TelegramBotApplication {
     public static void main(String[] args) {
         SpringApplication.run(TelegramBotApplication.class, args);

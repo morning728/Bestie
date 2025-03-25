@@ -1,19 +1,16 @@
 package com.morning.security.auth;
 
-import com.morning.security.user.UserService;
+
+import com.morning.security.telegramDTO.TelegramAuthRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.token.TokenService;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.sql.*;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.Map;
 
 @RestController
@@ -39,12 +36,10 @@ public class AuthenticationController {
 
   @PostMapping("/authenticate/telegram")
   public ResponseEntity<Map<String, String>> authenticateTelegram(
-          @RequestParam String username,
-          @RequestParam String password,
-          @RequestParam Long chatId,
+          @RequestBody TelegramAuthRequest authRequest,
           HttpServletResponse response) {
 
-    String accessToken = authService.authenticateTelegram(username, password, chatId, response);
+    String accessToken = authService.authenticateTelegram(authRequest.getUsername(), authRequest.getPassword(), authRequest.getChatId(), response);
     return ResponseEntity.ok(Map.of("access_token", accessToken));
   }
 

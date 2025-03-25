@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 @FeignClient(name = "authClient", url = "http://localhost:8765/security/v1/auth")
 public interface AuthClient {
 
-    @PostMapping("/authenticate")
+    @PostMapping("/authenticate/telegram")
     AuthResponse authenticate(@RequestBody AuthRequest request);
 
     @GetMapping("/get-telegram-token/{chatId}")

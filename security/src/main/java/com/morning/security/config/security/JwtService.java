@@ -51,7 +51,7 @@ public class JwtService {
             .setSubject(user.getUsername())
             .setIssuedAt(new Date(System.currentTimeMillis()))
             .setExpiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 365 * 99)) // 99 лет
-            .signWith(getSignInKey(), SignatureAlgorithm.RS256)
+            .signWith(getSignInKey(), SignatureAlgorithm.HS256)
             .compact();
   }
 

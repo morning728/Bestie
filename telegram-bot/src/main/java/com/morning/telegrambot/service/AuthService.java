@@ -3,6 +3,7 @@ package com.morning.telegrambot.service;
 import com.morning.telegrambot.client.AuthClient;
 import com.morning.telegrambot.dto.AuthRequest;
 import com.morning.telegrambot.dto.AuthResponse;
+import com.morning.telegrambot.exception.ForbiddenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +23,7 @@ public class AuthService {
             tokenCacheService.saveToken(chatId, response.getToken());
             return response.getToken();
         }
-        return null;
+        throw new ForbiddenException("Неверный логин или пароль.");
     }
 
     public String getTokenForUser(Long chatId) {

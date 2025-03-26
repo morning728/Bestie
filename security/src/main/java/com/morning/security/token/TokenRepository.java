@@ -13,7 +13,14 @@ public interface TokenRepository extends JpaRepository<Token, Long> {
             on t.user.id = u.id\s
             where u.id = :id and t.chatId = null and (t.expired = false or t.revoked = false)\s
             """)
-    List<Token> findAllValidTokenByUser(Long id);
+    List<Token> findAllValidNonTelegramTokenByUser(Long id);
+
+    @Query(value = """
+            select t from Token t inner join User u\s
+            on t.user.id = u.id\s
+            where u.id = :id and t.chatId = :chatId and (t.expired = false or t.revoked = false)\s
+            """)
+    List<Token> findAllValidTelegramTokenByUser(Long id, Long chatId);
 
     @Query(value = """
             select t from Token t inner join User u\s

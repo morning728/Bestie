@@ -283,7 +283,7 @@ public class TaskService {
                                     // Удаляем старые теги и добавляем новые
                                     return Flux.concat(
                                             Flux.fromIterable(tagsToRemove)
-                                                    .flatMap(tagId -> taskTagRepository.removeTagFromTask(taskId, tagId)),
+                                                    .flatMap(tagId -> taskTagRepository.deleteTagFromTask(taskId, tagId)),
                                             Flux.fromIterable(tagsToAdd)
                                                     .flatMap(tagId -> taskTagRepository.addTagToTask(taskId, tagId))
                                     ).then(); // ⬅️ Преобразуем Flux в Mono<Void>
@@ -292,7 +292,7 @@ public class TaskService {
     }
 
     /**
-     * ✅ Управление тегами задачи (добавление/удаление)
+     * ✅ Управление ответственными задачи (добавление/удаление)
      */
     public Mono<Void> manageTaskAssignees(Long taskId, String token, List<Long> userIds) {
         return taskRepository.findById(taskId)

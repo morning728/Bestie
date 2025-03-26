@@ -22,5 +22,5 @@ public interface TaskTagRepository extends R2dbcRepository<ProjectTag, Long> {
 
     // 🔹 Удаление тега из задачи
     @Query("DELETE FROM task_tag WHERE task_id = :taskId AND tag_id = :tagId")
-    Mono<Void> removeTagFromTask(@Param("taskId") Long taskId, @Param("tagId") Long tagId);
+    Mono<Void> deleteTagFromTask(@Param("taskId") Long taskId, @Param("tagId") Long tagId);
 }

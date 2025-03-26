@@ -84,7 +84,7 @@ public class AuthenticationService {
         var jwtToken = jwtService.generateToken(Map.of("role", user.getRole()), user);
         var refreshToken = jwtService.generateRefreshToken(user);
 
-        revokeAllUserTokens(user);
+        revokeAllNonTelegramUserTokens(user);
         saveUserToken(user, jwtToken, null);
 
         setRefreshTokenCookie(response, refreshToken);
@@ -108,13 +108,11 @@ public class AuthenticationService {
             throw new RuntimeException("Этот аккаунт уже привязан к другому Telegram ID!");
         }
 
-        var jwtToken = jwtService.generateToken(Map.of("role", user.getRole()), user);
-        var refreshToken = jwtService.generateLongLivedToken(user); // 99 лет
+        var jwtToken = jwtService.generateLongLivedToken(user); // 99 лет
 
         // 🔹 НЕ отзываем старые токены (чтобы оставить доступ к сайту)
+        revokeAllTelegramUserTokens(user, chatId);
         saveUserToken(user, jwtToken, chatId); // Просто добавляем токен с chatId
-
-        setRefreshTokenCookie(response, refreshToken);
 
         return jwtToken;
     }
@@ -136,7 +134,7 @@ public class AuthenticationService {
         }
 
         var newAccessToken = jwtService.generateToken(Map.of("role", user.getRole()), user);
-        revokeAllUserTokens(user);
+        revokeAllNonTelegramUserTokens(user);
         saveUserToken(user, newAccessToken, null);
 
         return newAccessToken;
@@ -154,8 +152,18 @@ public class AuthenticationService {
         tokenRepository.save(token);
     }
 
-    private void revokeAllUserTokens(User user) {
-        var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getId());
+    private void revokeAllNonTelegramUserTokens(User user) {
+        var validUserTokens = tokenRepository.findAllValidNonTelegramTokenByUser(user.getId());
+        if (validUserTokens.isEmpty()) return;
+        validUserTokens.forEach(token -> {
+            token.setExpired(true);
+            token.setRevoked(true);
+        });
+        tokenRepository.saveAll(validUserTokens);
+    }
+
+    private void revokeAllTelegramUserTokens(User user, Long chatId) {
+        var validUserTokens = tokenRepository.findAllValidTelegramTokenByUser(user.getId(), chatId);
         if (validUserTokens.isEmpty()) return;
         validUserTokens.forEach(token -> {
             token.setExpired(true);

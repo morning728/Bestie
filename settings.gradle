@@ -8,6 +8,7 @@ include 'mail-notification'
 include 'open-request-handler'
 include 'config-server'
 include 'telegram-bot'
+include 'task-attachment'
 
 
 

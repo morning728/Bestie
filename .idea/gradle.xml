@@ -17,6 +17,7 @@
             <option value="$PROJECT_DIR$/open-request-handler" />
             <option value="$PROJECT_DIR$/security" />
             <option value="$PROJECT_DIR$/task-api-main" />
+            <option value="$PROJECT_DIR$/task-attachment" />
             <option value="$PROJECT_DIR$/telegram-bot" />
           </set>
         </option>

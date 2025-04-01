@@ -3,7 +3,7 @@ import { Box, TextField, Button, MenuItem, Typography } from "@mui/material";
 import { SketchPicker } from "react-color";
 import { useTranslation } from "react-i18next";
 import "./GeneralSettingsTab.css";
-import { updateProject } from "../../../services/api";
+import { useProjectsContext } from "../../../context/ProjectsContext";
 
 const priorities = ["Low", "Medium", "High", "Critical"];
 const statuses = ["Planned", "In Progress", "Completed", "On Hold"];
@@ -18,6 +18,7 @@ const GeneralSettingsTab = ({ project }) => {
   const [icon, setIcon] = useState(project.icon);
   const [priority, setPriority] = useState(project.priority);
   const [status, setStatus] = useState(project.status);
+  const { editProject, fetchProjects } = useProjectsContext(); // 👈 из контекста
 
   const handleSave = () => {
     const updatedProject = {
@@ -29,8 +30,10 @@ const GeneralSettingsTab = ({ project }) => {
       status,
     };
 
-    updateProject(project.id, updatedProject)
-      .then(() => alert(t("saved_successfully")))
+    editProject(project.id, updatedProject) // 👈 обновляем в useProjects
+      .then(() => {
+        alert(t("saved_successfully"));
+      })
       .catch((err) => console.error("Ошибка при обновлении проекта:", err));
   };
 

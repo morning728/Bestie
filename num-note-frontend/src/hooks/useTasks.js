@@ -1,25 +1,48 @@
-import { useState } from "react";
-import {useModal} from "./useModal";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { useModal } from "./useModal";
+import {
+  getTasksByProject,
+  createTask,
+  updateTask,
+  archiveTask as archiveTaskApi,
+  getProjectTags,
+  getProjectStatuses,
+  restoreTask,
+} from "../services/api";
 
-export const useTasks = (initialTasks = []) => {
-
-  const [tasks, setTasks] = useState(initialTasks);
-
+export const useTasks = (projectId) => {
+  const [tasks, setTasks] = useState([]);
   const [selectedTask, setSelectedTask] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const openAddDialog = useModal();
   const openDetailsDialog = useModal();
 
+  useEffect(() => {
+    if (projectId) fetchTasks();
+  }, [projectId]);
 
-
-  const addTask = (newTask) => {
-    if (isEditing) {
-      setTasks((prev) => prev.map((t) => (t.id === newTask.id ? newTask : t)));
-    } else {
-      setTasks((prev) => [...prev, { ...newTask, id: prev.length + 1, is_archived: false }]);
+  const fetchTasks = async () => {
+    try {
+      const response = await getTasksByProject(projectId);
+      setTasks(response.data);
+    } catch (error) {
+      console.error("Ошибка при загрузке задач:", error);
     }
-    handleCloseAddDialog();
+  };
+
+  const addTask = async (taskData) => {
+    try {
+      if (isEditing && selectedTask) {
+        await updateTask(selectedTask.id, taskData);
+      } else {
+        await createTask({ ...taskData, projectId });
+      }
+      await fetchTasks();
+    } catch (error) {
+      console.error("Ошибка при добавлении/редактировании задачи:", error);
+    } finally {
+      handleCloseAddDialog();
+    }
   };
 
   const editTask = (task) => {
@@ -28,14 +51,27 @@ export const useTasks = (initialTasks = []) => {
     openAddDialog.openModal();
   };
 
-  const archiveTask = (taskId) => {
-    setTasks((prev) =>
-        prev.map((task) =>
-            task.id === taskId ? { ...task, is_archived: true } : task
-        )
-    );
-    handleCloseDetailsDialog();
-};
+  const archiveTask = async (taskId) => {
+    try {
+      await archiveTaskApi(taskId);
+      await fetchTasks();
+    } catch (error) {
+      console.error("Ошибка при архивировании:", error);
+    } finally {
+      handleCloseDetailsDialog();
+    }
+  };
+
+  const restoreArchivedTask = async (taskId) => {
+    try {
+      await restoreTask(taskId);
+      fetchTasks();
+    } catch (error) {
+      console.error("Ошибка восстановления задачи:", error);
+    } finally {
+      handleCloseDetailsDialog();
+    }
+  };
 
   const handleOpenAddDialog = () => {
     setSelectedTask(null);
@@ -45,8 +81,8 @@ export const useTasks = (initialTasks = []) => {
 
   const handleCloseAddDialog = () => {
     openAddDialog.closeModal();
-    setIsEditing(false);
     setSelectedTask(null);
+    setIsEditing(false);
   };
 
   const handleOpenDetailsDialog = (task) => {
@@ -59,6 +95,9 @@ export const useTasks = (initialTasks = []) => {
     setSelectedTask(null);
   };
 
+  const getTags = () => getProjectTags(projectId).then(res => res.data);
+  const getStatuses = () => getProjectStatuses(projectId).then(res => res.data);
+
   return {
     tasks,
     isEditing,
@@ -68,34 +107,12 @@ export const useTasks = (initialTasks = []) => {
     addTask,
     editTask,
     archiveTask,
+    restoreArchivedTask,
     handleOpenAddDialog,
     handleOpenDetailsDialog,
     handleCloseAddDialog,
-    handleCloseDetailsDialog
+    handleCloseDetailsDialog,
+    getTags, 
+    getStatuses,
   };
-
-
-
-
-
-  // const [tasks, setTasks] = useState(initialTasks);
-
-  // const addTask = (newTask) => {
-  //   setTasks((prev) => [...prev, { ...newTask, id: prev.length + 1 }]);
-  // };
-
-  // const editTask = (updatedTask) => {
-  //   setTasks((prev) => prev.map((task) => (task.id === updatedTask.id ? updatedTask : task)));
-  // };
-
-  // const deleteTask = (taskId) => {
-  //   setTasks((prev) => prev.filter((task) => task.id !== taskId));
-  // };
-
-  // return {
-  //   tasks,
-  //   addTask,
-  //   editTask,
-  //   deleteTask,
-  // };
 };

@@ -191,6 +191,24 @@ export const updateProjectResource = (projectId, resourceData) =>
 export const deleteProjectResource = (projectId, resourceId) => 
   apiClient.delete(`/api/v1/projects/${projectId}/resources/${resourceId}`);
 
+// TASKS
+export const getTasksByProject = (projectId) =>
+  apiClient.get(`/api/v1/tasks/project/${projectId}/all`);
+
+export const createTask = (taskDTO) =>
+  apiClient.post(`/api/v1/tasks`, taskDTO);
+
+export const updateTask = (taskId, taskDTO) =>
+  apiClient.put(`/api/v1/tasks/${taskId}`, taskDTO);
+
+export const archiveTask = (taskId) =>
+  apiClient.put(`/api/v1/tasks/${taskId}/archive`);
+
+export const restoreTask = (taskId) =>
+  apiClient.put(`/api/v1/tasks/${taskId}/restore`);
+
+
+
 
 
   

@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Box, List, ListItem, ListItemIcon, ListItemText, Typography, IconButton } from "@mui/material";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
@@ -10,15 +10,33 @@ import HomeIcon from "@mui/icons-material/Home"; // Иконка для глав
 import { ThemeContext } from "../../ThemeContext"; // Подключаем ThemeContext
 import { Link } from "react-router-dom"; // Для перехода между страницами
 import "./Sidebar.css";
+import { useLocation } from "react-router-dom";
+import AssignmentIcon from "@mui/icons-material/Assignment"; // иконка задач
+import ExpandLess from "@mui/icons-material/ExpandLess";
+import ExpandMore from "@mui/icons-material/ExpandMore";
+import { useProjectsContext } from "../../context/ProjectsContext";
+
+
 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { darkMode } = useContext(ThemeContext); // Получаем текущую тему
   const { t, i18n } = useTranslation();
+  const { projects, fetchProjects } = useProjectsContext();
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+
+  const location = useLocation();
 
   const toggleSidebar = () => {
     setIsCollapsed((prev) => !prev);
   };
+
+  const [projectsExpanded, setProjectsExpanded] = useState(false);
+
+
 
   return (
     <Box
@@ -42,54 +60,104 @@ const Sidebar = () => {
           </Typography>
         </Box>
       )}
+      <Box className="sidebar-scrollable">
+        {/* Список навигации */}
+        <List className="sidebar-list">
+          {/* Кнопка на главную страницу */}
+          <ListItem className="sidebar-item" button component={Link} to="/">
+            <ListItemIcon>
+              <HomeIcon />
+            </ListItemIcon>
+            {!isCollapsed && <ListItemText primary={t("home")} />}
+          </ListItem>
 
-      {/* Список навигации */}
-      <List className="sidebar-list">
-        {/* Кнопка на главную страницу */}
-        <ListItem className="sidebar-item" button component={Link} to="/">
-          <ListItemIcon>
-            <HomeIcon />
-          </ListItemIcon>
-          {!isCollapsed && <ListItemText primary={t("home")} />}
-        </ListItem>
+          <ListItem className="sidebar-item" button component={Link} to="/calendar">
+            <ListItemIcon>
+              <CalendarMonthIcon />
+            </ListItemIcon>
+            {!isCollapsed && <ListItemText primary={t("calendar")} />}
+          </ListItem>
 
-        <ListItem className="sidebar-item" button component={Link} to="/calendar">
-          <ListItemIcon>
-            <CalendarMonthIcon />
-          </ListItemIcon>
-          {!isCollapsed && <ListItemText primary={t("calendar")} />}
-        </ListItem>
+          <ListItem className="sidebar-item" button component={Link} to="/analytics">
+            <ListItemIcon>
+              <BarChartIcon />
+            </ListItemIcon>
+            {!isCollapsed && <ListItemText primary={t("analytics")} />}
+          </ListItem>
 
-        <ListItem className="sidebar-item" button component={Link} to="/analytics">
-          <ListItemIcon>
-            <BarChartIcon />
-          </ListItemIcon>
-          {!isCollapsed && <ListItemText primary={t("analytics")} />}
-        </ListItem>
+          <ListItem className="sidebar-item" button component={Link} to="/settings">
+            <ListItemIcon>
+              <SettingsIcon />
+            </ListItemIcon>
+            {!isCollapsed && <ListItemText primary={t("settings")} />}
+          </ListItem>
 
-        <ListItem className="sidebar-item" button component={Link} to="/settings">
-          <ListItemIcon>
-            <SettingsIcon />
-          </ListItemIcon>
-          {!isCollapsed && <ListItemText primary={t("settings")} />}
-        </ListItem>
+          {/* Кнопка для перехода в профиль */}
+          <ListItem className="sidebar-item" button component={Link} to="/profile">
+            <ListItemIcon>
+              <PersonIcon />
+            </ListItemIcon>
+            {!isCollapsed && <ListItemText primary={t("profile")} />}
+          </ListItem>
 
-        {/* Кнопка для перехода в профиль */}
-        <ListItem className="sidebar-item" button component={Link} to="/profile">
-          <ListItemIcon>
-            <PersonIcon />
-          </ListItemIcon>
-          {!isCollapsed && <ListItemText primary={t("profile")} />}
-        </ListItem>
+          <ListItem className="sidebar-item">
+            <ListItemIcon>
+              <AssignmentIcon />
+            </ListItemIcon>
+            {!isCollapsed && (
+              <>
+                <ListItemText
+                  primary={
+                    <Link
+                      to="/projects"
+                      style={{
+                        textDecoration: "none",
+                        color: darkMode ? "#ccc" : "#2c2c54",
 
-        {/* Кнопка для перехода в архив */}
-        <ListItem className="sidebar-item" button component={Link} to="/projects">
-          <ListItemIcon>
-            <PersonIcon />
-          </ListItemIcon>
-          {!isCollapsed && <ListItemText primary={t("projects_page_title")} />}
-        </ListItem>
-      </List>
+                      }}
+                    >
+                      {t("projects_page_title")}
+                    </Link>
+                  }
+                />
+                <IconButton size="small" onClick={() => setProjectsExpanded(!projectsExpanded)}>
+                  {projectsExpanded ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />}
+                </IconButton>
+              </>
+            )}
+          </ListItem>
+
+          {/* Вложенные проекты */}
+          {projectsExpanded && !isCollapsed && (
+            <Box sx={{ ml: 4 }}>
+              {projects.map((project) => (
+                <ListItem
+                  key={project.id}
+                  button
+                  component={Link}
+                  to={`/projects/${project.id}/tasks`}
+                  className="sidebar-project-item"
+                >
+                  <ListItemIcon><AssignmentIcon fontSize="small" /></ListItemIcon>
+                  <ListItemText
+                    primary={project.title}
+                    primaryTypographyProps={{
+                      fontSize: "0.85rem",
+                      color: darkMode ? "#ccc" : "#2c2c54",
+                      noWrap: true, // ❗️ Это добавляет ellipsis
+                      title: project.title // ✨ Tooltip
+                    }}
+                  />
+                </ListItem>
+              ))}
+            </Box>
+          )}
+
+        </List>
+      </Box>
+
+
+
 
       {/* Нижняя часть боковой панели */}
       {!isCollapsed && (

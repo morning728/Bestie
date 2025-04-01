@@ -16,7 +16,7 @@ import ProjectCard from "../../components/Projects/ProjectCard/ProjectCard.jsx";
 import AddProjectDialog from "../../components/Projects/AddProjectDialog/AddProjectDialog.jsx";
 import ProjectDetailsDialog from "../../components/Projects/ProjectDetailsDialog/ProjectDetailsDialog.jsx";
 import { ThemeContext } from "../../ThemeContext";
-import { useProjects } from "../../hooks/useProjects.js";
+import { useProjectsContext } from "../../context/ProjectsContext";
 import "./ProjectsPage.css";
 
 const ProjectsPage = () => {
@@ -42,7 +42,7 @@ const ProjectsPage = () => {
     handleCloseDetailsDialog,
     handleSaveProject,
     setEditProject,
-  } = useProjects();
+  } = useProjectsContext();
 
 
   const filteredProjects = projects.filter((project) =>

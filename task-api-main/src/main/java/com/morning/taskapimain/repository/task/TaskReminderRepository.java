@@ -28,7 +28,8 @@ public interface TaskReminderRepository extends R2dbcRepository<TaskReminder, Lo
                               @Param("newDate") LocalDate newDate,
                               @Param("newTime") LocalTime newTime);
 
-    Mono<TaskReminder> findByTaskId(Long taskId);
+    @Query("SELECT * FROM task_reminder WHERE task_id = :taskId")
+    Mono<TaskReminder> findByTaskId(@Param("taskId") Long taskId);
     // 🔹 Добавление напоминания к задаче
     @Query("INSERT INTO task_reminder (task_id, reminder_date, reminder_time) VALUES (:taskId, :reminderDate, :reminderTime) RETURNING *")
     Mono<TaskReminder> addReminder(@Param("taskId") Long taskId, @Param("reminderDate") LocalDate reminderDate, @Param("reminderTime") LocalTime reminderTime);

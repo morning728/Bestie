@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {
   Box,
   Grid,
@@ -22,45 +22,35 @@ import { ThemeContext } from "../../ThemeContext";
 import { useFilteredTasksWithDates } from "../../hooks/useFilteredTasks";
 import { useTasks } from "../../hooks/useTasks";
 import "./MainPage.css";
+import { useParams } from "react-router-dom"; // ← нужный импорт
+import "./MainPage.css";
+import { restoreTask } from "../../services/api";
+
 
 const MainPage = () => {
+  const { projectId } = useParams(); // <== получаем projectId из URL
+  const { t } = useTranslation();
   const { darkMode } = useContext(ThemeContext);
-  const { t, i18n } = useTranslation();
 
-  const tags = [
-    { id: 0, name: "Health", color: "#008000" },
-    { id: 1, name: "Work", color: "#ff0000" },
-    { id: 2, name: "Personal", color: "#0000ff" },
-    { id: 3, name: "Study", color: "#ff00ff" },
-    { id: 4, name: "Business", color: "#00ffff" },
-  ];
+  const [tags, setTags] = useState([]);
+  const [statuses, setStatuses] = useState([]);
 
-  const statuses = [
-    { id: 0, name: "In Progress", color: "#ffff00" },
-    { id: 1, name: "Overdue", color: "#00f00f" },
-    { id: 2, name: "Completed", color: "#00ff00" },
-    { id: 3, name: "Pendding", color: "#ff0000" },
-  ];
-
-  // Преобразуем массив объектов в массив строк
-  const tagNames = tags.map(tag => tag.name);
-  const statusNames = statuses.map(status => status.name);
-
-  const initialTasks = [
-    { id: 1, title: "Morning Meeting", is_archived: false, start_time: "09:00", end_time: "15:00", tag: "Work", status: "Completed", start_date: "2025-02-16", end_date: "2025-02-17" },
-    { id: 2, title: "Workout Session", is_archived: false, start_time: "18:00", end_time: "15:00", tag: "Health", status: "Pending", start_date: "2025-02-18", end_date: "2025-02-20" },
-    { id: 3, title: "Grocery Shopping", is_archived: false, start_time: "14:00", end_time: "15:00", tag: "Personal", status: "Overdue", start_date: "2025-02-21", end_date: "2025-02-24" },
-    { id: 4, title: "Training", is_archived: true, start_time: "14:00", end_time: "15:00", tag: "Personal", status: "Overdue", start_date: "2025-02-21", end_date: "2025-02-24" },
-    { id: 5, title: "CCooking", is_archived: true, start_time: "14:00", end_time: "15:00", tag: "Personal", status: "Overdue", start_date: "2025-02-21", end_date: "2025-02-24" },
-    { id: 6, title: "Sleep", is_archived: true, start_time: "14:00", end_time: "15:00", tag: "Personal", status: "Overdue", start_date: "2025-02-21", end_date: "2025-02-24" },
-  ];
-
-  const [showArchived, setShowArchived] = useState(false);
+  const [filterTitle, setFilterTitle] = useState("");
   const [filterTag, setFilterTag] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
-  const [filterTitle, setFilterTitle] = useState("");
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [showArchived, setShowArchived] = useState(false);
+  const handleToggleArchived = () => setShowArchived(prev => !prev);
+
+
+  useEffect(() => {
+    if (projectId) {
+      getTags().then(setTags);
+      getStatuses().then(setStatuses);
+      
+    }
+  }, [projectId]);
 
   const {
     tasks,
@@ -71,18 +61,28 @@ const MainPage = () => {
     addTask,
     editTask,
     archiveTask,
+    restoreArchivedTask,
     handleOpenAddDialog,
     handleOpenDetailsDialog,
     handleCloseAddDialog,
-    handleCloseDetailsDialog
-  } = useTasks(initialTasks);
+    handleCloseDetailsDialog,
+    getTags,
+    getStatuses,
+  } = useTasks(projectId); // <== передаем projectId
 
-  const handleToggleArchived = () => {
-    setShowArchived((prev) => !prev);
-  };
+  const filteredTasks = useFilteredTasksWithDates(
+    tasks,
+    filterTag,
+    filterStatus,
+    filterTitle,
+    startDate,
+    endDate,
+    showArchived
+  );
 
-  // Фильтрация задач по тегу, статусу и дате
-  const filteredTasks = useFilteredTasksWithDates(tasks, filterTag, filterStatus, filterTitle, startDate, endDate, showArchived);
+  // ниже
+  const tagNames = tags.map(tag => tag.name);
+  const statusNames = statuses.map(status => status.name);
 
   return (
     <Box className={`main-content ${darkMode ? "night" : "day"}`}>
@@ -193,6 +193,8 @@ const MainPage = () => {
         handleAddTask={addTask}
         task={selectedTask}
         isEditing={isEditing}
+        tags={tags}
+        statuses={statuses}
       />
 
       {selectedTask && (
@@ -202,6 +204,7 @@ const MainPage = () => {
           handleClose={handleCloseDetailsDialog}
           onEdit={editTask}
           onArchive={archiveTask}
+          onRestore={restoreArchivedTask}
         />
       )}
     </Box>

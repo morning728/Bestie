@@ -34,6 +34,7 @@ public class TaskDTO {
     private Long createdBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Boolean isArchived;
 
     public Task toTask() {
         return Task.builder()
@@ -50,6 +51,7 @@ public class TaskDTO {
                 .createdBy(createdBy)
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)
+                .isArchived(isArchived)
                 .build();
     }
 
@@ -70,6 +72,7 @@ public class TaskDTO {
                 .createdBy(task.getCreatedBy())
                 .createdAt(task.getCreatedAt())
                 .updatedAt(task.getUpdatedAt())
+                .isArchived(task.getIsArchived())
                 .reminderDate(reminder != null ? reminder.getReminderDate() : null) // Если напоминание есть, устанавливаем дату
                 .reminderTime(reminder != null ? reminder.getReminderTime() : null) // Если напоминание есть, устанавливаем время
                 .build();

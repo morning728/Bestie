@@ -15,6 +15,7 @@ import com.morning.taskapimain.repository.task.*;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -24,6 +25,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +44,7 @@ public class TaskService {
     private final UserService userService;
     private final JwtService jwtService;
     private final ProjectUserRepository projectUserRepository;
+    private final DataSourceTransactionManagerAutoConfiguration dataSourceTransactionManagerAutoConfiguration;
 
     /**
      * ✅ Проверка, имеет ли пользователь право на действие с задачей
@@ -84,8 +87,20 @@ public class TaskService {
     /**
      * ✅ Получение всех задач проекта
      */
-    public Flux<TaskDTO> getFullInfoTasksByProject(Long projectId) {
-        return taskRepository.findByProjectId(projectId)
+    public Flux<TaskDTO> getFullInfoActiveTasksByProject(Long projectId) {
+        return taskRepository.findActiveByProjectId(projectId)
+                .flatMap(task -> getFullTaskInfoById(task.getId()));
+    }
+    /**
+     * ✅ Получение всех задач проекта
+     */
+    public Flux<TaskDTO> getFullInfoArchivedTasksByProject(Long projectId) {
+        return taskRepository.findArchivedByProjectId(projectId)
+                .flatMap(task -> getFullTaskInfoById(task.getId()));
+    }
+
+    public Flux<TaskDTO> getFullInfoAllTasksByProject(Long projectId) {
+        return taskRepository.findAllByProjectId(projectId)
                 .flatMap(task -> getFullTaskInfoById(task.getId()));
     }
 
@@ -167,7 +182,7 @@ public class TaskService {
      * ✅ Получение всех задач проекта
      */
     public Flux<Task> getTasksByProject(Long projectId) {
-        return taskRepository.findByProjectId(projectId);
+        return taskRepository.findAllByProjectId(projectId);
     }
 
     /**
@@ -227,30 +242,30 @@ public class TaskService {
         return taskRepository.findById(taskId)
                 .switchIfEmpty(Mono.error(new NotFoundException("Task not found")))
                 .flatMap(task -> validateRequesterHasPermission(task.getProjectId(), token, Permission.CAN_MANAGE_REMINDERS)
-                        .then(taskReminderRepository.findByTaskId(taskId)
-                                .flatMap(existingReminder -> {
-                                    // Если переданное напоминание совпадает с существующим — ничего не делаем
-                                    if (existingReminder.getReminderDate().equals(reminderDate) &&
-                                            existingReminder.getReminderTime().equals(reminderTime)) {
-                                        return Mono.empty();
-                                    }
+                        .then(
+                                taskReminderRepository.findByTaskId(taskId)
+                                        .switchIfEmpty(
+                                                // Если напоминания не было — создаем
+                                                reminderDate != null && reminderTime != null
+                                                        ? taskReminderRepository.addReminder(taskId, reminderDate, reminderTime)
+                                                        : Mono.empty()
+                                        )
+                                        .flatMap(existing -> {
+                                            // Если даты совпадают — ничего не делаем
+                                            if (Objects.equals(existing.getReminderDate(), reminderDate) &&
+                                                    Objects.equals(existing.getReminderTime(), reminderTime)) {
+                                                return Mono.empty();
+                                            }
 
-                                    // Если reminderDate или reminderTime == null, удаляем существующее напоминание
-                                    if (reminderDate == null || reminderTime == null) {
-                                        return taskReminderRepository.deleteReminderByTaskId(taskId);
-                                    }
+                                            // Если новые даты null → удаление
+                                            if (reminderDate == null || reminderTime == null) {
+                                                return taskReminderRepository.deleteReminderByTaskId(taskId);
+                                            }
+                                            System.out.println(existing.toString());
+                                            // Иначе — обновление
+                                            return taskReminderRepository.updateReminder(existing.getId(), reminderDate, reminderTime).then();
+                                        })
 
-                                    // Обновляем напоминание
-                                    existingReminder.setReminderDate(reminderDate);
-                                    existingReminder.setReminderTime(reminderTime);
-                                    return taskReminderRepository.save(existingReminder).then();
-                                })
-                                .switchIfEmpty(
-                                        // Если напоминания не было — создаем новое
-                                        reminderDate != null && reminderTime != null
-                                                ? taskReminderRepository.addReminder(taskId, reminderDate, reminderTime).then()
-                                                : Mono.empty()
-                                )
                         )
                 ).then();
     }

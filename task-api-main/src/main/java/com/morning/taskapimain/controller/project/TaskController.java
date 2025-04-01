@@ -42,9 +42,21 @@ public class TaskController {
     /**
      * ✅ Получение всех задач проекта
      */
-    @GetMapping("/project/{projectId}")
-    public Flux<TaskDTO> getTasksByProject(@PathVariable Long projectId) {
-        return taskService.getFullInfoTasksByProject(projectId);
+    @GetMapping("/project/{projectId}/active")
+    public Flux<TaskDTO> getActiveTasksByProject(@PathVariable Long projectId) {
+        return taskService.getFullInfoActiveTasksByProject(projectId);
+    }
+    /**
+     * ✅ Получение всех задач проекта
+     */
+    @GetMapping("/project/{projectId}/archived")
+    public Flux<TaskDTO> getArchivedTasksByProject(@PathVariable Long projectId) {
+        return taskService.getFullInfoArchivedTasksByProject(projectId);
+    }
+
+    @GetMapping("/project/{projectId}/all")
+    public Flux<TaskDTO> getAllTasksByProject(@PathVariable Long projectId) {
+        return taskService.getFullInfoAllTasksByProject(projectId);
     }
     /**
      * ✅ Получение полной инфы задачи

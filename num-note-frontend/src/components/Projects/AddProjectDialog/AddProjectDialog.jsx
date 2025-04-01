@@ -42,8 +42,7 @@ const AddProjectDialog = ({ open, project, handleClose = () => { }, onSave = () 
   const [icon, setIcon] = useState("📁");
   const [resourceLinks, setResourceLinks] = useState([]);
   const [newResource, setNewResource] = useState("");
-
-  useEffect(() => {
+  const initializeForm = () => {
     if (project) {
       setTitle(project.title || "");
       setDescription(project.description || "");
@@ -65,7 +64,14 @@ const AddProjectDialog = ({ open, project, handleClose = () => { }, onSave = () 
       setIcon("📁");
       setResourceLinks([]);
     }
-  }, [project]);
+  };
+
+  useEffect(() => {
+    if (open) {
+      initializeForm(); // ⬅️ вызываем только при открытии
+    }
+  }, [open]); // важно!
+
   // Добавляем нового пользователя (нужно указать username и roleId!)
   const handleAddMember = () => {
     if (newMember.trim()) {

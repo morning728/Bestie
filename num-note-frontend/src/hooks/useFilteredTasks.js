@@ -23,12 +23,17 @@ export const useFilteredTasksWithDates = (
   filterTitle,
   startDate,
   endDate,
-  showArchived
+  showArchived,
+  allStatuses
 ) => {
   return useMemo(() => {
     return tasks.filter((task) => {
-      const tagName = task.tag?.name;
-      const statusName = task.status?.name;
+      // 👉 Получаем массив имён тегов
+      const taskTagNames = task.tags?.map((t) => t.name) || [];
+
+      // 👉 Получаем имя статуса по ID
+      const taskStatusName =
+        allStatuses.find((status) => status.id === task.statusId)?.name || "";
 
       const taskStartDate = new Date(task.startDate);
       const taskEndDate = new Date(task.endDate);
@@ -42,9 +47,9 @@ export const useFilteredTasksWithDates = (
       const selectedEndDate = endDate
         ? new Date(endDate).setHours(23, 59, 59, 999)
         : null;
-      
-      const matchesTag = filterTag ? tagName === filterTag : true;
-      const matchesStatus = filterStatus ? statusName === filterStatus : true;
+
+      const matchesTag = filterTag ? taskTagNames.includes(filterTag) : true;
+      const matchesStatus = filterStatus ? taskStatusName === filterStatus : true;
       const matchesShowArchived = Boolean(task.isArchived) === showArchived;
       const matchesTitle = filterTitle
         ? task.title.toLowerCase().includes(filterTitle.toLowerCase())
@@ -78,5 +83,6 @@ export const useFilteredTasksWithDates = (
     startDate,
     endDate,
     showArchived,
-  ]);
+    allStatuses,
+  ]).sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 };

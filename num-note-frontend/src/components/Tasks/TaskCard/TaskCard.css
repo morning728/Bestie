@@ -3,6 +3,7 @@
     border-left: 4px solid #007bff;
     background-color: #fff;
     transition: transform 0.2s ease-in-out;
+    /* height: 120px; */
   }
   
   .task-card:hover {

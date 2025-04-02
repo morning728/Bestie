@@ -81,8 +81,8 @@ export const useTasks = (projectId) => {
 
   const handleCloseAddDialog = () => {
     openAddDialog.closeModal();
-    setSelectedTask(null);
     setIsEditing(false);
+    setSelectedTask(null);
   };
 
   const handleOpenDetailsDialog = (task) => {
@@ -93,6 +93,24 @@ export const useTasks = (projectId) => {
   const handleCloseDetailsDialog = () => {
     openDetailsDialog.closeModal();
     setSelectedTask(null);
+  };
+
+  const handleStatusChange = async (taskId, newStatusId) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    const tagIds = task.tags?.map(tag => tag.id);
+    const updatedTask = {
+      ...task,
+      statusId: newStatusId,
+      tagIds: tagIds,
+    };
+
+    try {
+      await updateTask(taskId, updatedTask);
+      await fetchTasks(); // обновляем список после успешного обновления
+    } catch (err) {
+      console.error("Ошибка при смене статуса:", err);
+    }
   };
 
   const getTags = () => getProjectTags(projectId).then(res => res.data);
@@ -112,7 +130,8 @@ export const useTasks = (projectId) => {
     handleOpenDetailsDialog,
     handleCloseAddDialog,
     handleCloseDetailsDialog,
-    getTags, 
+    getTags,
     getStatuses,
+    handleStatusChange,
   };
 };

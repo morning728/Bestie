@@ -12,14 +12,14 @@ import {
 } from "@mui/material";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import { useTranslation } from "react-i18next";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { ThemeContext } from "../../../ThemeContext";
 import "./ProjectDetailsDialog.css";
 
 const ProjectDetailsDialog = ({ open, project, handleClose, onEdit, onDelete, onRemoveMember }) => {
   const { t } = useTranslation();
   const { darkMode } = useContext(ThemeContext);
-
+  const [openConfirm, setOpenConfirm] = useState(false);
   if (!project) return null;
 
   return (
@@ -69,7 +69,20 @@ const ProjectDetailsDialog = ({ open, project, handleClose, onEdit, onDelete, on
         }}>
         <Button onClick={handleClose}>{t("close")}</Button>
         <Button onClick={() => onEdit(project.id)} color="primary">{t("edit")}</Button>
-        <Button onClick={() => onDelete(project.id)} color="error">{t("delete")}</Button>
+        <>
+          <Button onClick={() => setOpenConfirm(true)} color="error">
+            {t("delete")}
+          </Button>
+
+          <Dialog open={openConfirm} onClose={() => setOpenConfirm(false)}>
+            <DialogTitle>{t("confirm_delete_title")}</DialogTitle>
+            <DialogContent>{t("confirm_delete_project")}</DialogContent>
+            <DialogActions>
+              <Button onClick={() => setOpenConfirm(false)}>{t("cancel")}</Button>
+              <Button onClick={() => onDelete(project.id)} color="error">{t("delete")}</Button>
+            </DialogActions>
+          </Dialog>
+        </>
       </DialogActions>
     </Dialog>
   );

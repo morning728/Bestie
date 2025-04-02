@@ -129,7 +129,7 @@ const Sidebar = () => {
 
           {/* Вложенные проекты */}
           {projectsExpanded && !isCollapsed && (
-            <Box sx={{ ml: 4 }}>
+            <Box sx={{ ml: 4, width: "70%"}}>
               {projects.map((project) => (
                 <ListItem
                   key={project.id}

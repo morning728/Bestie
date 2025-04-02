@@ -1,0 +1,111 @@
+.kanban-board {
+    display: flex;
+    min-height: 80vh;
+    gap: 16px;
+    padding: 16px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+
+.kanban-board::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari, Opera */
+}
+
+.kanban-column {
+    border-radius: 8px;
+    width: 300px;
+    /* фиксированная ширина */
+    min-width: 300px;
+    /* обязательно, чтобы не сжимались */
+    flex-shrink: 0;
+    /* не сжимать колонку */
+    display: flex;
+    flex-direction: column;
+}
+
+.kanban-column-header {
+    padding: 12px;
+    font-weight: bold;
+    color: #fff;
+    text-align: center;
+    border-radius: 8px 8px 0 0;
+}
+
+.kanban-column-body {
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: hidden;
+    overflow-X: hidden;
+}
+
+.kanban-card {
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+}
+
+.kanban-card:hover {
+    transform: scale(1.02);
+}
+
+.kanban-tags {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.kanban-tag {
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: white;
+}
+
+.truncate-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.kanban-board.day,
+.kanban-column.day {
+    background-color: #f5f5f5;
+}
+
+.kanban-card.day {
+    background-color: #f9f7f7
+}
+
+.kanban-board.night {
+    background-color: #2c2c54;
+    /* основной фон */
+}
+
+.kanban-column.night {
+    background-color: #2c2c54;
+    /* чуть светлее фона, как в боковом меню */
+    border-radius: 8px;
+}
+
+.kanban-card.night {
+    background-color: #34345c;
+    /* ближе к цвету карточек в центре */
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}

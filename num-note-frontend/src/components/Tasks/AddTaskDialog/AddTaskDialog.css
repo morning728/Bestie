@@ -19,6 +19,14 @@
   flex-wrap: wrap;
 }
 
+.dialog-content{
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE и Edge */
+}
+.dialog-content::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
 /* Поля дат и времени имеют одинаковую ширину */
 .date-time-container .MuiTextField-root {
   flex: 1;

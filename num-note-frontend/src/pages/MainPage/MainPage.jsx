@@ -23,6 +23,7 @@ import { useFilteredTasksWithDates } from "../../hooks/useFilteredTasks";
 import { useTasks } from "../../hooks/useTasks";
 import "./MainPage.css";
 import { useParams } from "react-router-dom"; // ← нужный импорт
+import KanbanBoard from "../../components/KanbanBoard/KanbanBoard";
 import "./MainPage.css";
 import { restoreTask } from "../../services/api";
 
@@ -31,6 +32,7 @@ const MainPage = () => {
   const { projectId } = useParams(); // <== получаем projectId из URL
   const { t } = useTranslation();
   const { darkMode } = useContext(ThemeContext);
+  const [DDView, setDDView] = useState(false);
 
   const [tags, setTags] = useState([]);
   const [statuses, setStatuses] = useState([]);
@@ -48,7 +50,7 @@ const MainPage = () => {
     if (projectId) {
       getTags().then(setTags);
       getStatuses().then(setStatuses);
-      
+
     }
   }, [projectId]);
 
@@ -68,6 +70,7 @@ const MainPage = () => {
     handleCloseDetailsDialog,
     getTags,
     getStatuses,
+    handleStatusChange,
   } = useTasks(projectId); // <== передаем projectId
 
   const filteredTasks = useFilteredTasksWithDates(
@@ -77,10 +80,14 @@ const MainPage = () => {
     filterTitle,
     startDate,
     endDate,
-    showArchived
+    showArchived,
+    statuses
   );
 
-  // ниже
+  const toggleView = () => {
+    setDDView((prev) => !prev);
+  };
+
   const tagNames = tags.map(tag => tag.name);
   const statusNames = statuses.map(status => status.name);
 
@@ -99,9 +106,25 @@ const MainPage = () => {
             margin="normal"
           />
         </Box>
-        <Button variant="contained" sx={{ backgroundcolor: "#9932CC" }} onClick={handleToggleArchived}>
-          {showArchived ? t("hide_archive") : t("show_archive")}
-        </Button>
+        {!showArchived && (
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={toggleView} // твоя функция переключения DDView
+          >
+            {!DDView ? t("kanban_view") : t("list_view")}
+          </Button>
+        )}
+        {!DDView && (
+          <Button variant="contained" sx={{ backgroundcolor: "#9932CC" }} onClick={handleToggleArchived}>
+            {showArchived ? t("hide_archive") : t("show_archive")}
+          </Button>
+        )}
+        {DDView &&
+          <Button variant="contained" sx={{ backgroundcolor: "#9932CC" }} onClick={handleOpenAddDialog}>
+            {t("main_page_add_task")}
+          </Button>
+        }
       </Box>
 
       {/* Фильтры */}
@@ -171,21 +194,35 @@ const MainPage = () => {
 
       <Divider sx={{ mb: 2 }} />
 
-      {/* Карточки задач */}
-      <Grid container spacing={2}>
-        {filteredTasks.map((task) => (
-          <Grid item xs={12} sm={6} md={4} key={task.id}>
-            <TaskCard task={task} tags={tags} statuses={statuses} onClick={() => handleOpenDetailsDialog(task)} />
+      {!DDView && (
+        <>
+          <Grid container spacing={2}>
+            {filteredTasks.map((task) => (
+              <Grid item xs={12} sm={6} md={4} key={task.id}>
+                <TaskCard task={task} tags={tags} statuses={statuses} onClick={() => handleOpenDetailsDialog(task)} />
+              </Grid>
+            ))}
           </Grid>
-        ))}
-      </Grid>
-      {!showArchived &&
-        <Box mt={4} textAlign="center">
-          <Button variant="contained" color="primary" size="large" onClick={handleOpenAddDialog}>
-            {t("main_page_add_task")}
-          </Button>
-        </Box>
-      }
+          {!showArchived &&
+            <Box mt={4} textAlign="center">
+              <Button variant="contained" color="primary" size="large" onClick={handleOpenAddDialog}>
+                {t("main_page_add_task")}
+              </Button>
+            </Box>
+          }
+        </>
+      )}
+
+      <Box style={{ display: DDView ? "block" : "none" }}>
+        <KanbanBoard
+          tasks={filteredTasks}
+          statuses={statuses}
+          onCardClick={handleOpenDetailsDialog}
+          onStatusChange={handleStatusChange}
+        />
+      </Box>
+
+
       {/* Диалоги */}
       <AddTaskDialog
         open={openAddDialog.isOpen}
@@ -205,6 +242,7 @@ const MainPage = () => {
           onEdit={editTask}
           onArchive={archiveTask}
           onRestore={restoreArchivedTask}
+          statuses={statuses}
         />
       )}
     </Box>

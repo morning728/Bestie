@@ -40,31 +40,33 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
   });
 
   useEffect(() => {
-    if (task) {
-      setNewTask({
-        ...task,
-        tagIds: task.tags?.map((tag) => tag.id) || [],
-        reminder: task.reminderDate != null && task.reminderTime != null,
-        reminderDate: task.reminderDate || "",
-        reminderTime: task.reminderTime || "",
-      });
-    } else {
-      setNewTask({
-        title: "",
-        description: "",
-        startDate: defaultDate,
-        endDate: defaultDate,
-        startTime: "00:00",
-        endTime: "23:59",
-        tagIds: [],
-        statusId: "",
-        priority: "Medium",
-        reminder: false,
-        reminderDate: "",
-        reminderTime: "",
-      });
+    if (open) {
+      if (task && isEditing) {
+        setNewTask({
+          ...task,
+          tagIds: task.tags?.map((tag) => tag.id) || [],
+          reminder: task.reminderDate != null && task.reminderTime != null,
+          reminderDate: task.reminderDate || "",
+          reminderTime: task.reminderTime || "",
+        });
+      } else {
+        setNewTask({
+          title: "",
+          description: "",
+          startDate: defaultDate,
+          endDate: defaultDate,
+          startTime: "00:00",
+          endTime: "23:59",
+          tagIds: [],
+          statusId: "",
+          priority: "Medium",
+          reminder: false,
+          reminderDate: "",
+          reminderTime: "",
+        });
+      }
     }
-  }, [task, defaultDate]);
+  }, [open, task, isEditing, defaultDate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -119,7 +121,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
       <DialogTitle sx={{ backgroundColor: darkMode ? "#2b2b60" : "white", color: darkMode ? "white" : "black" }}>
         {isEditing ? t("edit_task") : t("add_new_task")}
       </DialogTitle>
-      <DialogContent sx={{ backgroundColor: darkMode ? "#2b2b60" : "white", color: darkMode ? "white" : "black" }}>
+      <DialogContent sx={{backgroundColor: darkMode ? "#2b2b60" : "white", color: darkMode ? "white" : "black" }} className="dialog-content">
         <TextField
           name="title"
           label={t("task_title")}

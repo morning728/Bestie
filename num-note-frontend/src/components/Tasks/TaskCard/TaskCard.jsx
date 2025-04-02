@@ -24,7 +24,7 @@ const TaskCard = ({ task, tags: allTags, statuses, onClick }) => {
       <CardContent>
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h6">{task.title}</Typography>
-          <Chip label={statusName} sx={{ backgroundColor: statusColor, color: "#fff" }} />
+          {status && (<Chip label={statusName} sx={{ backgroundColor: statusColor, color: "#fff" }} />)}
         </Box>
 
         <Typography variant="body2" color="textSecondary">

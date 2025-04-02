@@ -157,7 +157,7 @@ const StatusesTab = ({ projectId }) => {
       {/* Отображение существующих статусов */}
       <Box>
         <Typography variant="subtitle1" sx={{ mb: 2 }}>
-          {t("existing_statuses")}
+          {t("existing_statuses_СТАТУСЫ ОТОБРАЖАЮТСЯ НА КАНБАН ДОСКЕ В ПОРЯДКЕ ИХ ДОБАВЛЕНИЯ")}
         </Typography>
         <Grid container spacing={2}>
           {statuses.length > 0 ? (

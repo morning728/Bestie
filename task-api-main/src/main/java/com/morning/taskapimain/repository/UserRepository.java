@@ -4,10 +4,14 @@ import com.morning.taskapimain.entity.user.User;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
 import org.springframework.data.repository.query.Param;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface UserRepository extends R2dbcRepository<User, Long> {
     Mono<User> findByUsername(String username);
+
+    Flux<User> findFirst10ByUsernameStartingWithIgnoreCase(String prefix);
+
 
     @Query("""
             SELECT u.id, u.username, u.first_name, u.last_name

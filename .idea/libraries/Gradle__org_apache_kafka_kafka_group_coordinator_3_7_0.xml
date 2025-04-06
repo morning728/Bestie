@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: org.apache.kafka:kafka-group-coordinator:3.7.0" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.apache.kafka" artifactId="kafka-group-coordinator" version="3.7.0" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.kafka/kafka-group-coordinator/3.7.0/358c55717747bd102aec77cc7f00a1d96e80b5af/kafka-group-coordinator-3.7.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.kafka/kafka-group-coordinator/3.7.0/3b5bc2280de42d30d283aa6547f0134cad898b0d/kafka-group-coordinator-3.7.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

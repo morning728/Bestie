@@ -2,6 +2,7 @@ package com.morning.taskapimain.service.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.morning.taskapimain.entity.kafka.InviteEvent;
 import com.morning.taskapimain.exception.BadRequestException;
 import com.morning.taskapimain.exception.KafkaException;
 import lombok.RequiredArgsConstructor;
@@ -25,16 +26,11 @@ public class KafkaNotificationService {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    public Mono<Void> sendInviteToProject(Long projectId, String fromUsername, String toUsername, String toEmail){
+    public Mono<Void> sendInviteToProject(InviteEvent inviteEvent){
         try{
-            Map<String, String> event = new HashMap<>();
-            event.put("username", toUsername);
-            event.put("email", toEmail);
-            event.put("from", fromUsername);
-            event.put("projectId", String.valueOf(projectId));
-            event.put("action", "INVITE_TO_PROJECT");
-            String eventAsString = objectMapper.writeValueAsString(event);
-            kafkaTemplate.send(new ProducerRecord<>("participants-edit-topic", eventAsString));
+            kafkaTemplate.send(
+                    new ProducerRecord<>("participants-edit-topic", objectMapper.writeValueAsString(inviteEvent))
+            );
         } catch (JsonProcessingException e){
             log.error("Kafka exception: " + e.toString());
             return Mono.error(new KafkaException("ERROR: Kafka cant do it right now"));

@@ -210,5 +210,11 @@
   "login_welcome_back": "С возвращением!",
   "login_username": "Логин",
   "login_password": "Пароль",
-  "login_button": "Войти"
+  "login_button": "Войти",
+  "search_username": "Поиск по username",
+  "invite_user": "Приглашение пользователя",
+  "generate_invite_link": "Сгенерировать ссылку",
+  "send_invite": "Пригласить через приложение",
+  "invite_link": "Ссылка для приглашения",
+  "generate_universal_link": "Универсальная ссылка"
 }

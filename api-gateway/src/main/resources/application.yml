@@ -26,6 +26,10 @@ spring:
           predicates:
             - Path=/request-handler/**
 
+        - id: telegram-bot
+          uri: lb://TELEGRAM-BOT
+          predicates:
+            - Path=/tg-bot/**
 
 
       globalcors:

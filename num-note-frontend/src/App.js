@@ -23,6 +23,8 @@ import ProfilePage from './pages/Profile/ProfilePage';
 import ProjectsPage from './pages/Projects/ProjectsPage';
 import { ProjectsProvider } from "./context/ProjectsContext";
 import ProjectSettingsPage from './pages/ProjectSettings/ProjectSettingsPage';
+import AcceptInvitePage from './pages/ProjectSettings/invitation/AcceptInvitePage ';
+import ProjectAccessWrapper from './context/ProjectAccessWrapper';
 
 
 
@@ -34,27 +36,46 @@ function App() {
     document.title = 'Bestie';
   }, []);
   return (
-    <ThemeContextProvider> {/* Обертывание в провайдер темы */}
-      <ProjectsProvider>
-        <Router>
-          <Box className="main-box">
-            <Sidebar /> {/* Боковая панель */}
-            {/* Используем BrowserRouter вместо Router */}
-            <Box className="content">
-              <Routes> {/* Используем Routes для React Router v6 */}
-                <Route path="/projects/:projectId/tasks" element={<MainPage />} />
-                <Route path="/profile" element={<ProfilePage />} /> {/* Страница профиля */}
-                <Route path="/projects" element={<ProjectsPage />} />
-                <Route path="/projects/:projectId/settings" element={<ProjectSettingsPage />} />
-                <Route path="/auth/login" element={<LoginPage />} /> {/* Страница входа */}
-                <Route path="/auth/register" element={<RegisterPage />} /> {/* Страница регистрации */}
-              </Routes>
-            </Box>
+    <ThemeContextProvider>
+      <Router>
+        <Routes>
 
-          </Box>
-        </Router>
-        <Footer /> {/* Нижний колонтитул */}
-      </ProjectsProvider>
+          {/* 👇 Публичные страницы — без ProjectsProvider */}
+          <Route path="/auth/login" element={<LoginPage />} />
+          <Route path="/auth/register" element={<RegisterPage />} />
+          <Route path="/accept-invite" element={<AcceptInvitePage />} />
+          <Route path="/accept-universal" element={<AcceptInvitePage isUniversal />} />
+
+          {/* 👇 Приватный layout со всеми нужными провайдерами */}
+          <Route
+            path="/*"
+            element={
+              <ProjectsProvider>
+                <Box className="main-box">
+                  <Sidebar />
+                  <Box className="content">
+                    <Routes>
+                      <Route path="/projects/:projectId/tasks" element={<MainPage />} />
+                      <Route
+                        path="/projects/:projectId/settings"
+                        element={
+                          <ProjectAccessWrapper>
+                            <ProjectSettingsPage />
+                          </ProjectAccessWrapper>
+                        }
+                      />
+                      <Route path="/projects" element={<ProjectsPage />} />
+                      <Route path="/profile" element={<ProfilePage />} />
+                    </Routes>
+                  </Box>
+                </Box>
+                <Footer />
+              </ProjectsProvider>
+            }
+          />
+
+        </Routes>
+      </Router>
     </ThemeContextProvider>
   );
 }

@@ -12,6 +12,7 @@ import RolesTab from "./tabs/RolesTab";
 import TagsTab from "./tabs/TagsTab";
 import StatusesTab from "./tabs/StatusesTab";
 import ResourcesTab from "./tabs/ResourcesTab";
+import { ProjectAccessProvider } from "../../context/ProjectAccessContext";
 
 
 const ProjectSettingsPage = () => {
@@ -46,16 +47,17 @@ const ProjectSettingsPage = () => {
           <Tab label={t("statuses")} />
           <Tab label={t("resources")} />
         </Tabs>
-
-        <Box className="tab-content">
-          {tabIndex === 0 && <GeneralSettingsTab project={project} />}
-          {tabIndex === 1 && <MembersTab projectId={projectId} />}
-          {tabIndex === 2 && <RolesTab projectId={projectId} />}
-          {tabIndex === 3 && <TagsTab projectId={projectId} />}
-          {tabIndex === 4 && <StatusesTab projectId={projectId} />}
-          {tabIndex === 5 && <ResourcesTab projectId={projectId} />}
-          {/* Остальные вкладки будут добавлены позже */}
-        </Box>
+        <ProjectAccessProvider projectId={projectId}>
+          <Box className="tab-content">
+            {tabIndex === 0 && <GeneralSettingsTab project={project} />}
+            {tabIndex === 1 && <MembersTab projectId={projectId} />}
+            {tabIndex === 2 && <RolesTab projectId={projectId} />}
+            {tabIndex === 3 && <TagsTab projectId={projectId} />}
+            {tabIndex === 4 && <StatusesTab projectId={projectId} />}
+            {tabIndex === 5 && <ResourcesTab projectId={projectId} />}
+            {/* Остальные вкладки будут добавлены позже */}
+          </Box>
+        </ProjectAccessProvider>
       </Box>
     </Box>
   );

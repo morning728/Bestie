@@ -2,6 +2,7 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
@@ -15,16 +16,10 @@
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.30/f195ee86e6c896ea47a1d39defbe20eb59cd149d/lombok-1.18.30.jar" />
         </processorPath>
         <module name="task-tracker.api-gateway.main" />
+        <module name="task-tracker.notification.main" />
         <module name="task-tracker.open-request-handler.main" />
         <module name="task-tracker.task-attachment.main" />
         <module name="task-tracker.security.main" />
-      </profile>
-      <profile name="Gradle Imported" enabled="true">
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.32/17d46b3e205515e1e8efd3ee4d57ce8018914163/lombok-1.18.32.jar" />
-        </processorPath>
-        <module name="task-tracker.mail-notification.main" />
       </profile>
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
@@ -44,20 +39,66 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="20">
+      <module name="api-gateway" target="17" />
+      <module name="api-gateway.main" target="17" />
+      <module name="api-gateway.test" target="17" />
+      <module name="config-server" target="17" />
+      <module name="config-server.main" target="17" />
+      <module name="config-server.test" target="17" />
+      <module name="eureka-server" target="17" />
+      <module name="eureka-server.main" target="17" />
+      <module name="eureka-server.test" target="17" />
+      <module name="mail-notification.main" target="17" />
+      <module name="mail-notification.test" target="17" />
+      <module name="notification" target="17" />
       <module name="num-note.statistics-api" target="17" />
       <module name="num-note.statistics-api.main" target="17" />
       <module name="num-note.statistics-api.test" target="17" />
-      <module name="numApi" target="17" />
-      <module name="numApi.main" target="17" />
-      <module name="numApi.test" target="17" />
       <module name="open-request-handler" target="17" />
       <module name="open-request-handler.main" target="17" />
       <module name="open-request-handler.test" target="17" />
+      <module name="security" target="17" />
+      <module name="security.main" target="17" />
+      <module name="security.test" target="17" />
       <module name="statistics-api.main" target="17" />
       <module name="statistics-api.test" target="17" />
       <module name="task-api" target="17" />
+      <module name="task-api-main" target="17" />
+      <module name="task-api-main.main" target="17" />
+      <module name="task-api-main.test" target="17" />
       <module name="task-api.main" target="17" />
       <module name="task-api.test" target="17" />
+      <module name="task-attachment" target="17" />
+      <module name="task-attachment.main" target="17" />
+      <module name="task-attachment.test" target="17" />
+      <module name="task-tracker.api-gateway" target="17" />
+      <module name="task-tracker.api-gateway.main" target="17" />
+      <module name="task-tracker.api-gateway.test" target="17" />
+      <module name="task-tracker.config-server" target="17" />
+      <module name="task-tracker.config-server.main" target="17" />
+      <module name="task-tracker.config-server.test" target="17" />
+      <module name="task-tracker.eureka-server" target="17" />
+      <module name="task-tracker.eureka-server.main" target="17" />
+      <module name="task-tracker.eureka-server.test" target="17" />
+      <module name="task-tracker.notification" target="17" />
+      <module name="task-tracker.notification.main" target="17" />
+      <module name="task-tracker.notification.test" target="17" />
+      <module name="task-tracker.open-request-handler" target="17" />
+      <module name="task-tracker.open-request-handler.main" target="17" />
+      <module name="task-tracker.open-request-handler.test" target="17" />
+      <module name="task-tracker.security" target="17" />
+      <module name="task-tracker.security.main" target="17" />
+      <module name="task-tracker.security.test" target="17" />
+      <module name="task-tracker.task-api-main" target="17" />
+      <module name="task-tracker.task-api-main.main" target="17" />
+      <module name="task-tracker.task-api-main.test" target="17" />
+      <module name="task-tracker.task-attachment" target="17" />
+      <module name="task-tracker.task-attachment.main" target="17" />
+      <module name="task-tracker.task-attachment.test" target="17" />
+      <module name="task-tracker.telegram-bot" target="17" />
+      <module name="task-tracker.telegram-bot.main" target="17" />
+      <module name="task-tracker.telegram-bot.test" target="17" />
+      <module name="telegram-bot" target="17" />
       <module name="test.main" target="17" />
       <module name="test.test" target="17" />
       <module name="testtest" target="17" />

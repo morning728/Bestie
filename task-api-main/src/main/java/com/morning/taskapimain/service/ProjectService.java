@@ -3,7 +3,9 @@ package com.morning.taskapimain.service;
 import com.morning.taskapimain.entity.dto.ProjectDTO;
 import com.morning.taskapimain.entity.dto.UpdateProjectDTO;
 import com.morning.taskapimain.entity.dto.UserWithRoleDTO;
+import com.morning.taskapimain.entity.kafka.InviteEvent;
 import com.morning.taskapimain.entity.project.*;
+import com.morning.taskapimain.entity.user.Contacts;
 import com.morning.taskapimain.entity.user.User;
 import com.morning.taskapimain.exception.AccessException;
 import com.morning.taskapimain.exception.BadRequestException;
@@ -11,15 +13,20 @@ import com.morning.taskapimain.exception.NotFoundException;
 import com.morning.taskapimain.repository.*;
 import com.morning.taskapimain.service.kafka.KafkaNotificationService;
 import com.morning.taskapimain.service.security.JwtService;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.webflux.api.MultipleOpenApiWebFluxResource;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -34,9 +41,12 @@ public class ProjectService {
     private final ProjectUserRepository projectUserRepository;
     private final UserRepository userRepository;
     private final JwtService jwtService;
+    private final ProjectJWTService projectJWTService;
     private final KafkaNotificationService kafkaNotificationService;
-    private final DatabaseClient client;
+    private final UserService userService;
 
+    @Value("${application.invitation.url}")
+    private String invitationUrl;
     /**
      * ✅ Проверка, есть ли у пользователя разрешение на действие в проекте
      */
@@ -373,7 +383,103 @@ public class ProjectService {
 
     public Mono<ProjectRole> getMyRoleByProjectId(Long projectId, String token) {
         return getUserId(jwtService.extractUsername(token))
-                .flatMap(userId -> projectRoleRepository.findRoleByProjectIdAndUserId(projectId, userId));
+                .flatMap(userId -> projectRoleRepository.findRoleByProjectIdAndUserId(projectId, userId)
+                        .flatMap(projectRole -> {
+                            projectRole.deserializePermissions();
+                            return Mono.just(projectRole);
+                        }));
+    }
+
+    public Mono<String> generateInviteToken(String token, Long projectId, String username, Long roleId) {
+        return validateRequesterHasPermission(projectId, token, Permission.CAN_MANAGE_MEMBERS)
+                .then(Mono.fromSupplier(() -> {
+                    Map<String, String> claims = new HashMap<>();
+                    claims.put("projectId", String.valueOf(projectId));
+                    claims.put("roleId", String.valueOf(roleId));
+                    return projectJWTService.buildInviteToken(claims, username);
+                }));
+    }
+
+    public Mono<String> generateInviteAllToken(String token, Long projectId, Long roleId) {
+        return validateRequesterHasPermission(projectId, token, Permission.CAN_MANAGE_MEMBERS)
+                .then(Mono.fromSupplier(() -> {
+                    Map<String, String> claims = new HashMap<>();
+                    claims.put("projectId", String.valueOf(projectId));
+                    claims.put("roleId", String.valueOf(roleId));
+                    return projectJWTService.buildInviteToken(claims, "public_invite");
+                }));
+    }
+
+    public Mono<Void> processInviteToken(String invitationToken, String token) {
+        if (projectJWTService.isTokenExpired(invitationToken)) {
+            return Mono.error(new AccessException("Invitation token is expired"));
+        }
+        String username = projectJWTService.extractUsername(invitationToken);
+        Long projectId = projectJWTService.extractProjectId(invitationToken);
+        Long roleId = projectJWTService.extractRoleId(invitationToken);
+
+        Mono<User> user = userRepository.findByUsername(jwtService.extractUsername(token))
+                .switchIfEmpty(Mono.error(new NotFoundException("User not found")));
+        Mono<Project> project = projectRepository.findById(projectId)
+                .switchIfEmpty(Mono.error(new NotFoundException("Project not found")));
+        Mono<ProjectRole> role = projectRoleRepository.findById(roleId)
+                .switchIfEmpty(Mono.error(new NotFoundException("Role not found")));
+
+        return Mono.zip(user, project, role)
+                .flatMap(tuple -> {
+                    Long userId = tuple.getT1().getId();
+                    String tokenOwnerUsername = tuple.getT1().getUsername();
+                    if (!tokenOwnerUsername.equals(username)) {
+                        return Mono.error(new AccessException("You were not invited!"));
+                    }
+                    return projectUserRepository.assignUserToProject(projectId, userId, roleId);
+                }).then();
+    }
+
+    public Mono<Void> processInviteAllToken(String invitationToken, String token) {
+        if (projectJWTService.isTokenExpired(invitationToken)) {
+            return Mono.error(new AccessException("Invitation token is expired"));
+        }
+        String username = projectJWTService.extractUsername(invitationToken);
+        Long projectId = projectJWTService.extractProjectId(invitationToken);
+        Long roleId = projectJWTService.extractRoleId(invitationToken);
+
+        Mono<User> user = userRepository.findByUsername(jwtService.extractUsername(token))
+                .switchIfEmpty(Mono.error(new NotFoundException("User not found")));
+        Mono<Project> project = projectRepository.findById(projectId)
+                .switchIfEmpty(Mono.error(new NotFoundException("Project not found")));
+        Mono<ProjectRole> role = projectRoleRepository.findById(roleId)
+                .switchIfEmpty(Mono.error(new NotFoundException("Role not found")));
+
+        return Mono.zip(user, project, role)
+                .flatMap(tuple -> {
+                    Long userId = tuple.getT1().getId();
+                    return projectUserRepository.assignUserToProject(projectId, userId, roleId);
+                }).then();
+    }
+
+    public Mono<Void> inviteDirectly(String token, Long projectId, String username, Long roleId) {
+        Mono<Contacts> contactsMono = userService.findProfileByUsernameWithWebClient(username, token);
+        Mono<User> invitedBy = userRepository.findByUsername(jwtService.extractUsername(token));
+        Mono<Project> project = projectRepository.findById(projectId);
+        Mono<String> invitationTokenMono = generateInviteToken(token, projectId, username, roleId);
+        return Mono.zip(contactsMono, invitedBy, project, invitationTokenMono)
+                .flatMap(tuple -> {
+                    Contacts contacts = tuple.getT1();
+                    String invitedByUsername = tuple.getT2().getUsername();
+                    String projectTitle = tuple.getT3().getTitle();
+                    InviteEvent inviteEvent = InviteEvent.builder()
+                            .username(username)
+                            .email(contacts.getEmail() != null ? contacts.getEmail() : "no_data")
+                            .telegramId(contacts.getTelegramId() != null ? contacts.getTelegramId() : "no_data")
+                            .chatId(contacts.getChatId() != null ? contacts.getChatId() : "no_data")
+                            .inviteLink(invitationUrl.concat(tuple.getT4()))
+                            .projectTitle(projectTitle)
+                            .invitedBy(invitedByUsername)
+                            .build()
+                            .setDefaultAction();
+                    return kafkaNotificationService.sendInviteToProject(inviteEvent);
+                });
     }
 
 }

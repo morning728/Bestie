@@ -1,87 +1,96 @@
+// components/MemberTab.jsx
 import React, { useState, useEffect } from "react";
 import {
   Box,
-  Button,
+  Typography,
   TextField,
   MenuItem,
-  Typography,
-  Chip,
+  Button,
+  Autocomplete,
   IconButton,
+  Snackbar,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  Select,
 } from "@mui/material";
-import { useTranslation } from "react-i18next";
-import HighlightOffIcon from "@mui/icons-material/HighlightOff";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import "./MembersTab.css";
-import {
-    getProjectMembers ,
-  addUserToProject,
-  removeUserFromProject,
-  changeUserRole,
-  getRolesByProjectId,
-} from "../../../services/api";
+import DeleteIcon from "@mui/icons-material/Delete";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import { useMembers } from "../../../hooks/useMembers.js";
+import { useProjectAccess } from "../../../context/ProjectAccessContext.js";
 
 const MembersTab = ({ projectId }) => {
-  const { t } = useTranslation();
+  const {
+    members,
+    roles,
+    searchResults,
+    universalInvite,
+    copyStatus,
+    searchUsersHandler,
+    addUser,
+    removeUser,
+    changeRole,
+    createUniversalLink,
+    copyToClipboard,
+  } = useMembers(projectId);
 
-  const [members, setMembers] = useState([]);
-  const [roles, setRoles] = useState([]);
-  const [newMember, setNewMember] = useState("");
-  const [selectedRole, setSelectedRole] = useState("");
+  const { me, hasPermission, loading } = useProjectAccess();
+  const canManageMembers = hasPermission("CAN_MANAGE_MEMBERS");
 
-  useEffect(() => {
-    loadMembersAndRoles();
-  }, [projectId]);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedRole, setSelectedRole] = useState(null);
+  const [universalRole, setUniversalRole] = useState(null)
 
-  const loadMembersAndRoles = () => {
-    getProjectMembers(projectId).then((res) => setMembers(res.data));
-    getRolesByProjectId(projectId).then((res) => {
-      setRoles(res.data);
-      if (res.data.length > 0) setSelectedRole(res.data[0].id);
-    });
+
+  const handleGenerateInvite = async () => {
+    if (selectedUser && selectedRole) {
+      const link = await addUser(selectedUser.username, selectedRole.id, false);
+      if (link) copyToClipboard(link);
+    }
   };
 
-  const handleAddMember = () => {
-    if (!newMember.trim()) return;
-
-    addUserToProject(projectId, {
-      username: newMember,
-      roleId: selectedRole,
-    })
-      .then(loadMembersAndRoles)
-      .catch((err) => console.error("Ошибка добавления участника:", err));
-
-    setNewMember("");
+  const handleDirectInvite = async () => {
+    if (selectedUser && selectedRole) {
+      await addUser(selectedUser.username, selectedRole.id, true);
+    }
   };
 
-  const handleRemoveMember = (username) => {
-    removeUserFromProject(projectId, username)
-      .then(loadMembersAndRoles)
-      .catch((err) => console.error("Ошибка удаления участника:", err));
+  const handleUniversalLink = async () => {
+    if (universalRole) {
+      await createUniversalLink(universalRole.id);
+    }
   };
 
-  const handleChangeUserRole = (username, roleId) => {
-    changeUserRole(projectId, { username, roleId })
-      .then(loadMembersAndRoles)
-      .catch((err) => console.error("Ошибка смены роли:", err));
-  };
+
+  if (loading) return <Typography>Загрузка данных доступа...</Typography>;
 
   return (
-    <Box className="members-tab">
+    <Box sx={{ p: 3 }}>
       <Typography variant="h6" gutterBottom>
-        {t("project_members")}
+        Пригласить участника
       </Typography>
 
-      <Box className="add-member-section">
-        <TextField
-          label={t("username")}
-          value={newMember}
-          onChange={(e) => setNewMember(e.target.value)}
+      <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+        <Autocomplete
+          options={searchResults}
+          getOptionLabel={(option) => option.username}
+          onInputChange={(_, value) => searchUsersHandler(value)}
+          onChange={(_, value) => setSelectedUser(value)}
+          renderInput={(params) => <TextField {...params} label="Пользователь" />}
+          sx={{ width: 300 }}
+          disabled={!canManageMembers}
         />
         <TextField
           select
-          label={t("role")}
-          value={selectedRole}
-          onChange={(e) => setSelectedRole(e.target.value)}
+          label="Роль"
+          value={selectedRole?.id || ""}
+          onChange={(e) =>
+            setSelectedRole(roles.find((r) => r.id === +e.target.value))
+          }
+          sx={{ width: 200 }}
+          disabled={!canManageMembers}
         >
           {roles.map((role) => (
             <MenuItem key={role.id} value={role.id}>
@@ -89,43 +98,125 @@ const MembersTab = ({ projectId }) => {
             </MenuItem>
           ))}
         </TextField>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<PersonAddIcon />}
-          onClick={handleAddMember}
-        >
-          {t("add_member")}
+        <Button disabled={!canManageMembers} variant="outlined" onClick={handleGenerateInvite}>
+          Ссылка-приглашение
+        </Button>
+        <Button disabled={!canManageMembers} variant="contained" onClick={handleDirectInvite}>
+          Пригласить напрямую
         </Button>
       </Box>
 
-      <Box className="members-list">
-        {members.map((member) => (
-          <Box key={member.userId} className="member-item">
-            <Typography>{member.username}</Typography>
-            <TextField
-              select
-              size="small"
-              value={member.roleId}
-              onChange={(e) =>
-                handleChangeUserRole(member.username, e.target.value)
-              }
-            >
-              {roles.map((role) => (
-                <MenuItem key={role.id} value={role.id}>
-                  {role.name}
-                </MenuItem>
-              ))}
-            </TextField>
-            <IconButton
-              color="error"
-              onClick={() => handleRemoveMember(member.username)}
-            >
-              <HighlightOffIcon />
-            </IconButton>
-          </Box>
-        ))}
+      <Typography variant="h6" gutterBottom>
+        Универсальная ссылка
+      </Typography>
+
+      <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+        <TextField
+          disabled={!canManageMembers}
+          select
+          label="Роль для универсальной ссылки"
+          value={universalRole?.id || ""}
+          onChange={(e) =>
+            setUniversalRole(roles.find((r) => r.id === +e.target.value))
+          }
+          sx={{ width: 300 }}
+        >
+          {roles.map((role) => (
+            <MenuItem key={role.id} value={role.id}>
+              {role.name}
+            </MenuItem>
+          ))}
+        </TextField>
+        <Button disabled={!canManageMembers} variant="outlined" onClick={handleUniversalLink}>
+          Создать универсальную ссылку
+        </Button>
       </Box>
+
+      {universalInvite && (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <TextField
+            value={universalInvite}
+            InputProps={{ readOnly: true }}
+            sx={{ flexGrow: 1 }}
+          />
+          <IconButton onClick={() => copyToClipboard(universalInvite)}>
+            <ContentCopyIcon />
+          </IconButton>
+        </Box>
+      )}
+
+      <Typography variant="h6" gutterBottom>
+        Участники проекта
+      </Typography>
+
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell sx={{ width: 200 }}>Username</TableCell>
+            <TableCell sx={{ width: 150 }}>Имя</TableCell>
+            <TableCell sx={{ width: 150 }}>Фамилия</TableCell>
+            <TableCell sx={{ width: 200 }}>Роль</TableCell>
+            <TableCell sx={{ width: 120 }} align="right">Действия</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {[...members]
+            .sort((a, b) => {
+              if (a.username === me.username) return -1;
+              if (b.username === me.username) return 1;
+              return a.username.localeCompare(b.username);
+            })
+            .map((member) => (
+              <TableRow
+                key={member.username}
+                sx={
+                  member.username === me.username
+                    ? { backgroundColor: "rgba(153, 50, 204, 0.1)" } // фиолетовый hint (#9932CC с прозрачностью)
+                    : {}
+                }
+              >
+                <TableCell sx={{ width: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {member.username}
+                </TableCell>
+                <TableCell sx={{ width: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {member.firstName}
+                </TableCell>
+                <TableCell sx={{ width: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {member.lastName}
+                </TableCell>
+                <TableCell>
+                  <Select
+                    value={member.roleId}
+                    onChange={(e) => changeRole(member.username, e.target.value)}
+                    size="small"
+                    disabled={!canManageMembers || member.username === me.username}
+                  >
+                    {roles.map((role) => (
+                      <MenuItem key={role.id} value={role.id}>
+                        {role.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </TableCell>
+                <TableCell align="right">
+                  <IconButton
+                    color="error"
+                    onClick={() => removeUser(member.username)}
+                    disabled={!canManageMembers || member.username === me.username}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+        </TableBody>
+      </Table>
+
+      <Snackbar
+        open={Boolean(copyStatus)}
+        message={copyStatus}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      />
     </Box>
   );
 };

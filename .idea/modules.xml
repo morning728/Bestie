@@ -2,20 +2,56 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/api-gateway.iml" filepath="$PROJECT_DIR$/.idea/modules/api-gateway.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/api-gateway.main.iml" filepath="$PROJECT_DIR$/.idea/modules/api-gateway.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.morning.api-gateway.main.iml" filepath="$PROJECT_DIR$/.idea/modules/com.morning.api-gateway.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.morning.security.main.iml" filepath="$PROJECT_DIR$/.idea/modules/com.morning.security.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/api-gateway.test.iml" filepath="$PROJECT_DIR$/.idea/modules/api-gateway.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/config-server/config-server.iml" filepath="$PROJECT_DIR$/config-server/config-server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/config-server.main.iml" filepath="$PROJECT_DIR$/.idea/modules/config-server.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/config-server.test.iml" filepath="$PROJECT_DIR$/.idea/modules/config-server.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/eureka-server.iml" filepath="$PROJECT_DIR$/.idea/modules/eureka-server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/eureka-server.main.iml" filepath="$PROJECT_DIR$/.idea/modules/eureka-server.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/eureka-server.test.iml" filepath="$PROJECT_DIR$/.idea/modules/eureka-server.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/mail-notification.main.iml" filepath="$PROJECT_DIR$/.idea/modules/mail-notification.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/mail-notification.test.iml" filepath="$PROJECT_DIR$/.idea/modules/mail-notification.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/notification.iml" filepath="$PROJECT_DIR$/.idea/modules/notification.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/security.iml" filepath="$PROJECT_DIR$/.idea/modules/security.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/security.main.iml" filepath="$PROJECT_DIR$/.idea/modules/security.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/security.test.iml" filepath="$PROJECT_DIR$/.idea/modules/security.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/task-api-main.iml" filepath="$PROJECT_DIR$/.idea/modules/task-api-main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/task-api-main.main.iml" filepath="$PROJECT_DIR$/.idea/modules/task-api-main.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/task-api-main.test.iml" filepath="$PROJECT_DIR$/.idea/modules/task-api-main.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/task-attachment/task-attachment.iml" filepath="$PROJECT_DIR$/task-attachment/task-attachment.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/task-attachment.main.iml" filepath="$PROJECT_DIR$/.idea/modules/task-attachment.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/task-attachment.test.iml" filepath="$PROJECT_DIR$/.idea/modules/task-attachment.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/task-tracker.iml" filepath="$PROJECT_DIR$/.idea/modules/task-tracker.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/api-gateway/task-tracker.api-gateway.iml" filepath="$PROJECT_DIR$/.idea/modules/api-gateway/task-tracker.api-gateway.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/api-gateway/task-tracker.api-gateway.main.iml" filepath="$PROJECT_DIR$/.idea/modules/api-gateway/task-tracker.api-gateway.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/mail-notification/task-tracker.mail-notification.main.iml" filepath="$PROJECT_DIR$/.idea/modules/mail-notification/task-tracker.mail-notification.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/api-gateway/task-tracker.api-gateway.test.iml" filepath="$PROJECT_DIR$/.idea/modules/api-gateway/task-tracker.api-gateway.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/config-server/task-tracker.config-server.iml" filepath="$PROJECT_DIR$/.idea/modules/config-server/task-tracker.config-server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/config-server/task-tracker.config-server.main.iml" filepath="$PROJECT_DIR$/.idea/modules/config-server/task-tracker.config-server.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/config-server/task-tracker.config-server.test.iml" filepath="$PROJECT_DIR$/.idea/modules/config-server/task-tracker.config-server.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/eureka-server/task-tracker.eureka-server.iml" filepath="$PROJECT_DIR$/.idea/modules/eureka-server/task-tracker.eureka-server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/eureka-server/task-tracker.eureka-server.main.iml" filepath="$PROJECT_DIR$/.idea/modules/eureka-server/task-tracker.eureka-server.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/eureka-server/task-tracker.eureka-server.test.iml" filepath="$PROJECT_DIR$/.idea/modules/eureka-server/task-tracker.eureka-server.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/mail-notification/task-tracker.notification.iml" filepath="$PROJECT_DIR$/.idea/modules/mail-notification/task-tracker.notification.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/notification/task-tracker.notification.main.iml" filepath="$PROJECT_DIR$/.idea/modules/notification/task-tracker.notification.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/notification/task-tracker.notification.test.iml" filepath="$PROJECT_DIR$/.idea/modules/notification/task-tracker.notification.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/open-request-handler/task-tracker.open-request-handler.iml" filepath="$PROJECT_DIR$/.idea/modules/open-request-handler/task-tracker.open-request-handler.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/open-request-handler/task-tracker.open-request-handler.main.iml" filepath="$PROJECT_DIR$/.idea/modules/open-request-handler/task-tracker.open-request-handler.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/open-request-handler/task-tracker.open-request-handler.test.iml" filepath="$PROJECT_DIR$/.idea/modules/open-request-handler/task-tracker.open-request-handler.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/security/task-tracker.security.iml" filepath="$PROJECT_DIR$/.idea/modules/security/task-tracker.security.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/security/task-tracker.security.main.iml" filepath="$PROJECT_DIR$/.idea/modules/security/task-tracker.security.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/security/task-tracker.security.test.iml" filepath="$PROJECT_DIR$/.idea/modules/security/task-tracker.security.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/task-api-main/task-tracker.task-api-main.iml" filepath="$PROJECT_DIR$/.idea/modules/task-api-main/task-tracker.task-api-main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/task-api-main/task-tracker.task-api-main.main.iml" filepath="$PROJECT_DIR$/.idea/modules/task-api-main/task-tracker.task-api-main.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/task-api-main/task-tracker.task-api-main.test.iml" filepath="$PROJECT_DIR$/.idea/modules/task-api-main/task-tracker.task-api-main.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/task-attachment/task-tracker.task-attachment.iml" filepath="$PROJECT_DIR$/.idea/modules/task-attachment/task-tracker.task-attachment.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/task-attachment/task-tracker.task-attachment.main.iml" filepath="$PROJECT_DIR$/.idea/modules/task-attachment/task-tracker.task-attachment.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/task-attachment/task-tracker.task-attachment.test.iml" filepath="$PROJECT_DIR$/.idea/modules/task-attachment/task-tracker.task-attachment.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/telegram-bot/task-tracker.telegram-bot.iml" filepath="$PROJECT_DIR$/.idea/modules/telegram-bot/task-tracker.telegram-bot.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/telegram-bot/task-tracker.telegram-bot.main.iml" filepath="$PROJECT_DIR$/.idea/modules/telegram-bot/task-tracker.telegram-bot.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/telegram-bot/task-tracker.telegram-bot.test.iml" filepath="$PROJECT_DIR$/.idea/modules/telegram-bot/task-tracker.telegram-bot.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/telegram-bot/telegram-bot.iml" filepath="$PROJECT_DIR$/telegram-bot/telegram-bot.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/testtest.main.iml" filepath="$PROJECT_DIR$/.idea/modules/testtest.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/testtest.test.iml" filepath="$PROJECT_DIR$/.idea/modules/testtest.test.iml" />
     </modules>

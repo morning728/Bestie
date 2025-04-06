@@ -31,10 +31,14 @@ application:
   security:
     jwt:
       expiration-email-key: 36000000 # an 10 hour
+      expiration-invite-key: 36000000 # an 10 hour
       secret-email-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5971
       secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
     db: jdbc:postgresql://localhost:5432/security?serverTimezone=UTC
     db-username: postgres
     db-password: root
     userInfoPath: http://localhost:8765/security/v1/users/info
+    baseUrlPath: http://localhost:8765/security/v1
+  invitation:
+    url: http://localhost:8765/api/v1/invitation/accept?token=
 

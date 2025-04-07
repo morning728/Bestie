@@ -139,7 +139,7 @@ public class TaskController {
     public Mono<ResponseEntity<Void>> manageTaskTags(@PathVariable Long taskId,
                                                      @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token,
                                                      @RequestBody List<Long> tagIds) {
-        return taskService.manageTaskTags(taskId, token, tagIds)
+        return taskService.manageTaskTags(taskId, token, tagIds, false)
                 .then(Mono.just(ResponseEntity.ok().build()));
     }
 }

@@ -130,11 +130,11 @@ public class TaskService {
                     task.setIsArchived(false);
                     return taskRepository.save(task)
                             .flatMap(savedTask ->
-                                    manageTaskTags(savedTask.getId(), token, taskDTO.getTagIds())
+                                    manageTaskTags(savedTask.getId(), token, taskDTO.getTagIds(), true)
                                             .then(taskDTO.getAssigneeIds().isEmpty() ?
-                                                    manageTaskAssignees(savedTask.getId(), token, List.of(savedTask.getCreatedBy())) :
-                                                    manageTaskAssignees(savedTask.getId(), token, taskDTO.getAssigneeIds()))
-                                            .then(manageReminder(savedTask.getId(), token, taskDTO.getReminderDate(), taskDTO.getReminderTime()))
+                                                    manageTaskAssignees(savedTask.getId(), token, List.of(savedTask.getCreatedBy()), true) :
+                                                    manageTaskAssignees(savedTask.getId(), token, taskDTO.getAssigneeIds(), true))
+                                            .then(manageReminder(savedTask.getId(), token, taskDTO.getReminderDate(), taskDTO.getReminderTime(), true))
                                             .thenReturn(savedTask));
                 });
     }
@@ -151,7 +151,6 @@ public class TaskService {
                     existingTask.setTitle(updatedTask.getTitle());
                     existingTask.setDescription(updatedTask.getDescription());
                     existingTask.setPriority(updatedTask.getPriority());
-                    existingTask.setStatusId(updatedTask.getStatusId());
                     existingTask.setStartDate(updatedTask.getStartDate());
                     existingTask.setEndDate(updatedTask.getEndDate());
                     existingTask.setStartTime(updatedTask.getStartTime());
@@ -160,10 +159,13 @@ public class TaskService {
                     updatedTask.setTagIds(updatedTask.getTagIds() == null ? new ArrayList<>() : updatedTask.getTagIds());
                     updatedTask.setAssigneeIds(updatedTask.getAssigneeIds() == null ? new ArrayList<>() : updatedTask.getAssigneeIds());
 
+
+
                     return taskRepository.save(existingTask)
-                            .flatMap(savedTask -> manageTaskTags(savedTask.getId(), token, updatedTask.getTagIds())
-                                    .then(manageTaskAssignees(savedTask.getId(), token, updatedTask.getAssigneeIds()))
-                                    .then(manageReminder(taskId, token, updatedTask.getReminderDate(), updatedTask.getReminderTime()))
+                            .flatMap(savedTask -> manageTaskTags(savedTask.getId(), token, updatedTask.getTagIds(), false)
+                                    .then(manageTaskAssignees(savedTask.getId(), token, updatedTask.getAssigneeIds(), false))
+                                    .then(manageReminder(taskId, token, updatedTask.getReminderDate(), updatedTask.getReminderTime(), false))
+                                    .then(manageTaskStatus(taskId, token, updatedTask.getStatusId()))
                                     .thenReturn(savedTask));
                 });
     }
@@ -238,10 +240,10 @@ public class TaskService {
     /**
      * ✅ Управление напоминанием задачи (создание/обновление/удаление)
      */
-    public Mono<Void> manageReminder(Long taskId, String token, LocalDate reminderDate, LocalTime reminderTime) {
+    public Mono<Void> manageReminder(Long taskId, String token, LocalDate reminderDate, LocalTime reminderTime, Boolean isCreation) {
         return taskRepository.findById(taskId)
                 .switchIfEmpty(Mono.error(new NotFoundException("Task not found")))
-                .flatMap(task -> validateRequesterHasPermission(task.getProjectId(), token, Permission.CAN_MANAGE_REMINDERS)
+                .flatMap(task -> validateRequesterHasPermission(task.getProjectId(), token,  isCreation ? Permission.CAN_CREATE_TASKS : Permission.CAN_MANAGE_REMINDERS)
                         .then(
                                 taskReminderRepository.findByTaskId(taskId)
                                         .switchIfEmpty(
@@ -274,10 +276,10 @@ public class TaskService {
     /**
      * ✅ Управление тегами задачи (добавление/удаление)
      */
-    public Mono<Void> manageTaskTags(Long taskId, String token, List<Long> tagIds) {
+    public Mono<Void> manageTaskTags(Long taskId, String token, List<Long> tagIds, Boolean isCreation) {
         return taskRepository.findById(taskId)
                 .switchIfEmpty(Mono.error(new NotFoundException("Task not found")))
-                .flatMap(task -> validateRequesterHasPermission(task.getProjectId(), token, Permission.CAN_MANAGE_TASK_TAGS)
+                .flatMap(task -> validateRequesterHasPermission(task.getProjectId(), token,  isCreation ? Permission.CAN_CREATE_TASKS : Permission.CAN_MANAGE_TASK_TAGS)
                         .thenMany((taskTagRepository.findTagsByTaskId(taskId)
                                 .collectList()
                                 .zipWith(projectTagRepository.findTagsByProjectId(task.getProjectId()).collectList()))
@@ -309,17 +311,17 @@ public class TaskService {
     /**
      * ✅ Управление ответственными задачи (добавление/удаление)
      */
-    public Mono<Void> manageTaskAssignees(Long taskId, String token, List<Long> userIds) {
+    public Mono<Void> manageTaskAssignees(Long taskId, String token, List<Long> userIds, Boolean isCreation) {
         return taskRepository.findById(taskId)
                 .switchIfEmpty(Mono.error(new NotFoundException("Task not found")))
-                .flatMap(task -> validateRequesterHasPermission(task.getProjectId(), token, Permission.CAN_MANAGE_ASSIGNEES)
+                .flatMap(task -> validateRequesterHasPermission(task.getProjectId(), token, isCreation ? Permission.CAN_CREATE_TASKS : Permission.CAN_MANAGE_ASSIGNEES)
                         .thenMany((taskAssigneeRepository.findByTaskId(taskId)
                                 .collectList()
                                 .zipWith(projectUserRepository.findUsersByProjectId(task.getProjectId()).collectList()))
                                 .flatMap(objects -> {
 
                                     List<Long> existingProjectUsersIds = objects.getT2().stream().map(User::getId).toList();
-                                    List<Long> existingTaskAssigneesIds = objects.getT1().stream().map(TaskAssignee::getId).toList();
+                                    List<Long> existingTaskAssigneesIds = objects.getT1().stream().map(TaskAssignee::getUserId).toList();
 
                                     // Определяем ответственных, которые нужно удалить
                                     List<Long> assigneesToRemove = existingTaskAssigneesIds.stream()

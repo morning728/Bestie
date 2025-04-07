@@ -55,7 +55,11 @@ function App() {
                   <Sidebar />
                   <Box className="content">
                     <Routes>
-                      <Route path="/projects/:projectId/tasks" element={<MainPage />} />
+                      <Route path="/projects/:projectId/tasks" element={
+                        <ProjectAccessWrapper>
+                        <MainPage />
+                        </ProjectAccessWrapper>
+                        } />
                       <Route
                         path="/projects/:projectId/settings"
                         element={

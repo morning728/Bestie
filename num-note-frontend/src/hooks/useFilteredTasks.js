@@ -20,20 +20,28 @@ export const useFilteredTasksWithDates = (
   tasks,
   filterTag,
   filterStatus,
+  filterAssignee,
   filterTitle,
   startDate,
   endDate,
   showArchived,
-  allStatuses
+  allStatuses,
+  allMembers
 ) => {
   return useMemo(() => {
     return tasks.filter((task) => {
       // 👉 Получаем массив имён тегов
       const taskTagNames = task.tags?.map((t) => t.name) || [];
-
-      // 👉 Получаем имя статуса по ID
+      // 👉 Получаем массив id статусов
       const taskStatusName =
         allStatuses.find((status) => status.id === task.statusId)?.name || "";
+
+      // 👉 Получаем массив id assignees
+      const taskAssigneeIds = task.assignees?.map((a) => a.userId) || [];
+      // 👉 Получаем имена ответственных по id
+      const taskAssigneeNames =
+        allMembers.filter((member) => taskAssigneeIds.includes(member.userId))
+          .map((member) => member.username);
 
       const taskStartDate = new Date(task.startDate);
       const taskEndDate = new Date(task.endDate);
@@ -49,6 +57,7 @@ export const useFilteredTasksWithDates = (
         : null;
 
       const matchesTag = filterTag ? taskTagNames.includes(filterTag) : true;
+      const matchesAssignee = filterAssignee ? taskAssigneeNames.includes(filterAssignee) : true;
       const matchesStatus = filterStatus ? taskStatusName === filterStatus : true;
       const matchesShowArchived = Boolean(task.isArchived) === showArchived;
       const matchesTitle = filterTitle
@@ -70,6 +79,7 @@ export const useFilteredTasksWithDates = (
       return (
         matchesTag &&
         matchesStatus &&
+        matchesAssignee &&
         matchesDate &&
         matchesShowArchived &&
         matchesTitle
@@ -79,6 +89,7 @@ export const useFilteredTasksWithDates = (
     tasks,
     filterTag,
     filterStatus,
+    filterAssignee,
     filterTitle,
     startDate,
     endDate,

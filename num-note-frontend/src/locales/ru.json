@@ -216,5 +216,6 @@
   "generate_invite_link": "Сгенерировать ссылку",
   "send_invite": "Пригласить через приложение",
   "invite_link": "Ссылка для приглашения",
-  "generate_universal_link": "Универсальная ссылка"
+  "generate_universal_link": "Универсальная ссылка",
+  "filter_assignee": "Фильтр ответвенных"
 }

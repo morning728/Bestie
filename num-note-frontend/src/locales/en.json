@@ -174,5 +174,6 @@
   "login_welcome_back": "Welcome back!",
   "login_username": "Username",
   "login_password": "Password",
-  "login_button": "Login"
+  "login_button": "Login",
+  "filter_assignee": "Filter Assignee"
 }

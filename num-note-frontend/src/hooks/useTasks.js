@@ -8,6 +8,7 @@ import {
   getProjectTags,
   getProjectStatuses,
   restoreTask,
+  getProjectMembers
 } from "../services/api";
 
 export const useTasks = (projectId) => {
@@ -37,10 +38,10 @@ export const useTasks = (projectId) => {
       } else {
         await createTask({ ...taskData, projectId });
       }
-      await fetchTasks();
     } catch (error) {
       console.error("Ошибка при добавлении/редактировании задачи:", error);
     } finally {
+      await fetchTasks();
       handleCloseAddDialog();
     }
   };
@@ -54,10 +55,10 @@ export const useTasks = (projectId) => {
   const archiveTask = async (taskId) => {
     try {
       await archiveTaskApi(taskId);
-      await fetchTasks();
     } catch (error) {
       console.error("Ошибка при архивировании:", error);
     } finally {
+      await fetchTasks();
       handleCloseDetailsDialog();
     }
   };
@@ -65,10 +66,10 @@ export const useTasks = (projectId) => {
   const restoreArchivedTask = async (taskId) => {
     try {
       await restoreTask(taskId);
-      fetchTasks();
     } catch (error) {
       console.error("Ошибка восстановления задачи:", error);
     } finally {
+      await fetchTasks();
       handleCloseDetailsDialog();
     }
   };
@@ -107,14 +108,16 @@ export const useTasks = (projectId) => {
 
     try {
       await updateTask(taskId, updatedTask);
-      await fetchTasks(); // обновляем список после успешного обновления
     } catch (err) {
       console.error("Ошибка при смене статуса:", err);
+    } finally {
+      await fetchTasks(); // обновляем список после успешного обновления
     }
   };
 
   const getTags = () => getProjectTags(projectId).then(res => res.data);
   const getStatuses = () => getProjectStatuses(projectId).then(res => res.data);
+  const getMembers = () => getProjectMembers(projectId).then(res => res.data)
 
   return {
     tasks,
@@ -132,6 +135,7 @@ export const useTasks = (projectId) => {
     handleCloseDetailsDialog,
     getTags,
     getStatuses,
+    getMembers,
     handleStatusChange,
   };
 };

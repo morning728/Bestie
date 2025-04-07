@@ -18,11 +18,20 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { ThemeContext } from "../../../ThemeContext";
 import Autocomplete from "@mui/material/Autocomplete";
 import "./AddTaskDialog.css";
+import { useProjectAccess } from "../../../context/ProjectAccessContext";
 
-const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags, statuses }) => {
+const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags, statuses, members }) => {
   const { darkMode } = useContext(ThemeContext);
   const { t } = useTranslation();
   const defaultDate = format(new Date(), "yyyy-MM-dd");
+
+  const { me, myRole, hasPermission, loading } = useProjectAccess();
+
+  const canEditTasks = hasPermission("CAN_EDIT_TASKS") || !isEditing;
+  const canManageStatuses = hasPermission("CAN_MANAGE_TASK_STATUSES") || !isEditing;
+  const canManageTags = hasPermission("CAN_MANAGE_TASK_TAGS") || !isEditing;
+  const canManageReminders = hasPermission("CAN_MANAGE_REMINDERS") || !isEditing;
+  const canManageAssignees = hasPermission("CAN_MANAGE_ASSIGNEES") || !isEditing;
 
   const [newTask, setNewTask] = useState({
     title: "",
@@ -32,6 +41,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
     startTime: "00:00",
     endTime: "23:59",
     tagIds: [],
+    assigneeIds: [],
     statusId: "",
     priority: "Medium",
     reminder: false,
@@ -45,6 +55,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
         setNewTask({
           ...task,
           tagIds: task.tags?.map((tag) => tag.id) || [],
+          assigneeIds: task.assignees?.map((assignee) => assignee.userId) || [],
           reminder: task.reminderDate != null && task.reminderTime != null,
           reminderDate: task.reminderDate || "",
           reminderTime: task.reminderTime || "",
@@ -58,6 +69,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
           startTime: "00:00",
           endTime: "23:59",
           tagIds: [],
+          assigneeIds: [],
           statusId: "",
           priority: "Medium",
           reminder: false,
@@ -121,8 +133,9 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
       <DialogTitle sx={{ backgroundColor: darkMode ? "#2b2b60" : "white", color: darkMode ? "white" : "black" }}>
         {isEditing ? t("edit_task") : t("add_new_task")}
       </DialogTitle>
-      <DialogContent sx={{backgroundColor: darkMode ? "#2b2b60" : "white", color: darkMode ? "white" : "black" }} className="dialog-content">
+      <DialogContent sx={{ backgroundColor: darkMode ? "#2b2b60" : "white", color: darkMode ? "white" : "black" }} className="dialog-content">
         <TextField
+          disabled={!canEditTasks}
           name="title"
           label={t("task_title")}
           fullWidth
@@ -136,6 +149,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
         <Box className="date-time-container">
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <DatePicker
+              disabled={!canEditTasks}
               label={t("start_date")}
               value={newTask.startDate}
               onChange={(date) => handleDateChange("startDate", date)}
@@ -143,6 +157,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
             />
           </LocalizationProvider>
           <TextField
+            disabled={!canEditTasks}
             name="startTime"
             label={t("start_time")}
             type="time"
@@ -157,6 +172,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
         <Box className="date-time-container">
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <DatePicker
+              disabled={!canEditTasks}
               label={t("end_date")}
               value={newTask.endDate}
               onChange={(date) => handleDateChange("endDate", date)}
@@ -164,6 +180,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
             />
           </LocalizationProvider>
           <TextField
+            disabled={!canEditTasks}
             name="endTime"
             label={t("end_time")}
             type="time"
@@ -176,6 +193,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
 
         {/* Tag (выбор только одного пока) */}
         <Autocomplete
+          disabled={!canManageTags}
           multiple
           options={tags}
           getOptionLabel={(option) => option.name}
@@ -191,7 +209,25 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
           )}
         />
 
+        <Autocomplete //tyt
+          disabled={!canManageAssignees}
+          multiple
+          options={members}
+          getOptionLabel={(option) => option.username}
+          value={members.filter((member) => newTask.assigneeIds.includes(member.userId))}
+          onChange={(event, newValue) =>
+            setNewTask((prev) => ({
+              ...prev,
+              assigneeIds: newValue.map((assignee) => assignee.userId),
+            }))
+          }
+          renderInput={(params) => (
+            <TextField {...params} label={t("assignee")} margin="normal" fullWidth />
+          )}
+        />
+
         <TextField
+          disabled={!canEditTasks}
           name="description"
           label={t("description")}
           fullWidth
@@ -203,6 +239,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
         />
 
         <TextField
+          disabled={!canEditTasks}
           select
           name="priority"
           label={t("priority")}
@@ -216,7 +253,8 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
           <MenuItem value="High">High</MenuItem>
         </TextField>
 
-        <TextField
+        {/* <TextField
+        disabled = {!canManageStatuses}
           select
           name="statusId"
           label={t("status")}
@@ -230,11 +268,30 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
               {status.name}
             </MenuItem>
           ))}
-        </TextField>
+        </TextField> */}
+
+
+        <Autocomplete
+          disabled={!canManageStatuses}
+          name="statusId"
+          getOptionLabel={(option) => option.name}
+          options={statuses}
+          value={statuses.find((status) => newTask.statusId === status.id) || null}
+          onChange={(event, newValue) =>
+            setNewTask((prev) => ({
+              ...prev,
+              statusId: newValue ? newValue.id : null,
+            }))
+          }
+          renderInput={(params) => (
+            <TextField {...params} label={t("status")} margin="normal" fullWidth />
+          )}
+        />
 
         {/* Reminder */}
         <Box mt={2}>
           <FormControlLabel
+            disabled={!canManageReminders}
             control={<Switch checked={newTask.reminder} onChange={handleReminderToggle} />}
             label={t("enable_reminder")}
           />
@@ -244,6 +301,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
           <Box className="date-time-container">
             <LocalizationProvider dateAdapter={AdapterDateFns}>
               <DatePicker
+                disabled={!canManageReminders}
                 label={t("reminder_date")}
                 value={newTask.reminderDate}
                 onChange={(date) => handleDateChange("reminderDate", date)}
@@ -251,6 +309,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
               />
             </LocalizationProvider>
             <TextField
+              disabled={!canManageReminders}
               name="reminderTime"
               label={t("reminder_time")}
               type="time"
@@ -264,7 +323,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
       </DialogContent>
       <DialogActions sx={{ backgroundColor: darkMode ? "#2b2b60" : "white", color: darkMode ? "white" : "black" }}>
         <Button onClick={handleClose}>{t("cancel")}</Button>
-        <Button onClick={handleSave} color="primary" variant="contained">
+        <Button onClick={handleSave} color="primary" variant="contained" disabled={!canEditTasks}>
           {t("save")}
         </Button>
       </DialogActions>

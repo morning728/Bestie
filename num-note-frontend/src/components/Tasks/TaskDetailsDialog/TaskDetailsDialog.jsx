@@ -4,10 +4,15 @@ import { Dialog, Box, Typography, Chip, Button } from "@mui/material";
 import { useContext } from "react";
 import { ThemeContext } from "../../../ThemeContext";
 import "./TaskDetailsDialog.css";
+import { useProjectAccess } from "../../../context/ProjectAccessContext";
 
 const TaskDetailsDialog = ({ open, task, handleClose, onEdit, onArchive, onRestore, statuses }) => {
   const { darkMode } = useContext(ThemeContext);
   const { t } = useTranslation();
+const { me, myRole, hasPermission, loading } = useProjectAccess();
+  const canEditTasks = hasPermission("CAN_EDIT_TASKS");
+  const canArchive = hasPermission("CAN_ARCHIVE_TASKS");
+  const canRestore = hasPermission("CAN_RESTORE_TASKS");
 
   if (!task) return null;
 
@@ -56,6 +61,7 @@ const TaskDetailsDialog = ({ open, task, handleClose, onEdit, onArchive, onResto
 
         <Box mt={3} display="flex" justifyContent="space-around">
           {!task.isArchived && (<Button
+          disabled = {!canEditTasks}
             variant="contained"
             color="primary"
             onClick={() => onEdit(task)}
@@ -70,6 +76,7 @@ const TaskDetailsDialog = ({ open, task, handleClose, onEdit, onArchive, onResto
           </Button>)
           }
           <Button
+          disabled = {task.isArchived ? !canRestore : !canArchive}
             variant="contained"
             color="secondary"
             onClick={() =>

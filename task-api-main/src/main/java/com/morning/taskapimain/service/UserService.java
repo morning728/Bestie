@@ -2,6 +2,7 @@ package com.morning.taskapimain.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.morning.taskapimain.entity.dto.UserDTO;
 import com.morning.taskapimain.entity.user.Contacts;
 import com.morning.taskapimain.entity.user.User;
 import com.morning.taskapimain.entity.dto.ProfileDTO;
@@ -45,14 +46,16 @@ public class UserService {
     private String securityDatabasePassword;
 
 
+    // Лучше удалить позже
     private static final String SELECT_USER_CONTACTS_QUERY =     """
     select username, telegram_id, email from public.auth_user
     """;
-
+    // Лучше удалить позже
     public Connection getConnection() throws SQLException {
         return DriverManager.getConnection(securityDatabasePath,
                 securityDatabaseUsername, securityDatabasePassword);
     }
+    // Лучше удалить позже
     public Mono<Contacts> getUserContactsByUsername(String username) {
 
         return Mono.fromCallable(() -> {
@@ -81,12 +84,29 @@ public class UserService {
                 .subscribeOn(Schedulers.boundedElastic()); // Выполняем асинхронно
     }
 
+
     /**
      * ✅ Получение пользователя по username
      */
     public Mono<User> getUserByUsername(String username) {
         return userRepository.findByUsername(username)
                 .switchIfEmpty(Mono.error(new NotFoundException("User not found")));
+    }
+
+    /**
+     * ✅ Получение пользователя по username
+     */
+    public Mono<User> getUserByToken(String token) {
+        return userRepository.findByUsername(jwtService.extractUsername(token))
+                .switchIfEmpty(Mono.error(new NotFoundException("User not found")));
+    }
+
+    /**
+     * ✅ Получение пользователя по startWith
+     */
+    public Flux<UserDTO> getUsersByStartWith(String startWith) {
+        return userRepository.findFirst10ByUsernameStartingWithIgnoreCase(startWith)
+                .map(UserDTO::fromUser);
     }
 
     /**
@@ -148,51 +168,13 @@ public class UserService {
     /**
      * ✅ Получение ID пользователя по username
      */
-    private Long getUserId(String username) {
+    public Mono<Long> getUserId(String username) {
         return userRepository.findByUsername(username)
                 .map(User::getId)
-                .switchIfEmpty(Mono.error(new NotFoundException("User not found")))
-                .block();
+                .switchIfEmpty(Mono.error(new NotFoundException("User not found")));
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    private HttpEntity<String> createHttpEntity(ProfileDTO dto, HttpHeaders headers) throws JsonProcessingException {
-        HashMap<String, String> map = new HashMap<>();
-        if(dto.getUsername() != null){
-            map.put("username", dto.getUsername());
-        }
-        if(dto.getEmail() != null){
-            map.put("email", dto.getEmail());
-        }
-        if(dto.getTelegramId() != null){
-            map.put("telegramId", dto.getTelegramId());
-        }
-        ObjectMapper objectMapper = new ObjectMapper();
-        String jacksonData = objectMapper.writeValueAsString(map);
-        return new HttpEntity<>((jacksonData), headers);
-    }
-
-    public Mono<ProfileDTO> findProfileByUsernameWithWebClient(String usernameToGetProfile, String yourToken) {
+    public Mono<Contacts> findProfileByUsernameWithWebClient(String usernameToGetProfile, String yourToken) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/users/info")
@@ -200,7 +182,7 @@ public class UserService {
                         .build())
                 .header("Authorization",  yourToken)
                 .retrieve()
-                .bodyToMono(ProfileDTO.class);
+                .bodyToMono(Contacts.class);
     }
 
 

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {
   Box,
   Grid,
@@ -19,48 +19,48 @@ import TaskCard from "../../components/Tasks/TaskCard/TaskCard";
 import AddTaskDialog from "../../components/Tasks/AddTaskDialog/AddTaskDialog";
 import TaskDetailsDialog from "../../components/Tasks/TaskDetailsDialog/TaskDetailsDialog";
 import { ThemeContext } from "../../ThemeContext";
+import { useProjectAccess } from "../../context/ProjectAccessContext";
 import { useFilteredTasksWithDates } from "../../hooks/useFilteredTasks";
 import { useTasks } from "../../hooks/useTasks";
 import "./MainPage.css";
+import { useParams } from "react-router-dom"; // ← нужный импорт
+import KanbanBoard from "../../components/KanbanBoard/KanbanBoard";
+import "./MainPage.css";
+
 
 const MainPage = () => {
+  const { projectId } = useParams(); // <== получаем projectId из URL
+  const { t } = useTranslation();
   const { darkMode } = useContext(ThemeContext);
-  const { t, i18n } = useTranslation();
+  const [DDView, setDDView] = useState(false);
 
-  const tags = [
-    { id: 0, name: "Health", color: "#008000" },
-    { id: 1, name: "Work", color: "#ff0000" },
-    { id: 2, name: "Personal", color: "#0000ff" },
-    { id: 3, name: "Study", color: "#ff00ff" },
-    { id: 4, name: "Business", color: "#00ffff" },
-  ];
+  const [tags, setTags] = useState([]);
+  const [statuses, setStatuses] = useState([]);
+  const [members, setMembers] = useState([]);
 
-  const statuses = [
-    { id: 0, name: "In Progress", color: "#ffff00" },
-    { id: 1, name: "Overdue", color: "#00f00f" },
-    { id: 2, name: "Completed", color: "#00ff00" },
-    { id: 3, name: "Pendding", color: "#ff0000" },
-  ];
-
-  // Преобразуем массив объектов в массив строк
-  const tagNames = tags.map(tag => tag.name);
-  const statusNames = statuses.map(status => status.name);
-
-  const initialTasks = [
-    { id: 1, title: "Morning Meeting", is_archived: false, start_time: "09:00", end_time: "15:00", tag: "Work", status: "Completed", start_date: "2025-02-16", end_date: "2025-02-17" },
-    { id: 2, title: "Workout Session", is_archived: false, start_time: "18:00", end_time: "15:00", tag: "Health", status: "Pending", start_date: "2025-02-18", end_date: "2025-02-20" },
-    { id: 3, title: "Grocery Shopping", is_archived: false, start_time: "14:00", end_time: "15:00", tag: "Personal", status: "Overdue", start_date: "2025-02-21", end_date: "2025-02-24" },
-    { id: 4, title: "Training", is_archived: true, start_time: "14:00", end_time: "15:00", tag: "Personal", status: "Overdue", start_date: "2025-02-21", end_date: "2025-02-24" },
-    { id: 5, title: "CCooking", is_archived: true, start_time: "14:00", end_time: "15:00", tag: "Personal", status: "Overdue", start_date: "2025-02-21", end_date: "2025-02-24" },
-    { id: 6, title: "Sleep", is_archived: true, start_time: "14:00", end_time: "15:00", tag: "Personal", status: "Overdue", start_date: "2025-02-21", end_date: "2025-02-24" },
-  ];
-
-  const [showArchived, setShowArchived] = useState(false);
-  const [filterTag, setFilterTag] = useState("");
-  const [filterStatus, setFilterStatus] = useState("");
   const [filterTitle, setFilterTitle] = useState("");
+  const [filterTag, setFilterTag] = useState("");
+  const [filterAssignee, setFilterAssignee] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
+  const [showArchived, setShowArchived] = useState(false);
+  const handleToggleArchived = () => setShowArchived(prev => !prev);
+
+  const { me, myRole, hasPermission, loading } = useProjectAccess();
+
+  // Permissions
+  const canCreateTasks = hasPermission("CAN_CREATE_TASKS");
+
+  // Permissions
+
+  useEffect(() => {
+    if (projectId) {
+      getTags().then(setTags);
+      getStatuses().then(setStatuses);
+      getMembers().then(setMembers);
+    }
+  }, [projectId]);
 
   const {
     tasks,
@@ -71,20 +71,42 @@ const MainPage = () => {
     addTask,
     editTask,
     archiveTask,
+    restoreArchivedTask,
     handleOpenAddDialog,
     handleOpenDetailsDialog,
     handleCloseAddDialog,
-    handleCloseDetailsDialog
-  } = useTasks(initialTasks);
+    handleCloseDetailsDialog,
+    getTags,
+    getStatuses,
+    getMembers,
+    handleStatusChange,
+  } = useTasks(projectId); // <== передаем projectId
 
-  const handleToggleArchived = () => {
-    setShowArchived((prev) => !prev);
+  const filteredTasks = useFilteredTasksWithDates(
+    tasks,
+    filterTag,
+    filterStatus,
+    filterAssignee,
+    filterTitle,
+    startDate,
+    endDate,
+    showArchived,
+    statuses,
+    members,
+  );
+
+  const toggleView = () => {
+    setDDView((prev) => !prev);
   };
 
-  // Фильтрация задач по тегу, статусу и дате
-  const filteredTasks = useFilteredTasksWithDates(tasks, filterTag, filterStatus, filterTitle, startDate, endDate, showArchived);
+  const tagNames = tags.map(tag => tag.name);
+  const statusNames = statuses.map(status => status.name);
+  const memberNames = members.map(member => member.username);
+
+  // if (loading) return <p>Загрузка...</p>;
 
   return (
+
     <Box className={`main-content ${darkMode ? "night" : "day"}`}>
       <Header />
       <Box mt={2} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -99,9 +121,25 @@ const MainPage = () => {
             margin="normal"
           />
         </Box>
-        <Button variant="contained" sx={{ backgroundcolor: "#9932CC" }} onClick={handleToggleArchived}>
-          {showArchived ? t("hide_archive") : t("show_archive")}
-        </Button>
+        {!showArchived && (
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={toggleView} // твоя функция переключения DDView
+          >
+            {!DDView ? t("kanban_view") : t("list_view")}
+          </Button>
+        )}
+        {!DDView && (
+          <Button variant="contained" sx={{ backgroundcolor: "#9932CC" }} onClick={handleToggleArchived}>
+            {showArchived ? t("hide_archive") : t("show_archive")}
+          </Button>
+        )}
+        {DDView &&
+          <Button disabled={!canCreateTasks} variant="contained" sx={{ backgroundcolor: "#9932CC" }} onClick={handleOpenAddDialog}>
+            {t("main_page_add_task")}
+          </Button>
+        }
       </Box>
 
       {/* Фильтры */}
@@ -126,6 +164,16 @@ const MainPage = () => {
             value={filterStatus} // Сохраняем строку
             onChange={(event, newValue) => setFilterStatus(newValue)} // Сохраняем выбранную строку
             renderInput={(params) => <TextField {...params} label={t("filter_status")} fullWidth margin="normal" />}
+            freeSolo // Разрешаем вводить произвольные значения
+          />
+
+          {/* Filter Assignee */}
+          <Autocomplete
+            sx={{ width: "50%" }}
+            options={memberNames} // Передаем список строк
+            value={filterAssignee} // Сохраняем строку
+            onChange={(event, newValue) => setFilterAssignee(newValue)} // Сохраняем выбранную строку
+            renderInput={(params) => <TextField {...params} label={t("filter_assignee")} fullWidth margin="normal" />}
             freeSolo // Разрешаем вводить произвольные значения
           />
         </Box>
@@ -171,21 +219,35 @@ const MainPage = () => {
 
       <Divider sx={{ mb: 2 }} />
 
-      {/* Карточки задач */}
-      <Grid container spacing={2}>
-        {filteredTasks.map((task) => (
-          <Grid item xs={12} sm={6} md={4} key={task.id}>
-            <TaskCard task={task} tags={tags} statuses={statuses} onClick={() => handleOpenDetailsDialog(task)} />
+      {!DDView && (
+        <>
+          <Grid container spacing={2}>
+            {filteredTasks.map((task) => (
+              <Grid item xs={12} sm={6} md={4} key={task.id}>
+                <TaskCard task={task} tags={tags} statuses={statuses} onClick={() => handleOpenDetailsDialog(task)} />
+              </Grid>
+            ))}
           </Grid>
-        ))}
-      </Grid>
-      {!showArchived &&
-        <Box mt={4} textAlign="center">
-          <Button variant="contained" color="primary" size="large" onClick={handleOpenAddDialog}>
-            {t("main_page_add_task")}
-          </Button>
-        </Box>
-      }
+          {!showArchived &&
+            <Box mt={4} textAlign="center">
+              <Button disabled={!canCreateTasks} variant="contained" color="primary" size="large" onClick={handleOpenAddDialog}>
+                {t("main_page_add_task")}
+              </Button>
+            </Box>
+          }
+        </>
+      )}
+
+      <Box style={{ display: DDView ? "block" : "none" }}>
+        <KanbanBoard
+          tasks={filteredTasks}
+          statuses={statuses}
+          onCardClick={handleOpenDetailsDialog}
+          onStatusChange={handleStatusChange}
+        />
+      </Box>
+
+
       {/* Диалоги */}
       <AddTaskDialog
         open={openAddDialog.isOpen}
@@ -193,6 +255,9 @@ const MainPage = () => {
         handleAddTask={addTask}
         task={selectedTask}
         isEditing={isEditing}
+        tags={tags}
+        statuses={statuses}
+        members={members}
       />
 
       {selectedTask && (
@@ -202,9 +267,12 @@ const MainPage = () => {
           handleClose={handleCloseDetailsDialog}
           onEdit={editTask}
           onArchive={archiveTask}
+          onRestore={restoreArchivedTask}
+          statuses={statuses}
         />
       )}
     </Box>
+
   );
 };
 

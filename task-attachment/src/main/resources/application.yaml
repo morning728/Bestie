@@ -1,0 +1,31 @@
+server:
+  port: 8089
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/task_attachment_db
+    username: postgres
+    password: root
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+  flyway:
+    url: jdbc:postgresql://localhost:5432/task_attachment_db
+    locations: classpath:db/migration
+    user: postgres
+    password: root
+  application:
+    name: TASK-ATTACHMENT
+
+eureka:
+  client:
+    service-url:
+      defaultZone : http://localhost:8761/eureka
+
+minio:
+  url: http://localhost:9000
+  access-key: minioadmin
+  secret-key: minioadmin
+  bucket: attachments
+

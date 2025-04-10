@@ -28,6 +28,9 @@ public class Token {
 
   public boolean expired;
 
+  @Column(name = "chat_id", nullable = true)
+  private Long chatId; // Связь с Telegram
+
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "auth_user_id")
   public User user;

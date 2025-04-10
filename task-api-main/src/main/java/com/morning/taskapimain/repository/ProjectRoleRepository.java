@@ -1,6 +1,5 @@
 package com.morning.taskapimain.repository;
 
-import com.morning.taskapimain.entity.project.Permission;
 import com.morning.taskapimain.entity.project.ProjectRole;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
@@ -8,16 +7,13 @@ import org.springframework.data.repository.query.Param;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.Map;
-
 public interface ProjectRoleRepository extends R2dbcRepository<ProjectRole, Long> {
 
     @Query("SELECT * FROM project_role WHERE project_id = :projectId")
     Flux<ProjectRole> getRolesByProjectId(@Param("projectId") Long projectId);
 
-    // 🔹 Получение информации о роли
-    @Query("SELECT * FROM project_role WHERE project_id = :projectId AND name = :roleName")
-    Mono<ProjectRole> findRoleByProjectIdAndName(@Param("projectId") Long projectId, @Param("roleName") String roleName);
+    @Query("SELECT * FROM project_role WHERE id = :id")
+    Mono<ProjectRole> findRoleById(@Param("id") Long id);
 
     // 🔹 Получение информации о роли пользователя
     @Query("SELECT pr.*\n" +
@@ -26,21 +22,14 @@ public interface ProjectRoleRepository extends R2dbcRepository<ProjectRole, Long
             "WHERE up.project_id = :projectId AND up.user_id = :userId;")
     Mono<ProjectRole> findRoleByProjectIdAndUserId(@Param("projectId") Long projectId, @Param("userId") Long userId);
 
-    // 🔹 Проверка, есть ли у роли определенное разрешение (использует JSONB)
-/*
-    @Query("SELECT (permissions->>:#{#permission.name()})::BOOLEAN " +
-            "FROM project_role WHERE name = :roleName AND project_id = :projectId")
-    Mono<Boolean> hasPermission(@Param("roleName") String roleName, @Param("projectId") Long projectId, @Param("permission") Permission permission);
-*/
-
     // 🔹 Создание ролей по умолчанию
     @Query("INSERT INTO project_role (project_id, name, permissions) VALUES " +
             "(:projectId, 'Owner', '{" +
             "\"CAN_CREATE_TASKS\": true, \"CAN_EDIT_TASKS\": true, \"CAN_DELETE_TASKS\": true,\"CAN_MANAGE_TASK_STATUSES\": true, \"CAN_MANAGE_TASK_TAGS\": true, " +
             "\"CAN_ARCHIVE_TASKS\": true, \"CAN_RESTORE_TASKS\": true, \"CAN_COMMENT_TASKS\": true, " +
             "\"CAN_MANAGE_REMINDERS\": true, \"CAN_EDIT_PROJECT\": true, \"CAN_MANAGE_MEMBERS\": true, " +
-            "\"CAN_MANAGE_ROLES\": true }'::JSONB)")
-    Mono<Void> createDefaultRoles(@Param("projectId") Long projectId);
+            "\"CAN_MANAGE_ROLES\": true, \"CAN_MANAGE_ASSIGNEES\": true  }') RETURNING *")
+    Mono<ProjectRole> createDefaultRoles(@Param("projectId") Long projectId);
 
     @Query("INSERT INTO project_role (project_id, name, permissions) VALUES (:projectId, :roleName, :permissions) RETURNING *")
     Mono<ProjectRole> addRole(@Param("projectId") Long projectId,
@@ -60,6 +49,7 @@ public interface ProjectRoleRepository extends R2dbcRepository<ProjectRole, Long
     Mono<Long> countUsersWithRole(@Param("roleId") Long roleId);
 
     @Query("DELETE FROM project_role WHERE id = :roleId")
-    Mono<Void> deleteRole(@Param("roleId") Long roleId);}
+    Mono<Void> deleteRole(@Param("roleId") Long roleId);
+}
 
 

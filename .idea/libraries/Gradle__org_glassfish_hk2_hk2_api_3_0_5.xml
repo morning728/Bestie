@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="Gradle: org.glassfish.hk2:hk2-api:3.0.5" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.glassfish.hk2" artifactId="hk2-api" version="3.0.5" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.glassfish.hk2/hk2-api/3.0.5/6774367a6780ea4fedc19425981f1b86762a3506/hk2-api-3.0.5.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

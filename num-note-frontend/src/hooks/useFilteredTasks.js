@@ -2,52 +2,98 @@ import { useMemo } from "react";
 
 export const useFilteredTasks = (tasks, filterTag, filterStatus) => {
   return useMemo(() => {
-    return tasks.filter(
-      (task) =>
-        (filterTag ? task.tag === filterTag : true) &&
-        (filterStatus ? task.status === filterStatus : true)
-    );
+    return tasks.filter((task) => {
+      const tagName = task.tag?.name;
+      const statusName = task.status?.name;
+
+      return (
+        (filterTag ? tagName === filterTag : true) &&
+        (filterStatus ? statusName === filterStatus : true)
+      );
+    });
   }, [tasks, filterTag, filterStatus]);
 };
 
 
-export const useFilteredTasksWithDates = (tasks, filterTag, filterStatus, filterTitle, startDate, endDate, showArchived) => {
-  return useMemo(() => {
-    return tasks.filter(task => {
-      const taskStartDate = new Date(task.start_date);
-      const taskEndDate = new Date(task.end_date);
 
-      // Приводим даты к формату без учета времени (чтобы сравнивались только YYYY-MM-DD)
+export const useFilteredTasksWithDates = (
+  tasks,
+  filterTag,
+  filterStatus,
+  filterAssignee,
+  filterTitle,
+  startDate,
+  endDate,
+  showArchived,
+  allStatuses,
+  allMembers
+) => {
+  return useMemo(() => {
+    return tasks.filter((task) => {
+      // 👉 Получаем массив имён тегов
+      const taskTagNames = task.tags?.map((t) => t.name) || [];
+      // 👉 Получаем массив id статусов
+      const taskStatusName =
+        allStatuses.find((status) => status.id === task.statusId)?.name || "";
+
+      // 👉 Получаем массив id assignees
+      const taskAssigneeIds = task.assignees?.map((a) => a.userId) || [];
+      // 👉 Получаем имена ответственных по id
+      const taskAssigneeNames =
+        allMembers.filter((member) => taskAssigneeIds.includes(member.userId))
+          .map((member) => member.username);
+
+      const taskStartDate = new Date(task.startDate);
+      const taskEndDate = new Date(task.endDate);
+
       taskStartDate.setHours(0, 0, 0, 0);
       taskEndDate.setHours(23, 59, 59, 999);
 
-      const selectedStartDate = startDate ? new Date(startDate).setHours(0, 0, 0, 0) : null;
-      const selectedEndDate = endDate ? new Date(endDate).setHours(23, 59, 59, 999) : null;
+      const selectedStartDate = startDate
+        ? new Date(startDate).setHours(0, 0, 0, 0)
+        : null;
+      const selectedEndDate = endDate
+        ? new Date(endDate).setHours(23, 59, 59, 999)
+        : null;
 
-      // Фильтрация по тегу и статусу
-      const matchesTag = filterTag ? task.tag === filterTag : true;
-      const matchesStatus = filterStatus ? task.status === filterStatus : true;
-      const matchesShowArchived = task.is_archived === showArchived;
+      const matchesTag = filterTag ? taskTagNames.includes(filterTag) : true;
+      const matchesAssignee = filterAssignee ? taskAssigneeNames.includes(filterAssignee) : true;
+      const matchesStatus = filterStatus ? taskStatusName === filterStatus : true;
+      const matchesShowArchived = Boolean(task.isArchived) === showArchived;
+      const matchesTitle = filterTitle
+        ? task.title.toLowerCase().includes(filterTitle.toLowerCase())
+        : true;
 
-      // Фильтрация по названию задачи
-      const matchesTitle = filterTitle ? task.title.toLowerCase().includes(filterTitle.toLowerCase()) : true;
-
-      // Фильтрация по датам (учет пересечения диапазонов)
       let matchesDate = true;
 
       if (selectedStartDate && !selectedEndDate) {
-        // Если выбран только startDate, проверяем пересечение с этим днем
         matchesDate = taskEndDate >= selectedStartDate;
       } else if (!selectedStartDate && selectedEndDate) {
-        // Если выбран только endDate, проверяем, начинается ли задача раньше или в этот день
         matchesDate = taskStartDate <= selectedEndDate;
       } else if (selectedStartDate && selectedEndDate) {
-        // Проверяем полное пересечение интервалов
-        matchesDate = taskStartDate <= selectedEndDate && taskEndDate >= selectedStartDate;
+        matchesDate =
+          taskStartDate <= selectedEndDate &&
+          taskEndDate >= selectedStartDate;
       }
 
-      return matchesTag && matchesStatus && matchesDate && matchesShowArchived && matchesTitle;
+      return (
+        matchesTag &&
+        matchesStatus &&
+        matchesAssignee &&
+        matchesDate &&
+        matchesShowArchived &&
+        matchesTitle
+      );
     });
-  }, [tasks, filterTag, filterStatus, filterTitle, startDate, endDate, showArchived]);
+  }, [
+    tasks,
+    filterTag,
+    filterStatus,
+    filterAssignee,
+    filterTitle,
+    startDate,
+    endDate,
+    showArchived,
+    allStatuses,
+  ]).sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 };
-

@@ -12,5 +12,6 @@ import lombok.NoArgsConstructor;
 public class Contacts {
     private String username;
     private String email;
+    private String chatId;
     private String telegramId;
 }

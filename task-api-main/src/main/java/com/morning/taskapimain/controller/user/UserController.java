@@ -1,5 +1,7 @@
 package com.morning.taskapimain.controller.user;
 
+import com.morning.taskapimain.entity.dto.AboutMeDTO;
+import com.morning.taskapimain.entity.dto.UserDTO;
 import com.morning.taskapimain.entity.user.Contacts;
 import com.morning.taskapimain.entity.user.User;
 import com.morning.taskapimain.entity.dto.ProfileDTO;
@@ -36,6 +38,14 @@ public class UserController {
     }
 
     /**
+     * ✅ Получение информации о пользователе по username
+     */
+    @GetMapping("/find")
+    public Flux<UserDTO> getUsersByStartWith(@RequestParam(name = "start-with") String startWith) {
+        return userService.getUsersByStartWith(startWith);
+    }
+
+    /**
      * ✅ Получение информации о пользователе по ID
      */
     @GetMapping("/id/{userId}")
@@ -64,11 +74,11 @@ public class UserController {
     /**
      * ✅ Получение контактов пользователя по username
      */
-    @GetMapping("/{username}/contacts")
+/*    @GetMapping("/{username}/contacts")
     public Mono<ResponseEntity<Contacts>> getUserContactsByUsername(@PathVariable String username) {
         return userService.getUserContactsByUsername(username)
                 .map(ResponseEntity::ok);
-    }
+    }*/
 
     /**
      * ✅ Обновление информации о пользователе
@@ -92,12 +102,21 @@ public class UserController {
     }
 
     /**
-     * ✅ Получение профиля пользователя через WebClient
+     * ✅ Получение контактов пользователя через WebClient
      */
-    @GetMapping("/{username}/profile")
-    public Mono<ResponseEntity<ProfileDTO>> findProfileByUsernameWithWebClient(@PathVariable String username,
+    @GetMapping("/{username}/contacts")
+    public Mono<ResponseEntity<Contacts>> findProfileByUsernameWithWebClient(@PathVariable String username,
                                                                                @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
         return userService.findProfileByUsernameWithWebClient(username, token)
                 .map(ResponseEntity::ok);
+    }
+
+    /**
+     *
+     */
+    @GetMapping("/me")
+    public Mono<AboutMeDTO> findMe(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
+        return userService.getUserByToken(token)
+                .map(AboutMeDTO::fromUser);
     }
 }

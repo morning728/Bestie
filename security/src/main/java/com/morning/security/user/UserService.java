@@ -45,6 +45,7 @@ public class UserService {
         User user = repository.findByUsername(username).orElseThrow(() -> {throw new RuntimeException(String.format("User (%s) was not found",username));});
         return ProfileInfoDTO.builder()
                 .telegramId(user.getTelegramId())
+                .chatId(user.getChatId() != null ? user.getChatId().toString() : null)
                 .email(user.getEmail())
                 .username(user.getUsername())
                 .build();

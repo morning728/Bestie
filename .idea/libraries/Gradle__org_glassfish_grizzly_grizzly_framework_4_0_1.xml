@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="Gradle: org.glassfish.grizzly:grizzly-framework:4.0.1" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.glassfish.grizzly" artifactId="grizzly-framework" version="4.0.1" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.glassfish.grizzly/grizzly-framework/4.0.1/e74677e0c089e54b558fb0de471a16a7a5fad699/grizzly-framework-4.0.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

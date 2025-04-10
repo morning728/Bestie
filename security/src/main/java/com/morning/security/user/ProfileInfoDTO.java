@@ -9,4 +9,5 @@ public class ProfileInfoDTO {
     private String username;
     private String email;
     private String telegramId;
+    private String chatId;
 }

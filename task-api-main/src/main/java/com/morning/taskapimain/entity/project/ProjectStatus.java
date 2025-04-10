@@ -8,11 +8,12 @@ import org.springframework.data.relational.core.mapping.Table;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table("project_statuses")
+@Table("project_status")
 public class ProjectStatus {
     @Id
     private Long id;
     private Long projectId;
     private String name;
     private String color;
+    private Long position;
 }

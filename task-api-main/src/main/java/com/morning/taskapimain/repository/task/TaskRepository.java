@@ -11,7 +11,10 @@ public interface TaskRepository extends R2dbcRepository<Task, Long> {
 
     // 🔹 Получение всех активных задач проекта
     @Query("SELECT * FROM task WHERE project_id = :projectId AND is_archived = FALSE")
-    Flux<Task> findByProjectId(@Param("projectId") Long projectId);
+    Flux<Task> findActiveByProjectId(@Param("projectId") Long projectId);
+
+    @Query("SELECT * FROM task WHERE project_id = :projectId")
+    Flux<Task> findAllByProjectId(@Param("projectId") Long projectId);
 
     // 🔹 Получение всех архивных задач проекта
     @Query("SELECT * FROM task WHERE project_id = :projectId AND is_archived = TRUE")

@@ -1,24 +1,18 @@
 package com.morning.apigateway.filter;
 
 
-import com.morning.apigateway.util.JwtUtil;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import reactor.core.publisher.Mono;
 
-import java.nio.file.AccessDeniedException;
 import java.util.Collections;
 
 @Component
-@Slf4j
 public class AuthenticationFilter extends AbstractGatewayFilterFactory<AuthenticationFilter.Config> {
 
     @Autowired
@@ -26,6 +20,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
 
     @Autowired
     private RestTemplate template;
+
     @Value("${services.path.security-validate-user}")
     private String userValidationPath;
 
@@ -36,39 +31,45 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
     @Override
     public GatewayFilter apply(Config config) {
         return ((exchange, chain) -> {
+            // Проверяем, защищен ли эндпоинт (isSecured)
             if (validator.isSecured.test(exchange.getRequest())) {
-                //header contains token or not
+                // Проверяем, есть ли токен в заголовках
                 if (!exchange.getRequest().getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
-                    throw new RuntimeException("Access Denied!");
+                    return sendUnauthorizedResponse(exchange, "The token is missing");
                 }
-
-/*                String authHeader = exchange.getRequest().getHeaders().get(HttpHeaders.AUTHORIZATION).get(0);
-                if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                    authHeader = authHeader.substring(7);
-                }*/
 
                 try {
                     HttpHeaders headers = new HttpHeaders();
                     headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-                    headers.add(
-                            HttpHeaders.AUTHORIZATION,
-                            exchange.getRequest().getHeaders().get(HttpHeaders.AUTHORIZATION).get(0)
-                    );
+                    headers.add(HttpHeaders.AUTHORIZATION, exchange.getRequest().getHeaders().get(HttpHeaders.AUTHORIZATION).get(0));
 
                     HttpEntity<String> entity = new HttpEntity<>("body", headers);
 
-                    template.exchange(userValidationPath, HttpMethod.GET, entity, String.class);
+                    ResponseEntity<String> response = template.exchange(userValidationPath, HttpMethod.GET, entity, String.class);
+
+                    if (response.getStatusCode() != HttpStatus.OK) {
+                        return sendUnauthorizedResponse(exchange, "The token is invalid");
+                    }
                 } catch (Exception e) {
-                    System.out.println(e.toString());
-                    return Mono.error(new HttpClientErrorException(HttpStatus.FORBIDDEN));
-//                    throw new RuntimeException("Access Denied!");
+                    return sendUnauthorizedResponse(exchange, "Token verification error");
                 }
             }
             return chain.filter(exchange);
         });
     }
 
-    public static class Config {
+    private Mono<Void> sendUnauthorizedResponse(org.springframework.web.server.ServerWebExchange exchange, String message) {
+        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED); // 401
+        exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
+        String errorJson = "{\"error\": \"" + message + "\"}";
+
+        return exchange.getResponse()
+                .writeWith(Mono.just(exchange.getResponse()
+                        .bufferFactory()
+                        .wrap(errorJson.getBytes())));
+    }
+
+    public static class Config {
     }
 }

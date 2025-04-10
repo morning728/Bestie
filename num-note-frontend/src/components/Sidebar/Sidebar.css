@@ -12,6 +12,31 @@
   z-index: 1000; /* Поверх основного контента */
 }
 
+/* Обертка списка с прокруткой */
+.sidebar-scrollable {
+  overflow-y: auto;
+  overflow-x: hidden; /* ❗️ Убираем горизонтальный скролл */
+  flex-grow: 1;
+  width: 100%;
+  padding-bottom: 1rem; /* чтобы не наезжало на футер */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE и Edge */
+}
+
+.sidebar-scrollable::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
+
+/* Прячем скроллбар, если хочешь */
+.sidebar-scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar-scrollable::-webkit-scrollbar-thumb {
+  background-color: rgba(255,255,255,0.3);
+  border-radius: 4px;
+}
+
 .css-cokf1l-MuiListItemIcon-root {
   min-inline-size: 0 !important;
   padding-left: 20%;
@@ -98,6 +123,37 @@
   font-size: 0.8rem;
   border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
+
+.sidebar-subitem {
+  color: #eee;
+  opacity: 0.8;
+  font-size: 0.85rem;
+}
+
+.sidebar-subitem:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  opacity: 1;
+}
+.sidebar-project-item {
+  padding-left: 8px;
+  padding-right: 8px;
+  margin: 2px 0;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.sidebar-project-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar.dark .sidebar-project-item:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.sidebar.light .sidebar-project-item:hover {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
 
 /* Тёмная тема */
 .sidebar.dark {

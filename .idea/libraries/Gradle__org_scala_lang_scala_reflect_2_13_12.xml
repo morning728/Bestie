@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: org.scala-lang:scala-reflect:2.13.12" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="org.scala-lang" artifactId="scala-reflect" version="2.13.12" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.scala-lang/scala-reflect/2.13.12/88be4dbc90fdd2d12c05b6a872a9add60524461d/scala-reflect-2.13.12.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.scala-lang/scala-reflect/2.13.12/7eef140fca722ab0018fba444a2b5c8badd43e86/scala-reflect-2.13.12-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

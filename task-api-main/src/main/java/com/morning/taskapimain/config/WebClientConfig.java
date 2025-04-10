@@ -1,5 +1,6 @@
 package com.morning.taskapimain.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -7,10 +8,13 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Configuration
 public class WebClientConfig {
 
+    @Value("${application.security.baseUrlPath}")
+    private String baseUrl;
+
     @Bean
     public WebClient webClient(WebClient.Builder builder) {
         return builder
-                .baseUrl("http://localhost:8765/security/v1")
+                .baseUrl(baseUrl)
                 .build();
     }
 }

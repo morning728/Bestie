@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="Gradle: io.minio:minio:8.5.7" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="io.minio" artifactId="minio" version="8.5.7" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/io.minio/minio/8.5.7/c17d6e693cfba62ad0822fde84336bb2ba814ff3/minio-8.5.7.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

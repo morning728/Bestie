@@ -11,6 +11,7 @@ public enum Permission {
     CAN_MANAGE_REMINDERS,
     CAN_MANAGE_TASK_TAGS,
     CAN_MANAGE_TASK_STATUSES,
+    CAN_MANAGE_ASSIGNEES,
 
 
     // 🔹 Доступ к проекту

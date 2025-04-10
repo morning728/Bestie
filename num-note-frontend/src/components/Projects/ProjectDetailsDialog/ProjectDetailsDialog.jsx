@@ -12,14 +12,14 @@ import {
 } from "@mui/material";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import { useTranslation } from "react-i18next";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { ThemeContext } from "../../../ThemeContext";
 import "./ProjectDetailsDialog.css";
 
 const ProjectDetailsDialog = ({ open, project, handleClose, onEdit, onDelete, onRemoveMember }) => {
   const { t } = useTranslation();
   const { darkMode } = useContext(ThemeContext);
-
+  const [openConfirm, setOpenConfirm] = useState(false);
   if (!project) return null;
 
   return (
@@ -45,16 +45,20 @@ const ProjectDetailsDialog = ({ open, project, handleClose, onEdit, onDelete, on
 
         <Box mt={2}>
           <Typography variant="subtitle1">{t("members")}:</Typography>
-          <Box className="members-list">
-            {project.members.map((member, index) => (
-              <Chip
-                key={index}
-                label={member}
-                deleteIcon={<HighlightOffIcon />}
-                onDelete={() => onRemoveMember(project.id, member)}
-                className="member-chip"
-              />
-            ))}
+          <Box className="members-box">
+            {project.members && project.members.length > 0 ? (
+              project.members.map((member) => (
+                <Chip
+                  key={member.userId}
+                  label={`${member.firstName} ${member.lastName}`}
+                  deleteIcon={<HighlightOffIcon />}
+                  // onDelete={() => removeMember(project.id, member.username)}
+                  className="member-chip"
+                />
+              ))
+            ) : (
+              <Typography variant="caption">{t("no_members")}</Typography>
+            )}
           </Box>
         </Box>
       </DialogContent>
@@ -64,8 +68,21 @@ const ProjectDetailsDialog = ({ open, project, handleClose, onEdit, onDelete, on
           color: darkMode ? "white" : "black",
         }}>
         <Button onClick={handleClose}>{t("close")}</Button>
-        <Button onClick={() => onEdit(project)} color="primary">{t("edit")}</Button>
-        <Button onClick={() => onDelete(project.id)} color="error">{t("delete")}</Button>
+        <Button onClick={() => onEdit(project.id)} color="primary">{t("edit")}</Button>
+        <>
+          <Button onClick={() => setOpenConfirm(true)} color="error">
+            {t("delete")}
+          </Button>
+
+          <Dialog open={openConfirm} onClose={() => setOpenConfirm(false)}>
+            <DialogTitle>{t("confirm_delete_title")}</DialogTitle>
+            <DialogContent>{t("confirm_delete_project")}</DialogContent>
+            <DialogActions>
+              <Button onClick={() => setOpenConfirm(false)}>{t("cancel")}</Button>
+              <Button onClick={() => onDelete(project.id)} color="error">{t("delete")}</Button>
+            </DialogActions>
+          </Dialog>
+        </>
       </DialogActions>
     </Dialog>
   );

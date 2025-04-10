@@ -9,7 +9,10 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: "exit 0"
+      test: [ "CMD", "curl", "-f", "http://localhost:9898/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     environment:
       - spring.datasource.url=jdbc:postgresql://postgre-security:5432/security?serverTimezone=UTC
       - spring.liquibase.url=jdbc:postgresql://postgre-security:5432/security?serverTimezone=UTC

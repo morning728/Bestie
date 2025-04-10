@@ -2,13 +2,6 @@ spring:
   cloud:
     gateway:
       routes:
-#        - id: numapi
-#          uri: lb://NUM-API
-#          predicates:
-#            - Path=/api/**
-#          filters:
-#            - AuthenticationFilter
-
         - id: task-tracker-main
           uri: lb://TASK-API-MAIN
           predicates:
@@ -32,8 +25,11 @@ spring:
           uri: lb://OPEN-REQUEST-HANDLER
           predicates:
             - Path=/request-handler/**
-#          filters:
-#            - AuthenticationFilter
+
+        - id: telegram-bot
+          uri: lb://TELEGRAM-BOT
+          predicates:
+            - Path=/tg-bot/**
 
 
       globalcors:
@@ -47,10 +43,8 @@ spring:
               - DELETE
               - PUT
             allowedHeaders: '*'
-#      discovery:
-#        locator:
-#          enabled: true
-#          lower-case-service-id: true
+            allowCredentials: true # ✅ Разрешаем передачу аутентификационных данных (куки, токены)
+
 
   application:
     name: API-GATEWAY

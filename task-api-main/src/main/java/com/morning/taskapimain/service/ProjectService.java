@@ -189,7 +189,7 @@ public class ProjectService {
      */
     public Mono<ProjectStatus> addProjectStatus(Long projectId, ProjectStatus newStatus, String token) {
         return validateRequesterHasPermission(projectId, token, Permission.CAN_EDIT_PROJECT)
-                .then(projectStatusRepository.saveStatus(projectId, newStatus.getName(), newStatus.getColor()));
+                .then(projectStatusRepository.saveStatus(projectId, newStatus.getName(), newStatus.getColor(), newStatus.getPosition()));
     }
 
     /**

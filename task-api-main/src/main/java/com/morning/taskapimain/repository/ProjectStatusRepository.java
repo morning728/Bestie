@@ -18,6 +18,9 @@ public interface ProjectStatusRepository extends R2dbcRepository<ProjectStatus, 
     Mono<Void> deleteStatusesByProjectId(@Param("projectId") Long projectId);
 
     // 🔹 Сохранение нового статуса в проект
-    @Query("INSERT INTO project_status (project_id, name, color) VALUES (:projectId, :name, :color) RETURNING *")
-    Mono<ProjectStatus> saveStatus(@Param("projectId") Long projectId, @Param("name") String name, @Param("color") String color);
+    @Query("INSERT INTO project_status (project_id, name, color, position) VALUES (:projectId, :name, :color, :position) RETURNING *")
+    Mono<ProjectStatus> saveStatus(@Param("projectId") Long projectId, @Param("name") String name, @Param("color") String color, @Param("position") Long position);
+
+    @Query("UPDATE project_status SET position = :new_position WHERE id = :status_id RETURNING *")
+    Mono<ProjectStatus> changeStatusPosition(@Param("statusId") Long statusId, @Param("newPosition") Long newPosition);
 }

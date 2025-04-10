@@ -31,9 +31,11 @@ const StatusesTab = ({ projectId }) => {
   const [statuses, setStatuses] = useState([]);
   const [newStatusName, setNewStatusName] = useState("");
   const [newStatusColor, setNewStatusColor] = useState("#9932CC");
+  const [newStatusPosition, setNewStatusPosition] = useState(0);
   const [editingStatus, setEditingStatus] = useState(null);
   const [editStatusName, setEditStatusName] = useState("");
   const [editStatusColor, setEditStatusColor] = useState("");
+  const [editStatusPosition, setEditStatusPosition] = useState(null);
 
   // Для popover выбора цвета
   const [colorAnchor, setColorAnchor] = useState(null);
@@ -55,10 +57,12 @@ const StatusesTab = ({ projectId }) => {
       addProjectStatus(projectId, {
         name: newStatusName,
         color: newStatusColor,
+        position: newStatusPosition
       })
         .then(() => {
           setNewStatusName("");
           setNewStatusColor("#9932CC");
+          setNewStatusPosition(0);
           fetchStatuses();
         })
         .catch((err) => console.error("Ошибка добавления статуса:", err));
@@ -77,6 +81,7 @@ const StatusesTab = ({ projectId }) => {
     setEditingStatus(status.id);
     setEditStatusName(status.name);
     setEditStatusColor(status.color);
+    setEditStatusPosition(status.position);
   };
 
   // Сохранение изменений статуса
@@ -85,6 +90,7 @@ const StatusesTab = ({ projectId }) => {
       id: editingStatus,
       name: editStatusName,
       color: editStatusColor,
+      position: editStatusPosition,
       projectId: projectId,
     })
       .then(() => {
@@ -108,6 +114,14 @@ const StatusesTab = ({ projectId }) => {
           value={newStatusName}
           onChange={(e) => setNewStatusName(e.target.value)}
         />
+        <TextField
+          label={t("position")}
+          type="number"
+          value={newStatusPosition}
+          onChange={(e) => setNewStatusPosition(Number(e.target.value))}
+          sx={{ width: 100 }}
+        />
+
         <Box
           sx={{
             width: 40,
@@ -167,8 +181,12 @@ const StatusesTab = ({ projectId }) => {
                   sx={{
                     p: 2,
                     display: "flex",
+                    width: "100%",
                     alignItems: "center",
                     justifyContent: "space-between",
+                    flexWrap: "wrap", // добавляем это
+                    gap: 1, // небольшой отступ между элементами
+                    minHeight: 80, // чуть больше высоты на случай двух строк
                     backgroundColor: status.color,
                     color: "#fff",
                     borderRadius: "8px",
@@ -177,12 +195,35 @@ const StatusesTab = ({ projectId }) => {
                   }}
                 >
                   {editingStatus === status.id ? (
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Box sx={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      alignItems: "center",
+                      gap: 1,
+                      width: "100%",
+                    }}>
                       <TextField
                         value={editStatusName}
                         onChange={(e) => setEditStatusName(e.target.value)}
                         size="small"
-                        sx={{ backgroundColor: "#fff", borderRadius: "4px" }}
+                        sx={{
+                          backgroundColor: "#fff",
+                          borderRadius: "4px",
+                          flexGrow: 1, // занимает доступную ширину
+                          minWidth: 100,
+                        }}
+                      />
+                      <TextField
+                        label={t("position")}
+                        type="number"
+                        value={editStatusPosition}
+                        onChange={(e) => setEditStatusPosition(Number(e.target.value))}
+                        size="small"
+                        sx={{
+                          backgroundColor: "#fff",
+                          borderRadius: "4px",
+                          width: 100,
+                        }}
                       />
                       <Box
                         sx={{
@@ -225,7 +266,7 @@ const StatusesTab = ({ projectId }) => {
                     </Box>
                   ) : (
                     <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                      <Typography variant="subtitle1">{status.name}</Typography>
+                      <Typography variant="subtitle1">{status.name} (P:{status.position})</Typography>
                       <IconButton onClick={() => handleEditStatus(status)} color="default">
                         <EditIcon />
                       </IconButton>

@@ -163,7 +163,7 @@
   "save": "Save",
   "cancel": "Cancel",
   "new_status": "New Status",
-  "existing_statuses": "Existing Statuses (displayed on the Kanban board in order of addition)",
+  "existing_statuses": "Existing Statuses",
   "no_statuses_available": "No statuses found",
   "new_tag": "New Tag",
   "existing_tags": "Existing Tags",

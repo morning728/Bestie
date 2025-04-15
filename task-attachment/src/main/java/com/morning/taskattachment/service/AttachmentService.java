@@ -68,6 +68,11 @@ public class AttachmentService {
         }
     }
 
+    public Attachment getMetadata(Long id) {
+        return repository.findById(id).orElseThrow(); // возвращаем мета-инфу
+    }
+
+
     public List<Attachment> getAllByTask(Long taskId) {
         return repository.findByTaskId(taskId);
     }

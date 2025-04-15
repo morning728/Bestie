@@ -21,11 +21,15 @@ import {
   deleteProjectTag,
   updateProjectTag,
 } from "../../../services/api";
+import { useProjectAccess } from "../../../context/ProjectAccessContext.js";
 import "../ProjectSettingsPage.css";
 
 const TagsTab = ({ projectId }) => {
   const { t } = useTranslation();
   const { darkMode } = useContext(ThemeContext);
+
+    const { me, hasPermission, loading } = useProjectAccess();
+    const can = hasPermission("CAN_EDIT_PROJECT");
 
   const [tags, setTags] = useState([]);
   const [newTagName, setNewTagName] = useState("");
@@ -110,6 +114,7 @@ const TagsTab = ({ projectId }) => {
           label={t("new_tag")}
           value={newTagName}
           onChange={(e) => setNewTagName(e.target.value)}
+          disabled={!can}
         />
         <Box
           sx={{
@@ -126,6 +131,7 @@ const TagsTab = ({ projectId }) => {
             "&:hover": { opacity: 0.8 },
           }}
           onClick={(e) => setColorAnchor(e.currentTarget)}
+          disabled={!can}
         >
           🎨
         </Box>
@@ -137,6 +143,7 @@ const TagsTab = ({ projectId }) => {
             vertical: "bottom",
             horizontal: "left",
           }}
+          disabled={!can}
         >
           <SketchPicker
             color={newTagColor}
@@ -144,6 +151,7 @@ const TagsTab = ({ projectId }) => {
               setNewTagColor(color.hex);
               setColorAnchor(null);
             }}
+            disabled={!can}
           />
         </Popover>
         <Button
@@ -152,6 +160,7 @@ const TagsTab = ({ projectId }) => {
           onClick={handleAddTag}
           startIcon={<AddIcon />}
           sx={{ whiteSpace: "nowrap" }}
+          disabled={!can}
         >
           {t("add")}
         </Button>
@@ -229,12 +238,12 @@ const TagsTab = ({ projectId }) => {
               ) : (
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   <Typography variant="subtitle1">{tag.name}</Typography>
-                  <IconButton onClick={() => startEditingTag(tag)} color="default">
+                  <IconButton onClick={() => startEditingTag(tag)} color="default" disabled={!can}>
                     <EditIcon />
                   </IconButton>
                 </Box>
               )}
-              <IconButton onClick={() => handleDeleteTag(tag.id)} color="error">
+              <IconButton onClick={() => handleDeleteTag(tag.id)} color="error" disabled={!can}>
                 <DeleteIcon />
               </IconButton>
             </Paper>

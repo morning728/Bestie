@@ -1,4 +1,4 @@
-package com.morning.taskapimain.entity.kafka;
+package com.morning.taskapimain.entity.kafka.project;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,19 +9,17 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class InviteEvent {
-    private String action = "INVITE_TO_PROJECT";
+public class DeleteEvent {
+    private String action;
     private String username;
     private String email;
     private String telegramId;
     private String chatId;
-    private String inviteLink;
     private String projectTitle;
-    private String invitedBy;
+    private String deletedBy;
 
-    public InviteEvent setDefaultAction() {
-        this.action = "INVITE_TO_PROJECT";
+    public DeleteEvent setDefaultAction() {
+        this.action = "DELETE_FROM_PROJECT";
         return this;
     }
 }
-

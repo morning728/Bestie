@@ -95,5 +95,9 @@ export const useFilteredTasksWithDates = (
     endDate,
     showArchived,
     allStatuses,
-  ]).sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+  ]).sort((a, b) => {
+    const dateDiff = new Date(a.startDate) - new Date(b.startDate);
+    if (dateDiff !== 0) return dateDiff;
+    return a.title.localeCompare(b.title); // замените title на нужное поле с названием
+  });
 };

@@ -64,9 +64,41 @@ public class KafkaListeners {
         }
     }
 
+    @KafkaListener(
+            topics = "task-notification-topic",
+            groupId = "tasks-edit"
+    )
+    public void taskUpdatesListener(String data) {
+        try {
+            Map<String, String> eventMap = objectMapper.readValue(data, Map.class);
+            String action = eventMap.get("action");
+
+            switch (action) {
+                case "ASSIGNED_TO_TASK" -> {
+                    TaskNotificationEvent event = objectMapper.readValue(data, TaskNotificationEvent.class);
+                    notificationService.sendTaskAssignmentNotification(event);
+                }
+                case "TASK_UPDATED" -> {
+                    TaskNotificationEvent event = objectMapper.readValue(data, TaskNotificationEvent.class);
+                    notificationService.sendTaskUpdateNotification(event);
+                }
+                case "TASK_DEADLINE_SOON" -> {
+                    TaskNotificationEvent event = objectMapper.readValue(data, TaskNotificationEvent.class);
+                    notificationService.sendTaskDeadlineReminder(event);
+                }
+                // Добавляй другие case по мере расширения
+                default -> log.warn("Неизвестный action в task-updates-topic: {}", action);
+            }
+
+        } catch (Exception e) {
+            log.error("Ошибка при обработке Kafka-сообщения в task-updates-topic", e);
+        }
+    }
+
+
 
     @KafkaListener(
-            topics = "mail-notification-topic",
+            topics = "task-notification-topic",
             groupId = "task"
     )
     void taskEEditListener(String data){

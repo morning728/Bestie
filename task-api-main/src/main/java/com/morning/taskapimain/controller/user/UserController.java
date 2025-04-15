@@ -4,7 +4,6 @@ import com.morning.taskapimain.entity.dto.AboutMeDTO;
 import com.morning.taskapimain.entity.dto.UserDTO;
 import com.morning.taskapimain.entity.user.Contacts;
 import com.morning.taskapimain.entity.user.User;
-import com.morning.taskapimain.entity.dto.ProfileDTO;
 import com.morning.taskapimain.exception.annotation.AccessExceptionHandler;
 import com.morning.taskapimain.exception.annotation.BadRequestExceptionHandler;
 import com.morning.taskapimain.exception.annotation.CrudExceptionHandler;
@@ -107,7 +106,7 @@ public class UserController {
     @GetMapping("/{username}/contacts")
     public Mono<ResponseEntity<Contacts>> findProfileByUsernameWithWebClient(@PathVariable String username,
                                                                                @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
-        return userService.findProfileByUsernameWithWebClient(username, token)
+        return userService.findContactsByUsernameWithWebClient(username, token)
                 .map(ResponseEntity::ok);
     }
 

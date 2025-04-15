@@ -242,6 +242,28 @@ export const getMyRole = (projectId) =>
   apiClient.get(`/api/v1/projects/${projectId}/roles/my`);
 
 
+// FILES
+
+export const uploadAttachment = (taskId, file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return apiClient.post(`/file-api/v1/attachments/${taskId}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+
+export const getAttachmentsByTask = (taskId) =>
+  apiClient.get(`/file-api/v1/attachments/task/${taskId}`);
+
+export const deleteAttachment = (id) =>
+  apiClient.delete(`/file-api/v1/attachments/${id}`);
+
+export const downloadAttachment = (id) =>
+  apiClient.get(`/file-api/v1/attachments/${id}/download`, {
+    responseType: 'blob',
+  });
+
 
 
 

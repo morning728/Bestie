@@ -1,11 +1,8 @@
 package com.morning.taskapimain.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.morning.taskapimain.entity.dto.UserDTO;
 import com.morning.taskapimain.entity.user.Contacts;
 import com.morning.taskapimain.entity.user.User;
-import com.morning.taskapimain.entity.dto.ProfileDTO;
 import com.morning.taskapimain.exception.AccessException;
 import com.morning.taskapimain.exception.NotFoundException;
 import com.morning.taskapimain.repository.ProjectRepository;
@@ -15,7 +12,6 @@ import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -24,7 +20,6 @@ import reactor.core.scheduler.Schedulers;
 
 import java.sql.*;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 
 @Service
 @Slf4j
@@ -174,7 +169,7 @@ public class UserService {
                 .switchIfEmpty(Mono.error(new NotFoundException("User not found")));
     }
 
-    public Mono<Contacts> findProfileByUsernameWithWebClient(String usernameToGetProfile, String yourToken) {
+    public Mono<Contacts> findContactsByUsernameWithWebClient(String usernameToGetProfile, String yourToken) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/users/info")
@@ -183,6 +178,14 @@ public class UserService {
                 .header("Authorization",  yourToken)
                 .retrieve()
                 .bodyToMono(Contacts.class);
+    }
+
+    public Mono<Contacts> findContactsByUserIdWithWebClient(Long userId, String yourToken) {
+        return userRepository.findById(userId)
+                .map(User::getUsername)
+                .flatMap(username -> {
+                    return findContactsByUsernameWithWebClient(username, yourToken);
+                });
     }
 
 

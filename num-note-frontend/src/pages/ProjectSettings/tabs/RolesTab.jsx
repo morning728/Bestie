@@ -13,6 +13,7 @@ import {
     FormControlLabel,
     Checkbox,
 } from "@mui/material";
+import { useProjectAccess } from "../../../context/ProjectAccessContext.js";
 import DeleteIcon from "@mui/icons-material/Delete";
 import SaveIcon from "@mui/icons-material/Save";
 import { useTranslation } from "react-i18next";
@@ -49,6 +50,9 @@ const RolesTab = ({ projectId }) => {
     const [roleName, setRoleName] = useState("");
     const [isNew, setIsNew] = useState(false);
     const { t } = useTranslation();
+
+    const { me, hasPermission, loading } = useProjectAccess();
+    const can = hasPermission("CAN_EDIT_PROJECT");
 
     const fetchRoles = () => {
         getRolesByProjectId(projectId).then((res) => {
@@ -120,7 +124,7 @@ const RolesTab = ({ projectId }) => {
                 Roles
             </Typography>
 
-            <Button variant="contained" onClick={handleNewRole} sx={{ mb: 2 }}>
+            <Button variant="contained" onClick={handleNewRole} sx={{ mb: 2 }} disabled={!can}>
                 Add Role
             </Button>
 
@@ -134,10 +138,10 @@ const RolesTab = ({ projectId }) => {
                                 setRoleName(role.name);
                                 setDialogOpen(true);
                                 setIsNew(false);
-                            }}>
+                            }} disabled={!can}>
                                 Edit
                             </Button>
-                            <IconButton color="error" onClick={() => handleDeleteRole(role.id)}>
+                            <IconButton color="error" onClick={() => handleDeleteRole(role.id)} disabled={!can}>
                                 <DeleteIcon />
                             </IconButton>
                         </Box>

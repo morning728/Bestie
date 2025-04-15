@@ -40,5 +40,5 @@ application:
     userInfoPath: http://localhost:8765/security/v1/users/info
     baseUrlPath: http://localhost:8765/security/v1
   invitation:
-    url: http://localhost:8765/api/v1/invitation/accept?token=
+    url: http://localhost:3000/accept-invite?token=
 

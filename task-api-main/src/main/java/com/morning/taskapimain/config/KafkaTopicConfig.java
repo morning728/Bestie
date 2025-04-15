@@ -12,4 +12,10 @@ public class KafkaTopicConfig {
         return TopicBuilder.name("participants-edit-topic")
                 .build();
     }
+
+    @Bean
+    public NewTopic taskNotificationTopic(){
+        return TopicBuilder.name("task-notification-topic")
+                .build();
+    }
 }

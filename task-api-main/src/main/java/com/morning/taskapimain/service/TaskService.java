@@ -1,6 +1,7 @@
 package com.morning.taskapimain.service;
 
 import com.morning.taskapimain.entity.dto.TaskDTO;
+import com.morning.taskapimain.entity.kafka.task.TaskNotificationEvent;
 import com.morning.taskapimain.entity.project.Permission;
 import com.morning.taskapimain.entity.project.ProjectTag;
 import com.morning.taskapimain.entity.task.Task;
@@ -12,6 +13,7 @@ import com.morning.taskapimain.exception.AccessException;
 import com.morning.taskapimain.exception.NotFoundException;
 import com.morning.taskapimain.repository.*;
 import com.morning.taskapimain.repository.task.*;
+import com.morning.taskapimain.service.kafka.KafkaNotificationService;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +47,8 @@ public class TaskService {
     private final JwtService jwtService;
     private final ProjectUserRepository projectUserRepository;
     private final DataSourceTransactionManagerAutoConfiguration dataSourceTransactionManagerAutoConfiguration;
+    private final KafkaNotificationService kafkaNotificationService;
+    private final ProjectService projectService;
 
     /**
      * ✅ Проверка, имеет ли пользователь право на действие с задачей
@@ -131,9 +135,7 @@ public class TaskService {
                     return taskRepository.save(task)
                             .flatMap(savedTask ->
                                     manageTaskTags(savedTask.getId(), token, taskDTO.getTagIds(), true)
-                                            .then(taskDTO.getAssigneeIds().isEmpty() ?
-                                                    manageTaskAssignees(savedTask.getId(), token, List.of(savedTask.getCreatedBy()), true) :
-                                                    manageTaskAssignees(savedTask.getId(), token, taskDTO.getAssigneeIds(), true))
+                                            .then(manageTaskAssignees(savedTask.getId(), token, taskDTO.getAssigneeIds(), true))
                                             .then(manageReminder(savedTask.getId(), token, taskDTO.getReminderDate(), taskDTO.getReminderTime(), true))
                                             .thenReturn(savedTask));
                 });
@@ -163,7 +165,7 @@ public class TaskService {
 
                     return taskRepository.save(existingTask)
                             .flatMap(savedTask -> manageTaskTags(savedTask.getId(), token, updatedTask.getTagIds(), false)
-                                    .then(manageTaskAssignees(savedTask.getId(), token, updatedTask.getAssigneeIds(), false))
+                                    .then(manageTaskAssignees(savedTask.getId(),  token, updatedTask.getAssigneeIds(), false))
                                     .then(manageReminder(taskId, token, updatedTask.getReminderDate(), updatedTask.getReminderTime(), false))
                                     .then(manageTaskStatus(taskId, token, updatedTask.getStatusId()))
                                     .thenReturn(savedTask));
@@ -339,9 +341,49 @@ public class TaskService {
                                                     .flatMap(userId -> taskAssigneeRepository.deleteByTaskIdAndAndUserId(taskId, userId)),
                                             Flux.fromIterable(assigneesToAdd)
                                                     .flatMap(userId -> taskAssigneeRepository.addAssigneeToTask(taskId, userId))
-                                    ).then(); // ⬅️ Преобразуем Flux в Mono<Void>
-                                })).then())
-                .then(); // ⬅️ Финальный then(), чтобы вернуть Mono<Void>
+                                    ).then(Mono.just(assigneesToAdd)); // ⬅️ Преобразуем Flux в Mono<Void>
+                                })
+                                .flatMap(assigneesToNotify -> {
+                                    if (assigneesToNotify.isEmpty()) {
+                                        return Mono.empty();
+                                    }
+
+                                    // Подгружаем название проекта по ID
+                                    return projectService.getProjectById(task.getProjectId())
+                                            .flatMap(project ->
+                                                    notifyAssigneesAboutAssignment(
+                                                            assigneesToNotify,
+                                                            task.getTitle(),
+                                                            project.getTitle(),  // ← вот оно!
+                                                            token
+                                                    )
+                                            );
+                                }))
+                        .then());
+    }
+
+    public Mono<Void> notifyAssigneesAboutAssignment(List<Long> assigneeIds, String taskTitle, String projectTitle, String token) {
+        return Flux.fromIterable(assigneeIds)
+                .flatMap(userId ->
+                        userService.findContactsByUserIdWithWebClient(userId, token) // получаем email, telegramId и т.д.
+                )
+                .flatMap(contacts -> {
+                    TaskNotificationEvent event = TaskNotificationEvent.builder()
+                            .action("ASSIGNED_TO_TASK")
+                            .taskTitle(taskTitle)
+                            .projectTitle(projectTitle)
+                            .username(contacts.getUsername())
+                            .email(contacts.getEmail() != null ? contacts.getEmail() : "no_data")
+                            .telegramId(contacts.getTelegramId() != null ? contacts.getTelegramId() : "no_data")
+                            .chatId(contacts.getChatId() != null ? contacts.getChatId() : "no_data")
+                            .build();
+
+                    return Mono.just(event);
+                })
+                .flatMap(event -> {
+                    return kafkaNotificationService.sendTaskNotification(event);
+                })
+                .then();
     }
 
     /**

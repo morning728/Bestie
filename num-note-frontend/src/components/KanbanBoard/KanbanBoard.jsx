@@ -115,23 +115,21 @@ const KanbanBoard = ({ tasks, statuses, onCardClick, onStatusChange }) => {
                     .map((status, index) => (
                         <Droppable droppableId={String(status.id)} key={status.id}>
                             {(provided) => (
-                                <div
-                                    className="kanban-column"
-                                    ref={provided.innerRef}
-                                    {...provided.droppableProps}
-                                >
                                     <KanbanColumn
                                         key={status.id}
                                         status={status}
-                                        tasks={tasks.filter((task) => task.statusId === status.id)}
+                                        tasks={tasks.filter((task) => task.statusId === status.id).sort((a, b) => {
+                                            const dateDiff = new Date(a.startDate) - new Date(b.startDate);
+                                            if (dateDiff !== 0) return dateDiff;
+                                            return a.title.localeCompare(b.title); // замените title на нужное поле с названием
+                                        })}
                                         onCardClick={onCardClick}
                                         onMoveLeft={() => moveColumnLeft(index)}
                                         onMoveRight={() => moveColumnRight(index)}
                                         isFirst={index === 0}
                                         isLast={index === localStatuses.length - 1}
+                                        droppableProvided={provided}
                                     />
-                                    {provided.placeholder}
-                                </div>
                             )}
                         </Droppable>
                     ))}

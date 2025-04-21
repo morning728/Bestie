@@ -107,10 +107,12 @@ export const useTasks = (projectId) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
     const tagIds = task.tags?.map(tag => tag.id);
+    const assigneeIds = task.assignees?.map(a => a.userId);
     const updatedTask = {
       ...task,
       statusId: newStatusId,
       tagIds: tagIds,
+      assigneeIds: assigneeIds,
     };
 
     try {

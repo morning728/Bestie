@@ -8,6 +8,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface ProjectRepository extends R2dbcRepository<Project, Long> {
+    @Query("SELECT p.title FROM project p WHERE p.id = :projectId")
+    Mono<String> findProjectTitleById(@Param("projectId") Long projectId);
 
     Mono<Project> findById(Long aLong);
 

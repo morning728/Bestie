@@ -2,6 +2,7 @@ package com.morning.notification.service;
 
 import com.morning.notification.entity.project.DeleteEvent;
 import com.morning.notification.entity.project.InviteEvent;
+import com.morning.notification.entity.task.TaskNotificationEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -18,13 +19,15 @@ public class NotificationService {
     private final TelegramService telegramService;
 
     private void sendEmail(String to, String subject, String body) {
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setTo(to);
-        mailMessage.setSubject(subject);
-        mailMessage.setText(body);
-        mailMessage.setFrom(from);
+        if (!"no_data".equals(to)) {
+            SimpleMailMessage mailMessage = new SimpleMailMessage();
+            mailMessage.setTo(to);
+            mailMessage.setSubject(subject);
+            mailMessage.setText(body);
+            mailMessage.setFrom(from);
 
-        mailSender.send(mailMessage);
+            mailSender.send(mailMessage);
+        }
     }
 
 
@@ -37,50 +40,46 @@ public class NotificationService {
                 event.getInvitedBy(),
                 event.getInviteLink()
         );
-        if (!"no_data".equals(event.getEmail())) {
-            sendEmail(event.getEmail(), subject, body);
-        }
-
-        if (!"no_data".equals(event.getChatId()) || !"no_data".equals(event.getTelegramId())) {
-            telegramService.sendMessage(event.getChatId(), body);
-        }
+        sendEmail(event.getEmail(), subject, body);
+        telegramService.sendMessage(event.getChatId(), body);
     }
 
 //проверь
     public void sendDeleteNotification(DeleteEvent event) {
-        String subject = "You have been deleted from project!";
+        String subject = "You have been deleted from project.";
         String body = String.format(
                 "%s, you have been removed from project \"%s\" by %s.",
                 event.getUsername(),
                 event.getProjectTitle(),
                 event.getDeletedBy()
         );
-        if (!"no_data".equals(event.getEmail())) {
-            sendEmail(event.getEmail(), subject, body);
-        }
-
-        if (!"no_data".equals(event.getChatId()) || !"no_data".equals(event.getTelegramId())) {
-            telegramService.sendMessage(event.getChatId(), body);
-        }
+        sendEmail(event.getEmail(), subject, body);
+        telegramService.sendMessage(event.getChatId(), body);
     }
 
-
-
- /*   public void sendDeleteNotification(Map<String, String> data){
-        String username = data.get("username");
-        String email = data.get("email");
-        String from = data.get("from");
-        String projectName = data.get("projectName");
-
-        String mailBody = String.format(DELETE_FROM_PROJECT_BODY, username, projectName, from);
-        send(email, DELETE_FROM_PROJECT_SUBJECT, mailBody);
+    public void sendTaskAssignmentNotification(TaskNotificationEvent event) {
+        String subject = "You have been assigned to task.";
+        String body = String.format(
+                "%s, You have been assigned to task <%s> in project <%s>.",
+                event.getUsername(),
+                event.getTaskTitle(),
+                event.getProjectTitle()
+        );
+        sendEmail(event.getEmail(), subject, body);
+        telegramService.sendMessage(event.getChatId(), body);
     }
 
-    public void sendTaskDeadlineReminder(List<String> emails,String taskName, String deadline){
-        String mailBody = String.format("Deadline for task <<%s>> is burning! it expires on %s!", taskName, deadline);
-        for(String email : emails){
-            send(email, "Deadline is burning!:)", mailBody);
-        }
-    }*/
+    public void sendStatusChangeNotification(TaskNotificationEvent event) {
+        String subject = "The task you're responsible for has changed its status.";
+        String body = String.format(
+                "%s, The task <%s> in project <%s> you're responsible for has changed its status.",
+                event.getUsername(),
+                event.getTaskTitle(),
+                event.getProjectTitle()
+        );
+        sendEmail(event.getEmail(), subject, body);
+        telegramService.sendMessage(event.getChatId(), body);
+    }
+
 
 }

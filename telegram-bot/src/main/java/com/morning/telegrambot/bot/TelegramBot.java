@@ -94,6 +94,18 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
+    public void sendNotification(Long chatId, String text) {
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId.toString());
+        message.enableHtml(false); // 👈 Включаем HTML-форматирование
+        message.setText(text);
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
     private String getHelpMessage() {
         return """
             ℹ <b>Доступные команды:</b>

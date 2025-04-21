@@ -3,8 +3,9 @@ package com.morning.notification.kafkaListeners;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.morning.notification.entity.project.DeleteEvent;
 import com.morning.notification.entity.project.InviteEvent;
+import com.morning.notification.entity.task.TaskNotificationEvent;
 import com.morning.notification.service.NotificationService;
-import com.morning.notification.service.quartz.TaskSchedulerService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -18,7 +19,7 @@ import java.util.Map;
 public class KafkaListeners {
     private ObjectMapper objectMapper = new ObjectMapper();
     private final NotificationService notificationService;
-    private final TaskSchedulerService taskSchedulerService;
+
 
 
 /*    @KafkaListener(
@@ -70,24 +71,18 @@ public class KafkaListeners {
     )
     public void taskUpdatesListener(String data) {
         try {
-            Map<String, String> eventMap = objectMapper.readValue(data, Map.class);
-            String action = eventMap.get("action");
-
-            switch (action) {
+            TaskNotificationEvent event = objectMapper.readValue(data, TaskNotificationEvent.class);
+            switch (event.getAction()) {
                 case "ASSIGNED_TO_TASK" -> {
-                    TaskNotificationEvent event = objectMapper.readValue(data, TaskNotificationEvent.class);
                     notificationService.sendTaskAssignmentNotification(event);
+                    break;
                 }
-                case "TASK_UPDATED" -> {
-                    TaskNotificationEvent event = objectMapper.readValue(data, TaskNotificationEvent.class);
-                    notificationService.sendTaskUpdateNotification(event);
-                }
-                case "TASK_DEADLINE_SOON" -> {
-                    TaskNotificationEvent event = objectMapper.readValue(data, TaskNotificationEvent.class);
-                    notificationService.sendTaskDeadlineReminder(event);
+                case "STATUS_CHANGE" -> {
+                    notificationService.sendStatusChangeNotification(event);
+                    break;
                 }
                 // Добавляй другие case по мере расширения
-                default -> log.warn("Неизвестный action в task-updates-topic: {}", action);
+                default -> log.warn("Неизвестный action в task-updates-topic: {}", event.getAction().toString());
             }
 
         } catch (Exception e) {
@@ -97,7 +92,7 @@ public class KafkaListeners {
 
 
 
-    @KafkaListener(
+/*    @KafkaListener(
             topics = "task-notification-topic",
             groupId = "task"
     )
@@ -123,7 +118,7 @@ public class KafkaListeners {
         } catch(Exception e){
             log.error(e.toString());
         }
-    }
+    }*/
 
 
 //    @KafkaListener(

@@ -13,9 +13,11 @@ public class TelegramService {
     private final TelegramClient telegramClient;
 
     public void sendMessage(String chatId, String text) {
-        telegramClient.sendMessage(Map.of(
-                "chatId", chatId,
-                "message", text
-        ));
+        if (!"no_data".equals(chatId)) {
+            telegramClient.sendMessage(Map.of(
+                    "chatId", chatId,
+                    "message", text
+            ));
+        }
     }
 }

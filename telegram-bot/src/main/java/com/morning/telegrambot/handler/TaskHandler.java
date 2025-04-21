@@ -16,9 +16,10 @@ public class TaskHandler {
 
     private final TaskService taskService;
     private final TokenCacheService tokenCacheService;
+    private final AuthService authService;
 
     public String handleTaskCommand(Long chatId, String command) {
-        String token = tokenCacheService.getToken(chatId);
+        String token = authService.getTokenForUser(chatId);
 
         if (token == null) {
             return "❌ Вы не авторизованы. Используйте /login.";

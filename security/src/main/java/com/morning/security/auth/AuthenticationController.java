@@ -39,7 +39,7 @@ public class AuthenticationController {
           @RequestBody TelegramAuthRequest authRequest,
           HttpServletResponse response) {
 
-    String accessToken = authService.authenticateTelegram(authRequest.getUsername(), authRequest.getPassword(), authRequest.getChatId(), response);
+    String accessToken = authService.authenticateTelegram(authRequest.getUsername(), authRequest.getPassword(), authRequest.getChatId(), authRequest.getTelegramId());
     return ResponseEntity.ok(Map.of("access_token", accessToken));
   }
 

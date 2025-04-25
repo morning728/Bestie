@@ -14,8 +14,5 @@ public class TaskNotificationEvent {
     private String taskTitle;
     private String projectTitle;
     private String username;      // username пользователя, которого касается уведомление
-    private String email;
-    private String telegramId;
-    private String chatId;
 }
 

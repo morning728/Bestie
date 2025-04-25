@@ -6,7 +6,6 @@ import com.morning.taskapimain.entity.dto.UserWithRoleDTO;
 import com.morning.taskapimain.entity.kafka.project.DeleteEvent;
 import com.morning.taskapimain.entity.kafka.project.InviteEvent;
 import com.morning.taskapimain.entity.project.*;
-import com.morning.taskapimain.entity.user.Contacts;
 import com.morning.taskapimain.entity.user.User;
 import com.morning.taskapimain.exception.AccessException;
 import com.morning.taskapimain.exception.BadRequestException;
@@ -277,25 +276,17 @@ public class ProjectService {
      * ✅ Удаление пользователя из проекта
      */
     public Mono<Void> removeUserFromProject(Long projectId, String username, String token) {
-        // Получаем данные: контакт удаляемого, проект
-        Mono<Contacts> contactsMono = userService.findContactsByUsernameWithWebClient(username, token);
-        Mono<Project> project = projectRepository.findById(projectId);
+
 
         return validateRequesterHasPermission(projectId, token, Permission.CAN_MANAGE_MEMBERS)
                 .then(userRepository.findByUsernameAndProjectId(username, projectId)
                         .switchIfEmpty(Mono.error(new NotFoundException("User not found")))
                         .flatMap(user -> projectUserRepository.removeUserFromProject(projectId, user.getId()))
-                        .then(Mono.zip(contactsMono, project))
-                        .flatMap(tuple -> {
-                            Contacts contacts = tuple.getT1();
+                        .then(projectRepository.findProjectTitleById(projectId))
+                        .flatMap(projectTitle -> {
                             String deletedByUsername = jwtService.extractUsername(token);
-                            String projectTitle = tuple.getT2().getTitle();
-
                             DeleteEvent deleteEvent = DeleteEvent.builder()
                                     .username(username)
-                                    .email(contacts.getEmail() != null ? contacts.getEmail() : "no_data")
-                                    .telegramId(contacts.getTelegramId() != null ? contacts.getTelegramId() : "no_data")
-                                    .chatId(contacts.getChatId() != null ? contacts.getChatId() : "no_data")
                                     .projectTitle(projectTitle)
                                     .deletedBy(deletedByUsername)
                                     .build()
@@ -481,21 +472,16 @@ public class ProjectService {
     }
 
     public Mono<Void> inviteDirectly(String token, Long projectId, String username, Long roleId) {
-        Mono<Contacts> contactsMono = userService.findContactsByUsernameWithWebClient(username, token);
         Mono<User> invitedBy = userRepository.findByUsername(jwtService.extractUsername(token));
         Mono<Project> project = projectRepository.findById(projectId);
         Mono<String> invitationTokenMono = generateInviteToken(token, projectId, username, roleId);
-        return Mono.zip(contactsMono, invitedBy, project, invitationTokenMono)
+        return Mono.zip(invitedBy, project, invitationTokenMono)
                 .flatMap(tuple -> {
-                    Contacts contacts = tuple.getT1();
-                    String invitedByUsername = tuple.getT2().getUsername();
-                    String projectTitle = tuple.getT3().getTitle();
+                    String invitedByUsername = tuple.getT1().getUsername();
+                    String projectTitle = tuple.getT2().getTitle();
                     InviteEvent inviteEvent = InviteEvent.builder()
                             .username(username)
-                            .email(contacts.getEmail() != null ? contacts.getEmail() : "no_data")
-                            .telegramId(contacts.getTelegramId() != null ? contacts.getTelegramId() : "no_data")
-                            .chatId(contacts.getChatId() != null ? contacts.getChatId() : "no_data")
-                            .inviteLink(invitationUrl.concat(tuple.getT4()))
+                            .inviteLink(invitationUrl.concat(tuple.getT3()))
                             .projectTitle(projectTitle)
                             .invitedBy(invitedByUsername)
                             .build()

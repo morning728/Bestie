@@ -39,6 +39,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
             Long chatId = update.getMessage().getChatId();
+
             String messageText = update.getMessage().getText();
             String responseText;
 
@@ -53,9 +54,9 @@ public class TelegramBot extends TelegramLongPollingBot {
                     String userState = userStateService.getUserState(chatId);
 
                     if (userState != null && userState.startsWith("LOGIN_")) {
-                        responseText = authHandler.handleLogin(chatId, messageText);
+                        responseText = authHandler.handleLogin(chatId, update.getMessage().getFrom().getUserName(), messageText);
                     } else if (messageText.startsWith("/login")) {
-                        responseText = authHandler.handleLogin(chatId, messageText);
+                        responseText = authHandler.handleLogin(chatId, update.getMessage().getFrom().getUserName(), messageText);
                     } else if (messageText.startsWith("/tasks")) {
                         responseText = taskHandler.handleTaskCommand(chatId, messageText);
                     } else if (messageText.startsWith("/projects")) {

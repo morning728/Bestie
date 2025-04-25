@@ -12,9 +12,6 @@ import lombok.NoArgsConstructor;
 public class DeleteEvent {
     private String action;
     private String username;
-    private String email;
-    private String telegramId;
-    private String chatId;
     private String projectTitle;
     private String deletedBy;
 }

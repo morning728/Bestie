@@ -1,10 +1,13 @@
 CREATE TABLE notification_preferences (
     id BIGSERIAL PRIMARY KEY,
     username VARCHAR(255) NOT NULL UNIQUE,         -- Username как ключ
-    email_enabled BOOLEAN DEFAULT TRUE,            -- Получать уведомления на email
-    telegram_enabled BOOLEAN DEFAULT TRUE,         -- Получать уведомления в Telegram
-    invite_via_email BOOLEAN DEFAULT TRUE,         -- Получать приглашения по email
-    invite_via_telegram BOOLEAN DEFAULT TRUE,      -- Получать приглашения в Telegram
+    chat_id BIGINT,
+    telegram_id VARCHAR(50),
+    email VARCHAR(50),
+    email_verified BOOLEAN DEFAULT FALSE,
+    email_notification BOOLEAN DEFAULT TRUE,
+    telegram_notification BOOLEAN DEFAULT TRUE,
+    invite_enabled BOOLEAN DEFAULT TRUE,         -- Получать приглашения по email
     task_assigned_enabled BOOLEAN DEFAULT TRUE,
     task_updated_enabled BOOLEAN DEFAULT TRUE,
     task_deadline_reminder BOOLEAN DEFAULT TRUE,

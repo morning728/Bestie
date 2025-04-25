@@ -103,12 +103,12 @@ public class UserController {
     /**
      * ✅ Получение контактов пользователя через WebClient
      */
-    @GetMapping("/{username}/contacts")
+/*    @GetMapping("/{username}/contacts")
     public Mono<ResponseEntity<Contacts>> findProfileByUsernameWithWebClient(@PathVariable String username,
                                                                                @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
         return userService.findContactsByUsernameWithWebClient(username, token)
                 .map(ResponseEntity::ok);
-    }
+    }*/
 
     /**
      *

@@ -2,7 +2,7 @@ package com.morning.security.auth;
 
 import com.morning.security.config.security.JwtEmailService;
 import com.morning.security.config.security.JwtService;
-import com.morning.security.emailSender.KafkaMailProducer;
+import com.morning.security.emailSender.KafkaService;
 import com.morning.security.token.Token;
 import com.morning.security.token.TokenRepository;
 import com.morning.security.token.TokenType;
@@ -39,7 +39,7 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final JwtEmailService jwtEmailService;
-    private final KafkaMailProducer kafkaMailProducer;
+    private final KafkaService kafkaService;
 
     @Value("${application.task-api.db-url}")
     private String dbUrl;
@@ -53,10 +53,8 @@ public class AuthenticationService {
                 .verified(false)
                 .build();
         var savedUser = repository.save(user);
+        kafkaService.sendUsernameToNotificationService(request.getUsername());
 
-        if (request.getEmail() != null) {
-            kafkaMailProducer.sendMailNotification(request.getUsername(), request.getEmail());
-        }
         try {
             addUserToDatabase(request.getUsername()); // Добавляем в `app_user`
         } catch (Exception e){
@@ -92,7 +90,7 @@ public class AuthenticationService {
         return jwtToken;
     }
 
-    public String authenticateTelegram(String username, String password, Long chatId, HttpServletResponse response) {
+    public String authenticateTelegram(String username, String password, Long chatId, String telegramId) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, password)
         );
@@ -104,6 +102,7 @@ public class AuthenticationService {
         if (user.getChatId() == null) {
             user.setChatId(chatId);
             repository.save(user);
+            kafkaService.sendTelegramDataChange(username, telegramId, chatId);
         } else if (!user.getChatId().equals(chatId)) {
             throw new RuntimeException("Этот аккаунт уже привязан к другому Telegram ID!");
         }
@@ -116,6 +115,8 @@ public class AuthenticationService {
 
         return jwtToken;
     }
+
+
 
     public String refreshToken(HttpServletRequest request, HttpServletResponse response) {
         final String refreshToken = getRefreshTokenFromCookie(request);

@@ -44,8 +44,8 @@ application:
   security:
     jwt:
       secret-email-verification-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5971
+      secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
       expiration-email-key: 3600000 # an hour
-  link-to-verify: http://localhost:8765/request-handler/v1/email
-  link-to-accept-invitation-to-project: http://localhost:8765/request-handler/v1/email
+  link-to-verify: http://localhost:8765/notification/v1/contacts/verify-email
   telegram-bot:
     url-to-send: http://localhost:8087/tg-bot/v1

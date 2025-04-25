@@ -12,9 +12,6 @@ import lombok.NoArgsConstructor;
 public class InviteEvent {
     private String action = "INVITE_TO_PROJECT";
     private String username;
-    private String email;
-    private String telegramId;
-    private String chatId;
     private String inviteLink;
     private String projectTitle;
     private String invitedBy;

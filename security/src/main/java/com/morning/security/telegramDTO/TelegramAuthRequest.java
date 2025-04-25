@@ -8,5 +8,6 @@ import lombok.Data;
 public class TelegramAuthRequest {
     private Long chatId;
     private String username;
+    private String telegramId;
     private String password;
 }

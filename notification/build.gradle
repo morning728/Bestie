@@ -11,36 +11,33 @@ java {
 	sourceCompatibility = '17'
 }
 
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+repositories {
+	mavenCentral()
 }
 
 ext {
 	set('springCloudVersion', "2023.0.0")
 }
 
-repositories {
-	mavenCentral()
-}
-
 dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	// Spring Boot
 	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '3.2.1'
-	implementation "org.postgresql:postgresql:42.7.2"
+
+	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web
+	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '3.2.1'
 	implementation("org.flywaydb:flyway-core:9.17.0")
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
-	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
-	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.kafka:spring-kafka'
 	// https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-mail
 	implementation 'org.springframework.boot:spring-boot-starter-mail:3.3.1'
 // https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api
 	implementation group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.12.2'
 
-	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-impl
 	runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.12.2'
 
@@ -50,21 +47,17 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-quartz'
 
 	implementation "org.postgresql:postgresql:42.7.2"
-	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-
-
-
 
 	// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-jackson
 	runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.12.2'
 	compileOnly 'org.projectlombok:lombok'
-	//runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
+
 dependencyManagement {
 	imports {
 		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"

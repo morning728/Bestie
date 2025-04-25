@@ -5,8 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.morning.taskapimain.entity.kafka.project.DeleteEvent;
 import com.morning.taskapimain.entity.kafka.project.InviteEvent;
 import com.morning.taskapimain.entity.kafka.task.TaskNotificationEvent;
-import com.morning.taskapimain.entity.user.Contacts;
-import com.morning.taskapimain.exception.BadRequestException;
+
 import com.morning.taskapimain.exception.KafkaException;
 import com.morning.taskapimain.repository.ProjectRepository;
 import com.morning.taskapimain.service.UserService;
@@ -15,14 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import javax.annotation.Nullable;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor

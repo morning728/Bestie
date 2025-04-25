@@ -399,19 +399,15 @@ public class TaskService {
     public Mono<Void> notifyAssigneesAboutAction(List<Long> assigneeIds, String taskTitle, String projectTitle, String action, String token) {
         return Flux.fromIterable(assigneeIds)
                 .flatMap(userId ->
-                        userService.findContactsByUserIdWithWebClient(userId, token) // получаем email, telegramId и т.д.
+                        userService.getUsernameById(userId) // получаем email, telegramId и т.д.
                 )
-                .flatMap(contacts -> {
+                .flatMap(username -> {
                     TaskNotificationEvent event = TaskNotificationEvent.builder()
                             .action(action)
                             .taskTitle(taskTitle)
                             .projectTitle(projectTitle)
-                            .username(contacts.getUsername())
-                            .email(contacts.getEmail() != null ? contacts.getEmail() : "no_data")
-                            .telegramId(contacts.getTelegramId() != null ? contacts.getTelegramId() : "no_data")
-                            .chatId(contacts.getChatId() != null ? contacts.getChatId() : "no_data")
+                            .username(username)
                             .build();
-
                     return kafkaNotificationService.sendTaskNotification(event);
                 })
                 .then();

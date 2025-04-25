@@ -41,16 +41,16 @@ public class UserService {
     private String securityDatabasePassword;
 
 
-    // Лучше удалить позже
+/*    // Лучше удалить позже
     private static final String SELECT_USER_CONTACTS_QUERY =     """
     select username, telegram_id, email from public.auth_user
-    """;
+    """;*/
     // Лучше удалить позже
     public Connection getConnection() throws SQLException {
         return DriverManager.getConnection(securityDatabasePath,
                 securityDatabaseUsername, securityDatabasePassword);
     }
-    // Лучше удалить позже
+/*    // Лучше удалить позже
     public Mono<Contacts> getUserContactsByUsername(String username) {
 
         return Mono.fromCallable(() -> {
@@ -77,7 +77,7 @@ public class UserService {
                     return contacts;
                 })
                 .subscribeOn(Schedulers.boundedElastic()); // Выполняем асинхронно
-    }
+    }*/
 
 
     /**
@@ -109,6 +109,14 @@ public class UserService {
      */
     public Mono<User> getUserById(Long userId) {
         return userRepository.findById(userId)
+                .switchIfEmpty(Mono.error(new NotFoundException("User not found")));
+    }
+
+    /**
+     * ✅ Получение пользователя по ID
+     */
+    public Mono<String> getUsernameById(Long userId) {
+        return userRepository.findUsernameById(userId)
                 .switchIfEmpty(Mono.error(new NotFoundException("User not found")));
     }
 
@@ -169,7 +177,7 @@ public class UserService {
                 .switchIfEmpty(Mono.error(new NotFoundException("User not found")));
     }
 
-    public Mono<Contacts> findContactsByUsernameWithWebClient(String usernameToGetProfile, String yourToken) {
+/*    public Mono<Contacts> findContactsByUsernameWithWebClient(String usernameToGetProfile, String yourToken) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/users/info")
@@ -178,15 +186,15 @@ public class UserService {
                 .header("Authorization",  yourToken)
                 .retrieve()
                 .bodyToMono(Contacts.class);
-    }
+    }*/
 
-    public Mono<Contacts> findContactsByUserIdWithWebClient(Long userId, String yourToken) {
+/*    public Mono<Contacts> findContactsByUserIdWithWebClient(Long userId, String yourToken) {
         return userRepository.findById(userId)
                 .map(User::getUsername)
                 .flatMap(username -> {
                     return findContactsByUsernameWithWebClient(username, yourToken);
                 });
-    }
+    }*/
 
 
 }

@@ -3,6 +3,7 @@ package com.morning.notification.service;
 import com.morning.notification.entity.project.DeleteEvent;
 import com.morning.notification.entity.project.InviteEvent;
 import com.morning.notification.entity.task.TaskNotificationEvent;
+import com.morning.notification.entity.user.NotificationPreferences;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -12,16 +13,16 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
+    private final UserService userService;
+    private final JavaMailSender mailSender;
+    private final TelegramService telegramService;
     @Value("${spring.mail.username}")
     private String from;
 
-    private final JavaMailSender mailSender;
-    private final TelegramService telegramService;
-
-    private void sendEmail(String to, String subject, String body) {
-        if (!"no_data".equals(to)) {
+    private void sendEmail(NotificationPreferences preferences, String subject, String body) {
+        if (!preferences.getEmail().isEmpty() && preferences.getEmailNotification() && preferences.getEmailVerified()) {
             SimpleMailMessage mailMessage = new SimpleMailMessage();
-            mailMessage.setTo(to);
+            mailMessage.setTo(preferences.getEmail());
             mailMessage.setSubject(subject);
             mailMessage.setText(body);
             mailMessage.setFrom(from);
@@ -29,6 +30,8 @@ public class NotificationService {
             mailSender.send(mailMessage);
         }
     }
+
+
 
 
     public void sendInviteToProject(InviteEvent event) {
@@ -40,11 +43,15 @@ public class NotificationService {
                 event.getInvitedBy(),
                 event.getInviteLink()
         );
-        sendEmail(event.getEmail(), subject, body);
-        telegramService.sendMessage(event.getChatId(), body);
+
+        NotificationPreferences preferences = userService.getNotificationPreferencesByUsername(event.getUsername());
+        if (preferences.getInviteEnabled()) {
+            sendEmail(preferences, subject, body);
+            telegramService.sendMessage(preferences, body);
+        }
     }
 
-//проверь
+    //проверь
     public void sendDeleteNotification(DeleteEvent event) {
         String subject = "You have been deleted from project.";
         String body = String.format(
@@ -53,8 +60,11 @@ public class NotificationService {
                 event.getProjectTitle(),
                 event.getDeletedBy()
         );
-        sendEmail(event.getEmail(), subject, body);
-        telegramService.sendMessage(event.getChatId(), body);
+        NotificationPreferences preferences = userService.getNotificationPreferencesByUsername(event.getUsername());
+        if (preferences.getInviteEnabled()) {
+            sendEmail(preferences, subject, body);
+            telegramService.sendMessage(preferences, body);
+        }
     }
 
     public void sendTaskAssignmentNotification(TaskNotificationEvent event) {
@@ -65,8 +75,11 @@ public class NotificationService {
                 event.getTaskTitle(),
                 event.getProjectTitle()
         );
-        sendEmail(event.getEmail(), subject, body);
-        telegramService.sendMessage(event.getChatId(), body);
+        NotificationPreferences preferences = userService.getNotificationPreferencesByUsername(event.getUsername());
+        if (preferences.getTaskAssignedEnabled()) {
+            sendEmail(preferences, subject, body);
+            telegramService.sendMessage(preferences, body);
+        }
     }
 
     public void sendStatusChangeNotification(TaskNotificationEvent event) {
@@ -77,8 +90,11 @@ public class NotificationService {
                 event.getTaskTitle(),
                 event.getProjectTitle()
         );
-        sendEmail(event.getEmail(), subject, body);
-        telegramService.sendMessage(event.getChatId(), body);
+        NotificationPreferences preferences = userService.getNotificationPreferencesByUsername(event.getUsername());
+        if (preferences.getTaskUpdatedEnabled()) {
+            sendEmail(preferences, subject, body);
+            telegramService.sendMessage(preferences, body);
+        }
     }
 
 

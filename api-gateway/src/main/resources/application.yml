@@ -28,6 +28,13 @@ spring:
           filters:
             - AuthenticationFilter
 
+        - id: notification-api
+          uri: lb://NOTIFICATION
+          predicates:
+            - Path=/notification/**
+          filters:
+            - AuthenticationFilter
+
         - id: open-request-handler
           uri: lb://OPEN-REQUEST-HANDLER
           predicates:

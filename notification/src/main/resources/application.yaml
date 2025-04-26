@@ -2,7 +2,7 @@ spring:
   config:
     import: optional:classpath:application-secrets.yaml
   application:
-    name: mail-notification
+    name: NOTIFICATION
   kafka:
     bootstrap-servers: localhost:9092
   mail:

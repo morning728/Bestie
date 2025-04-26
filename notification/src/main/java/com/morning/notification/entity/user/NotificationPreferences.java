@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 @Table(name = "notification_preferences")
 public class NotificationPreferences {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String username;
     @Column(name= "chat_id")

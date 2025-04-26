@@ -57,4 +57,4 @@ application:
       refresh-token:
         expiration: 604800000 # 7 days
   task-api:
-    db-url: jdbc:postgresql://localhost:5432/task_api_db?serverTimezone=UTC
+    url: http://localhost:8765/api/v1

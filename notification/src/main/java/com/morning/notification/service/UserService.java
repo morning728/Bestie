@@ -113,4 +113,8 @@ public class UserService {
                             .build());
         return user.get();
     }
+
+    public NotificationPreferences getNotificationPreferencesByToken(String token) {
+        return getNotificationPreferencesByUsername(jwtService.extractUsername(token));
+    }
 }

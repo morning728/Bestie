@@ -80,6 +80,16 @@ public class UserController {
     }*/
 
     /**
+     * ✅ Добавление пользователя (от security идет запрос)
+     */
+    @GetMapping("/register")
+    public Mono<ResponseEntity<User>> addUser(
+                                                 @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
+        return userService.addUser(token)
+                .map(ResponseEntity::ok);
+    }
+
+    /**
      * ✅ Обновление информации о пользователе
      */
     @PutMapping("/{username}")
@@ -117,5 +127,13 @@ public class UserController {
     public Mono<AboutMeDTO> findMe(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
         return userService.getUserByToken(token)
                 .map(AboutMeDTO::fromUser);
+    }
+
+    /**
+     *
+     */
+    @GetMapping("/me-expanded")
+    public Mono<User> findMeExpanded(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
+        return userService.getUserByToken(token);
     }
 }

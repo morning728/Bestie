@@ -10,6 +10,7 @@ import com.morning.security.user.User;
 import com.morning.security.user.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -18,7 +19,10 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Mono;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -40,9 +44,8 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final JwtEmailService jwtEmailService;
     private final KafkaService kafkaService;
+    private final WebClient webClient;
 
-    @Value("${application.task-api.db-url}")
-    private String dbUrl;
 
     public String register(RegisterRequest request, HttpServletResponse response) throws SQLException {
         var user = User.builder()
@@ -52,19 +55,21 @@ public class AuthenticationService {
                 .role(request.getRole())
                 .verified(false)
                 .build();
-        var savedUser = repository.save(user);
-        kafkaService.sendUsernameToNotificationService(request.getUsername());
 
-        try {
-            addUserToDatabase(request.getUsername()); // Добавляем в `app_user`
-        } catch (Exception e){
-            repository.deleteById(savedUser.getId());
-            throw e;
-        }
+        var savedUser = repository.save(user);
 
         var jwtToken = jwtService.generateToken(Map.of("role", "USER"), user);
         var refreshToken = jwtService.generateRefreshToken(user);
+
         saveUserToken(savedUser, jwtToken, null);
+        try {
+            kafkaService.sendUsernameToNotificationService(request.getUsername());
+            sendUsernameToMainApiService(jwtToken); // проверяем ответ
+        } catch (Exception e) {
+            tokenRepository.deleteAllByAuthUserId(savedUser.getId());
+            repository.deleteById(savedUser.getId());
+            throw e;
+        }
 
         setRefreshTokenCookie(response, refreshToken);
 
@@ -194,20 +199,26 @@ public class AuthenticationService {
                 .orElse(null);
     }
 
-    private void addUserToDatabase(String username) throws SQLException {
-        try (Connection connection = DriverManager.getConnection(dbUrl, "postgres", "root")) {
-            String insertQuery = "INSERT INTO \"app_user\" (username, created_at, updated_at, status) VALUES (?, ?, ?, ?)";
-            try (PreparedStatement statement = connection.prepareStatement(insertQuery)) {
-                statement.setString(1, username);
-                statement.setDate(2, new java.sql.Date(Calendar.getInstance().getTime().getTime()));
-                statement.setDate(3, new java.sql.Date(Calendar.getInstance().getTime().getTime()));
-                statement.setString(4, "ACTIVE");
-                int count = statement.executeUpdate();
-                if (count != 1) {
-                    throw new SQLException("User was not added to app_user");
-                }
-            }
-        }
+    private void sendUsernameToMainApiService(String token) {
+        webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/users/register")
+                        .build())
+                .header("Authorization", "Bearer ".concat(token))
+                .retrieve()
+                .onStatus(
+                        status -> !status.is2xxSuccessful(), // Проверка, что НЕ 2xx
+                        clientResponse -> {
+                            // Бросаем ошибку если код не 2xx
+                            return clientResponse.bodyToMono(String.class)
+                                    .defaultIfEmpty("Unknown error")
+                                    .flatMap(errorBody -> Mono.error(new RuntimeException(
+                                            "Failed to send username to main-api-service: " + errorBody
+                                    )));
+                        }
+                )
+                .toBodilessEntity() // Нам не нужен сам ответ, только статус
+                .block(); // Блокируем чтобы отправка точно завершилась
     }
 
     public String getTelegramToken(Long chatId) {

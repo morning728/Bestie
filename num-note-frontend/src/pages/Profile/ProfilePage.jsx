@@ -1,101 +1,201 @@
-import React, { useContext, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
+import { Box, Typography, TextField, Button, Grid, Switch, CircularProgress } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import { Box, Typography, Button, TextField, Grid } from "@mui/material";
 import { ThemeContext } from "../../ThemeContext";
-import ChangePasswordDialog from "../../components/ChangePasswordDialog/ChangePasswordDialog";
-import AddTagDialog from "../../components/AddTagAndStatusDialog/AddTagDialog"; // Импортируем диалог для тегов
-import AddStatusDialog from "../../components/AddTagAndStatusDialog/AddStatusDialog"; // Импортируем диалог для статусов
-import "./ProfilePage.css";
+import {
+  getMeExpanded,
+  getMyNotificationPreferences,
+  updateUserProfile,
+  updateNotificationPreferences,
+  updateEmail,
+} from "../../services/api";
 import Header from "../../components/Header/Header";
+import "./ProfilePage.css";
 
 const ProfilePage = () => {
   const { darkMode } = useContext(ThemeContext);
-  const { t, i18n } = useTranslation(); // Получаем t для локализации
-  const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
-  const [openTagDialog, setOpenTagDialog] = useState(false);
-  const [openStatusDialog, setOpenStatusDialog] = useState(false);
-  const [tags, setTags] = useState([
-    { name: "Work", color: "#FF0000" },
-    { name: "Health", color: "#00FF00" },
-  ]);
-  const [statuses, setStatuses] = useState([
-    { name: "Pending" },
-    { name: "Completed" },
-    { name: "In Progress" },
-  ]);
+  const { t } = useTranslation();
 
-  const handlePasswordDialogOpen = () => setOpenPasswordDialog(true);
-  const handlePasswordDialogClose = () => setOpenPasswordDialog(false);
+  const [userInfo, setUserInfo] = useState(null);
+  const [preferences, setPreferences] = useState(null);
 
-  const handleTagDialogOpen = () => setOpenTagDialog(true);
-  const handleTagDialogClose = () => setOpenTagDialog(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
 
-  const handleStatusDialogOpen = () => setOpenStatusDialog(true);
-  const handleStatusDialogClose = () => setOpenStatusDialog(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savingPreferences, setSavingPreferences] = useState(false);
+  const [savingEmail, setSavingEmail] = useState(false);
 
-  const handleAddTag = (newTag) => {
-    if (Array.isArray(newTag)) {
-      setTags(newTag);
-    } else {
-      setTags([...tags, newTag]);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [userInfoResponse, preferencesResponse] = await Promise.all([
+          getMeExpanded(),
+          getMyNotificationPreferences(),
+        ]);
+        setUserInfo(userInfoResponse.data);
+        setPreferences(preferencesResponse.data);
+
+        setFirstName(userInfoResponse.data.firstName || "");
+        setLastName(userInfoResponse.data.lastName || "");
+        setNewEmail(preferencesResponse.data.email || "");
+      } catch (error) {
+        console.error("Ошибка загрузки данных профиля:", error);
+      }
+    }
+    fetchData();
+  }, []);
+
+  const handleSaveProfile = async () => {
+    if (!userInfo) return;
+    setSavingProfile(true);
+    try {
+      await updateUserProfile(userInfo.username, {
+        ...userInfo,
+        firstName,
+        lastName,
+      });
+    } catch (error) {
+      console.error("Ошибка при обновлении профиля:", error);
+    } finally {
+      setSavingProfile(false);
     }
   };
 
-  const handleAddStatus = (newStatus) => {
-    if (Array.isArray(newStatus)) {
-      setStatuses(newStatus);
-    } else {
-      setStatuses([...statuses, newStatus]);
+  const handleTogglePreference = async (field) => {
+    if (!preferences) return;
+    const updated = { ...preferences, [field]: !preferences[field] };
+    setPreferences(updated);
+    setSavingPreferences(true);
+    try {
+      await updateNotificationPreferences({
+        emailNotification: updated.emailNotification,
+        telegramNotification: updated.telegramNotification,
+        inviteEnabled: updated.inviteEnabled,
+        taskAssignedEnabled: updated.taskAssignedEnabled,
+        taskUpdatedEnabled: updated.taskUpdatedEnabled,
+        taskDeadlineReminder: updated.taskDeadlineReminder,
+      });
+    } catch (error) {
+      console.error("Ошибка при обновлении настроек уведомлений:", error);
+    } finally {
+      setSavingPreferences(false);
     }
   };
+
+  const handleChangeEmail = async () => {
+    if (!newEmail) return;
+    setSavingEmail(true);
+    try {
+      await updateEmail(newEmail);
+      const preferencesResponse = await getMyNotificationPreferences();
+      setPreferences(preferencesResponse.data);
+    } catch (error) {
+      console.error("Ошибка при изменении email:", error);
+    } finally {
+      setSavingEmail(false);
+    }
+  };
+
+  if (!userInfo || !preferences) {
+    return (
+      <Box className={`profile-page ${darkMode ? "dark" : "light"}`}>
+        <Typography variant="h6" align="center" mt={5}>
+          {t("loading")}...
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box className={`profile-page ${darkMode ? "dark" : "light"}`}>
       <Header />
       <Typography variant="h4" gutterBottom className="profile-title">
-        {t("profile")} {/* Используем перевод для "Profile" */}
+        {t("profile")}
       </Typography>
 
-      <Grid container spacing={3} className="profile-form">
-        {/* Изменяемые поля (Username, Email) */}
+      <Grid container spacing={3} mt={2}>
+        {/* Имя и фамилия */}
         <Grid item xs={12} md={6}>
-          <TextField label={t("profile_username")} fullWidth defaultValue="JohnDoe" margin="normal" />
-        </Grid>
-
-        {/* Email */}
-        <Grid item xs={12} md={6}>
-          <TextField label={t("profile_email")} fullWidth defaultValue="johndoe@example.com" margin="normal" />
-        </Grid>
-
-        {/* Кнопка "Change Password" */}
-        <Grid item xs={12} md={6}>
-          <Button variant="contained" color="primary" fullWidth size="small" onClick={handlePasswordDialogOpen}>
-            {t("profile_change_password")} {/* Используем перевод для "Change Password" */}
+          <TextField
+            label={t("first_name")}
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            fullWidth
+            margin="normal"
+          />
+          <TextField
+            label={t("last_name")}
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            fullWidth
+            margin="normal"
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            onClick={handleSaveProfile}
+            disabled={savingProfile}
+            sx={{ mt: 2 }}
+          >
+            {savingProfile ? <CircularProgress size={24} /> : t("save_profile")}
           </Button>
         </Grid>
 
-        {/* Теги и Статусы */}
+        {/* Email (редактируемое поле) */}
         <Grid item xs={12} md={6}>
-          <Button className="profile-btn" variant="contained" color="secondary" fullWidth size="small" onClick={handleTagDialogOpen}>
-            {t("profile_add_new_tag")} {/* Используем перевод для "Add New Tag" */}
-          </Button>
-          <Button className="profile-btn" variant="contained" color="secondary" fullWidth size="small" onClick={handleStatusDialogOpen}>
-            {t("profile_add_new_status")} {/* Используем перевод для "Add New Status" */}
+          <TextField
+            label={t("email")}
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+            fullWidth
+            margin="normal"
+          />
+          <Button
+            variant="contained"
+            color="secondary"
+            fullWidth
+            onClick={handleChangeEmail}
+            disabled={savingEmail}
+            sx={{ mt: 2 }}
+          >
+            {savingEmail ? <CircularProgress size={24} /> : t("change_email")}
           </Button>
         </Grid>
 
-        {/* Кнопка "Save Changes" под всеми полями */}
+        {/* Настройки уведомлений */}
         <Grid item xs={12}>
-          <Button variant="contained" color="secondary" fullWidth size="large">
-            {t("profile_save_changes")} {/* Используем перевод для "Save Changes" */}
-          </Button>
+          <Typography variant="h6" sx={{ mt: 4 }}>
+            {t("notification_preferences")}
+          </Typography>
+
+          {[
+            { field: "emailNotification", label: t("notify_by_email") },
+            { field: "telegramNotification", label: t("notify_by_telegram") },
+            { field: "inviteEnabled", label: t("receive_invites") },
+            { field: "taskAssignedEnabled", label: t("task_assigned_notifications") },
+            { field: "taskUpdatedEnabled", label: t("task_updated_notifications") },
+            { field: "taskDeadlineReminder", label: t("task_deadline_reminder") },
+          ].map((item) => (
+            <Box key={item.field} display="flex" alignItems="center" justifyContent="space-between" mt={2}>
+              <Typography>{item.label}</Typography>
+              <Switch
+                checked={preferences[item.field]}
+                onChange={() => handleTogglePreference(item.field)}
+                disabled={savingPreferences}
+              />
+            </Box>
+          ))}
+
+          {savingPreferences && (
+            <Box display="flex" justifyContent="center" mt={2}>
+              <CircularProgress size={24} />
+            </Box>
+          )}
         </Grid>
       </Grid>
-
-      {/* Диалоги */}
-      <ChangePasswordDialog open={openPasswordDialog} onClose={handlePasswordDialogClose} />
-      <AddTagDialog open={openTagDialog} onClose={handleTagDialogClose} handleAddTag={handleAddTag} existingTags={tags} />
-      <AddStatusDialog open={openStatusDialog} onClose={handleStatusDialogClose} handleAddStatus={handleAddStatus} existingStatuses={statuses} />
     </Box>
   );
 };

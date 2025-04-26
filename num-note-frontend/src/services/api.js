@@ -241,6 +241,12 @@ export const getMe = () =>
 export const getMyRole = (projectId) =>
   apiClient.get(`/api/v1/projects/${projectId}/roles/my`);
 
+export const getMeExpanded = () =>
+  apiClient.get(`/api/v1/users/me-expanded`);
+
+// PROFILE (обновление имени и фамилии)
+export const updateUserProfile = (username, updatedUser) => 
+  apiClient.put(`/api/v1/users/${username}`, updatedUser);
 
 // FILES
 
@@ -263,6 +269,39 @@ export const downloadAttachment = (id) =>
   apiClient.get(`/file-api/v1/attachments/${id}/download`, {
     responseType: 'blob',
   });
+
+  // NOTIFICATIONS
+
+// Получить контакты пользователя (email, telegramId и т.д.)
+export const getContactsByUsername = (username) => {
+  return apiClient.get(`/notification/v1/contacts`, {
+    params: { username }
+  });
+};
+
+// Получить контакты + настройки уведомлений пользователя
+export const getMyNotificationPreferences = () => {
+  return apiClient.get(`/notification/v1/contacts/preferences/my`);
+};
+
+// Обновить настройки уведомлений пользователя
+export const updateNotificationPreferences = (notificationPreferencesDTO) => {
+  return apiClient.post(`/notification/v1/contacts/preferences`, notificationPreferencesDTO);
+};
+
+// Отправить запрос на верификацию почты
+export const verifyEmail = (emailToken) => {
+  return apiClient.get(`/notification/v1/contacts/verify-email`, {
+    params: { token: emailToken }
+  });
+};
+
+// Обновить email пользователя
+export const updateEmail = (newEmail) => {
+  return apiClient.get(`/notification/v1/contacts/email`, {
+    params: { 'new-email': newEmail }
+  });
+};
 
 
 

@@ -136,6 +136,19 @@ public class UserService {
     }
 
     /**
+     * ✅ Добавление пользователя
+     */
+    public Mono<User> addUser(String token) {
+        String requesterUsername = jwtService.extractUsername(token);
+        return userExists(requesterUsername)
+                .flatMap(exists -> {
+                    return exists ?
+                            Mono.error(new AccessException("User already exists")) :
+                            userRepository.saveWithUsername(requesterUsername);
+                });
+    }
+
+    /**
      * ✅ Обновление информации о пользователе
      */
     public Mono<User> updateUser(String username, User updatedUser, String token) {

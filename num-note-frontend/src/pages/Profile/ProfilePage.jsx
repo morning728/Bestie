@@ -1,5 +1,13 @@
 import React, { useEffect, useState, useContext } from "react";
-import { Box, Typography, TextField, Button, Grid, Switch, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Grid,
+  Switch,
+  CircularProgress,
+} from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { ThemeContext } from "../../ThemeContext";
 import {
@@ -10,6 +18,8 @@ import {
   updateEmail,
 } from "../../services/api";
 import Header from "../../components/Header/Header";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import CancelIcon from "@mui/icons-material/Cancel";
 import "./ProfilePage.css";
 
 const ProfilePage = () => {
@@ -21,11 +31,14 @@ const ProfilePage = () => {
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [newEmail, setNewEmail] = useState("");
+  const [emailInput, setEmailInput] = useState("");
+  const [editEmailMode, setEditEmailMode] = useState(false);
 
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPreferences, setSavingPreferences] = useState(false);
   const [savingEmail, setSavingEmail] = useState(false);
+  const [emailSent, setEmailSent] = useState(false); // новое состояние
+
 
   useEffect(() => {
     async function fetchData() {
@@ -36,10 +49,9 @@ const ProfilePage = () => {
         ]);
         setUserInfo(userInfoResponse.data);
         setPreferences(preferencesResponse.data);
-
         setFirstName(userInfoResponse.data.firstName || "");
         setLastName(userInfoResponse.data.lastName || "");
-        setNewEmail(preferencesResponse.data.email || "");
+        setEmailInput(preferencesResponse.data.email || "");
       } catch (error) {
         console.error("Ошибка загрузки данных профиля:", error);
       }
@@ -75,7 +87,7 @@ const ProfilePage = () => {
         inviteEnabled: updated.inviteEnabled,
         taskAssignedEnabled: updated.taskAssignedEnabled,
         taskUpdatedEnabled: updated.taskUpdatedEnabled,
-        taskDeadlineReminder: updated.taskDeadlineReminder,
+        taskReminder: updated.taskReminder,
       });
     } catch (error) {
       console.error("Ошибка при обновлении настроек уведомлений:", error);
@@ -85,18 +97,21 @@ const ProfilePage = () => {
   };
 
   const handleChangeEmail = async () => {
-    if (!newEmail) return;
+    if (!emailInput) return;
     setSavingEmail(true);
     try {
-      await updateEmail(newEmail);
+      await updateEmail(emailInput);
+      setEmailSent(true); // Успешно отправили письмо
       const preferencesResponse = await getMyNotificationPreferences();
       setPreferences(preferencesResponse.data);
+      setEditEmailMode(false); // Выключаем режим редактирования
     } catch (error) {
       console.error("Ошибка при изменении email:", error);
     } finally {
       setSavingEmail(false);
     }
   };
+
 
   if (!userInfo || !preferences) {
     return (
@@ -142,62 +157,123 @@ const ProfilePage = () => {
           >
             {savingProfile ? <CircularProgress size={24} /> : t("save_profile")}
           </Button>
+          {/* Настройки уведомлений */}
+          <Grid item xs={6} sx={{marginTop: 5}}>
+            <Typography variant="h6" sx={{ mt: 4 }}>
+              {t("notification_preferences")}
+            </Typography>
+
+            {[
+              { field: "emailNotification", label: t("notify_by_email") },
+              { field: "telegramNotification", label: t("notify_by_telegram") },
+              { field: "inviteEnabled", label: t("receive_invites") },
+              { field: "taskAssignedEnabled", label: t("task_assigned_notifications") },
+              { field: "taskUpdatedEnabled", label: t("task_updated_notifications") },
+              { field: "taskReminder", label: t("task_reminder") },
+            ].map((item) => {
+              const isMainChannel = item.field === "emailNotification" || item.field === "telegramNotification";
+              const noChannelsActive = !preferences.emailNotification && !preferences.telegramNotification;
+              const shouldDisable =
+                savingPreferences ||
+                (!isMainChannel && noChannelsActive); // Блокируем второстепенные переключатели, если нет каналов связи
+
+              return (
+                <Box key={item.field} display="flex" alignItems="center" justifyContent="space-between" mt={2}>
+                  <Typography>{item.label}</Typography>
+                  <Switch
+                    checked={preferences[item.field]}
+                    onChange={() => handleTogglePreference(item.field)}
+                    disabled={shouldDisable}
+                  />
+                </Box>
+              );
+            })}
+
+
+            {savingPreferences && (
+              <Box display="flex" justifyContent="center" mt={2}>
+                <CircularProgress size={24} />
+              </Box>
+            )}
+          </Grid>
         </Grid>
 
-        {/* Email (редактируемое поле) */}
+
+        {/* Email-блок */}
         <Grid item xs={12} md={6}>
           <TextField
             label={t("email")}
-            value={newEmail}
-            onChange={(e) => setNewEmail(e.target.value)}
+            value={preferences.telegramId ? preferences.telegramId : "Login Via @BestieTrackerBot"}
+            onChange={(e) => setEmailInput(e.target.value)}
             fullWidth
             margin="normal"
+            disabled
           />
+          <Box display="flex" alignItems="center" gap={1}>
+            <TextField
+              label={t("email")}
+              value={preferences.emailVerified ? preferences.email : emailInput}
+              onChange={(e) => setEmailInput(e.target.value)}
+              fullWidth
+              margin="normal"
+              disabled={preferences.emailVerified && !editEmailMode}
+            />
+            {preferences.emailVerified ? (
+              <CheckCircleIcon color="success" />
+            ) : (
+              <CancelIcon color="error" />
+            )}
+          </Box>
+
+          {editEmailMode && preferences.emailVerified && (
+            <TextField
+              label={t("new_email")}
+              placeholder="new email"
+              value={emailInput}
+              onChange={(e) => setEmailInput(e.target.value)}
+              fullWidth
+              margin="normal"
+              sx={{ mt: 2 }}
+            />
+          )}
+
           <Button
             variant="contained"
             color="secondary"
             fullWidth
-            onClick={handleChangeEmail}
+            onClick={() => {
+              if (!preferences.emailVerified || editEmailMode) {
+                handleChangeEmail();
+              } else {
+                setEditEmailMode(true);
+              }
+            }}
             disabled={savingEmail}
             sx={{ mt: 2 }}
           >
-            {savingEmail ? <CircularProgress size={24} /> : t("change_email")}
-          </Button>
-        </Grid>
-
-        {/* Настройки уведомлений */}
-        <Grid item xs={12}>
-          <Typography variant="h6" sx={{ mt: 4 }}>
-            {t("notification_preferences")}
-          </Typography>
-
-          {[
-            { field: "emailNotification", label: t("notify_by_email") },
-            { field: "telegramNotification", label: t("notify_by_telegram") },
-            { field: "inviteEnabled", label: t("receive_invites") },
-            { field: "taskAssignedEnabled", label: t("task_assigned_notifications") },
-            { field: "taskUpdatedEnabled", label: t("task_updated_notifications") },
-            { field: "taskDeadlineReminder", label: t("task_deadline_reminder") },
-          ].map((item) => (
-            <Box key={item.field} display="flex" alignItems="center" justifyContent="space-between" mt={2}>
-              <Typography>{item.label}</Typography>
-              <Switch
-                checked={preferences[item.field]}
-                onChange={() => handleTogglePreference(item.field)}
-                disabled={savingPreferences}
-              />
-            </Box>
-          ))}
-
-          {savingPreferences && (
-            <Box display="flex" justifyContent="center" mt={2}>
+            {savingEmail ? (
               <CircularProgress size={24} />
-            </Box>
+            ) : editEmailMode || !preferences.emailVerified ? (
+              t("verify_email")
+            ) : (
+              t("change_email")
+            )}
+          </Button>
+
+          {/* Показываем сообщение после успешной отправки письма */}
+          {emailSent && (
+            <Typography mt={2} color="success.main">
+              📧 Письмо для подтверждения отправлено. Проверьте почту и папку Спам!
+            </Typography>
           )}
         </Grid>
+
+
+
       </Grid>
     </Box>
   );
 };
 
 export default ProfilePage;
+

@@ -42,9 +42,9 @@ dependencies {
 	runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.12.2'
 
 	// https://mvnrepository.com/artifact/org.quartz-scheduler/quartz
-//	implementation group: 'org.quartz-scheduler', name: 'quartz', version: '2.3.2'
-//	implementation group: 'org.quartz-scheduler', name: 'quartz-jdbc', version: '2.3.2'
 	implementation 'org.springframework.boot:spring-boot-starter-quartz'
+	implementation 'org.quartz-scheduler:quartz:2.3.2'
+
 
 	implementation "org.postgresql:postgresql:42.7.2"
 

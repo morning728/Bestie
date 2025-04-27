@@ -55,7 +55,9 @@ public class AuthenticationService {
                 .role(request.getRole())
                 .verified(false)
                 .build();
-
+        if(repository.findByUsername(request.getUsername()).isPresent()) {
+            throw new ResponseStatusException(UNAUTHORIZED, "Username is already in use");
+        }
         var savedUser = repository.save(user);
 
         var jwtToken = jwtService.generateToken(Map.of("role", "USER"), user);
@@ -240,4 +242,46 @@ public class AuthenticationService {
         }
 
     }
+
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        final String token = extractAccessToken(request);
+        if (token == null) {
+            throw new ResponseStatusException(UNAUTHORIZED, "Access token отсутствует");
+        }
+
+        final String username = jwtService.extractUsername(token);
+        if (username == null) {
+            throw new ResponseStatusException(UNAUTHORIZED, "Некорректный access token");
+        }
+
+        var user = repository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(UNAUTHORIZED, "Пользователь не найден"));
+
+        // Отзываем ВСЕ обычные токены пользователя
+        revokeAllNonTelegramUserTokens(user);
+
+        // Удаляем refresh_token куку
+        deleteRefreshTokenCookie(response);
+    }
+
+    private String extractAccessToken(HttpServletRequest request) {
+        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return null;
+        }
+        return authHeader.substring(7);
+    }
+
+    private void deleteRefreshTokenCookie(HttpServletResponse response) {
+        ResponseCookie deleteCookie = ResponseCookie.from("refresh_token", "")
+                .httpOnly(true)
+                .secure(false) // если у тебя HTTPS, поставь true
+                .sameSite("Strict")
+                .path("/")
+                .maxAge(0) // обнуляем куку
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
+    }
+
+
 }

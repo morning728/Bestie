@@ -20,6 +20,7 @@ import reactor.core.scheduler.Schedulers;
 
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -118,6 +119,20 @@ public class UserService {
     public Mono<String> getUsernameById(Long userId) {
         return userRepository.findUsernameById(userId)
                 .switchIfEmpty(Mono.error(new NotFoundException("User not found")));
+    }
+
+
+    /**
+     * ✅ Получение списка usernames по списку userIds
+     */
+    public Mono<List<String>> getUsernamesByIds(List<Long> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return Mono.just(List.of());
+        }
+
+        return Flux.fromIterable(userIds)
+                .flatMap(this::getUsernameById) // для каждого id запрашиваем username
+                .collectList(); // собираем все в список
     }
 
     /**

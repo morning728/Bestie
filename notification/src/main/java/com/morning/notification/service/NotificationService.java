@@ -10,6 +10,9 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
@@ -94,6 +97,24 @@ public class NotificationService {
         if (preferences.getTaskUpdatedEnabled()) {
             sendEmail(preferences, subject, body);
             telegramService.sendMessage(preferences, body);
+        }
+    }
+
+    public void sendTaskReminder(List<String> users, String taskName, String projectName, String reminderText) {
+        for (String username : users) {
+            String subject = "Напоминание от Bestie!";
+            String body = String.format(
+                    "Напоминание! Задача \"%s\" в проекте \"%s\": %s",
+                    taskName,
+                    projectName,
+                    reminderText
+            );
+
+            NotificationPreferences preferences = userService.getNotificationPreferencesByUsername(username);
+            if (preferences.getTaskDeadlineReminder()) {
+                sendEmail(preferences, subject, body);
+                telegramService.sendMessage(preferences, body);
+            }
         }
     }
 

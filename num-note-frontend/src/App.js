@@ -21,6 +21,7 @@ import Header from "./components/Header/Header";
 import Footer from "./components/Footer/Footer";
 import ProfilePage from './pages/Profile/ProfilePage';
 import ProjectsPage from './pages/Projects/ProjectsPage';
+import VerifyEmailPage from './pages/Profile/VerifyEmailPage';
 import { ProjectsProvider } from "./context/ProjectsContext";
 import ProjectSettingsPage from './pages/ProjectSettings/ProjectSettingsPage';
 import AcceptInvitePage from './pages/ProjectSettings/invitation/AcceptInvitePage ';
@@ -43,6 +44,7 @@ function App() {
           {/* 👇 Публичные страницы — без ProjectsProvider */}
           <Route path="/auth/login" element={<LoginPage />} />
           <Route path="/auth/register" element={<RegisterPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/accept-invite" element={<AcceptInvitePage />} />
           <Route path="/accept-universal" element={<AcceptInvitePage isUniversal />} />
 

@@ -26,6 +26,6 @@ public class NotificationPreferencesDTO {
     private Boolean taskAssignedEnabled;
     @Column(name= "task_updated_enabled")
     private Boolean taskUpdatedEnabled;
-    @Column(name= "task_deadline_reminder")
+    @Column(name= "task_reminder")
     private Boolean taskDeadlineReminder;
 }

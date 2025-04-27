@@ -23,7 +23,9 @@ public class TelegramService {
                             "chatId", preferences.getChatId(),
                             "message", text
                     ))
-                    .retrieve();
+                    .retrieve()
+                    .toBodilessEntity()
+                    .subscribe(); // ❗ Просто подписка, без блокировки потока
         }
 /*        telegramClient.sendMessage(Map.of(
                 "chatId", chatId,

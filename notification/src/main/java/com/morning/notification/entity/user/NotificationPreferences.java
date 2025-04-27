@@ -36,8 +36,8 @@ public class NotificationPreferences {
     private Boolean taskAssignedEnabled;
     @Column(name= "task_updated_enabled")
     private Boolean taskUpdatedEnabled;
-    @Column(name= "task_deadline_reminder")
-    private Boolean taskDeadlineReminder;
+    @Column(name= "task_reminder")
+    private Boolean taskReminder;
     @Column(name= "created_at")
     private LocalDateTime createdAt;
     @Column(name= "updated_at")

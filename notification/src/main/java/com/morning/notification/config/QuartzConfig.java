@@ -1,8 +1,7 @@
-/*
 package com.morning.notification.config;
 
-
 import org.quartz.spi.TriggerFiredBundle;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
@@ -17,12 +16,21 @@ import javax.sql.DataSource;
 public class QuartzConfig {
 
     @Bean
-    public SchedulerFactoryBean schedulerFactory(DataSource dataSource) {
-        SchedulerFactoryBean schedulerFactoryBean = new SchedulerFactoryBean();
-        schedulerFactoryBean.setDataSource(dataSource);
-        schedulerFactoryBean.setConfigLocation(new ClassPathResource("quartz.properties"));  // Указываем путь к файлу конфигурации Quartz
-        schedulerFactoryBean.setJobFactory(new AutowiringSpringBeanJobFactory());
-        return schedulerFactoryBean;
+    public SchedulerFactoryBean schedulerFactoryBean(DataSource dataSource, AutowiringSpringBeanJobFactory jobFactory) {
+        SchedulerFactoryBean factory = new SchedulerFactoryBean();
+        factory.setDataSource(dataSource);
+        factory.setConfigLocation(new ClassPathResource("quartz.properties"));
+        factory.setJobFactory(jobFactory);
+        factory.setOverwriteExistingJobs(true); // если есть в БД, перезаписывать
+        factory.setWaitForJobsToCompleteOnShutdown(true); // при выключении корректно завершать
+        return factory;
+    }
+
+    @Bean
+    public AutowiringSpringBeanJobFactory jobFactory(ApplicationContext applicationContext) {
+        AutowiringSpringBeanJobFactory jobFactory = new AutowiringSpringBeanJobFactory();
+        jobFactory.setApplicationContext(applicationContext);
+        return jobFactory;
     }
 
     public static class AutowiringSpringBeanJobFactory extends SpringBeanJobFactory implements ApplicationContextAware {
@@ -30,17 +38,15 @@ public class QuartzConfig {
         private ApplicationContext context;
 
         @Override
-        public void setApplicationContext(ApplicationContext context) {
-            this.context = context;
+        public void setApplicationContext(ApplicationContext applicationContext) {
+            this.context = applicationContext;
         }
 
         @Override
         protected Object createJobInstance(TriggerFiredBundle bundle) throws Exception {
             final Object job = super.createJobInstance(bundle);
-            context.getAutowireCapableBeanFactory().autowireBean(job);
+            context.getAutowireCapableBeanFactory().autowireBean(job); // автосвязывание зависимостей
             return job;
         }
     }
 }
-
-*/

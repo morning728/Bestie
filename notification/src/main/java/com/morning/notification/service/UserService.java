@@ -69,7 +69,10 @@ public class UserService {
     public void setEmail(String token, String newEmail) {
         String username = jwtService.extractUsername(token);
         NotificationPreferences user = notificationPreferencesRepository.findByUsername(username).orElseThrow();
+        if(user.getEmail() == newEmail)
+            return;
         user.setEmail(newEmail);
+        user.setEmailVerified(false);
         notificationPreferencesRepository.save(user);
         String verificationLink = verificationLinkStartsWith.concat(jwtEmailService.buildEmailVerificationToken(
                 Map.of("email", newEmail),

@@ -1,4 +1,3 @@
-/*
 package com.morning.notification.service.quartz;
 
 import com.morning.notification.job.NotificationJob;
@@ -25,62 +24,76 @@ public class TaskSchedulerService {
 
     @Data
     @AllArgsConstructor
-    private class ParsedTask{
+    private static class ParsedReminder {
         private Long taskId;
         private String taskName;
-        private LocalDateTime deadline;
+        private String projectName;
+        private String reminderText;
+        private LocalDateTime remindAt;
         private List<String> users;
     }
 
-    private ParsedTask parseTask(Map<String, String> data){
-        return new ParsedTask(
-                Long.valueOf(data.get("taskId")),
+    private ParsedReminder parseReminder(Map<String, String> data) {
+        return new ParsedReminder(
+                Long.parseLong(data.get("taskId")),
                 data.get("taskName"),
-                LocalDateTime.parse(data.get("deadline")),
-                List.of(data.get("users").split(",")));
+                data.get("projectName"),
+                data.get("reminderText"),
+                LocalDateTime.parse(data.get("remindAt")),
+                List.of(data.get("users").split(","))
+        );
     }
 
-    public void scheduleTask(Map<String, String> data) throws SchedulerException {
-        ParsedTask parsedTask = parseTask(data);
-        if ( Duration.between(LocalDateTime.now(), parsedTask.getDeadline()).toMinutes() > 1435) {
-            JobDetail jobDetail = JobBuilder.newJob(NotificationJob.class)
-                    .withIdentity("notifyTask", parsedTask.getTaskId().toString())
-                    .usingJobData("taskId", parsedTask.getTaskId())
-                    .usingJobData("taskName", parsedTask.getTaskName())
-                    .usingJobData("deadline", String.valueOf(parsedTask.getDeadline()))
-                    .build();
+    public void scheduleReminder(Map<String, String> data) throws SchedulerException {
+        ParsedReminder reminder = parseReminder(data);
 
-            jobDetail.getJobDataMap().put("users", parsedTask.getUsers());
-
-            Trigger trigger = TriggerBuilder.newTrigger()
-                    .withIdentity("notifyTrigger", parsedTask.getTaskId().toString())
-                    .startAt(Date.from(parsedTask.getDeadline().minusHours(24).atZone(ZoneId.systemDefault()).toInstant()))  // Устанавливаем время дедлайна
-                    .build();
-
-            scheduler.scheduleJob(jobDetail, trigger);
+        if (reminder.getRemindAt().isBefore(LocalDateTime.now())) {
+            log.warn("Время напоминания уже прошло для задачи ID={}", reminder.getTaskId());
+            return;
         }
+
+        JobDetail jobDetail = JobBuilder.newJob(NotificationJob.class)
+                .withIdentity(buildJobKey(reminder.getTaskId()))
+                .usingJobData("taskId", reminder.getTaskId())
+                .usingJobData("taskName", reminder.getTaskName())
+                .usingJobData("reminderText", reminder.getReminderText())
+                .usingJobData("projectName", reminder.getProjectName())
+                .usingJobData("remindAt", reminder.getRemindAt().toString())
+                .build();
+
+        jobDetail.getJobDataMap().put("users", reminder.getUsers());
+
+        Trigger trigger = TriggerBuilder.newTrigger()
+                .withIdentity(buildTriggerKey(reminder.getTaskId()))
+                .startAt(Date.from(reminder.getRemindAt().atZone(ZoneId.systemDefault()).toInstant()))
+                .build();
+
+        scheduler.scheduleJob(jobDetail, trigger);
+        log.info("Запланировано напоминание для задачи ID={} на {}", reminder.getTaskId(), reminder.getRemindAt());
     }
 
-    public void rescheduleTask(Map<String, String> data) throws SchedulerException {
-        ParsedTask parsedTask = parseTask(data);
+    public void rescheduleReminder(Map<String, String> data) throws SchedulerException {
+        ParsedReminder reminder = parseReminder(data);
+        deleteReminder(reminder.getTaskId());
+        scheduleReminder(data);
+    }
 
-        JobKey jobKey = new JobKey("notifyTask", parsedTask.getTaskId().toString());
+    public void deleteReminder(Long taskId) throws SchedulerException {
+        JobKey jobKey = buildJobKey(taskId);
 
         if (scheduler.checkExists(jobKey)) {
-            scheduler.deleteJob(jobKey); // Удаляем старую задачу
+            scheduler.deleteJob(jobKey);
+            log.info("Удалено напоминание для задачи ID={}", taskId);
+        } else {
+            log.warn("Попытка удалить несуществующее напоминание для задачи ID={}", taskId);
         }
-
-        // Планируем новую задачу
-        scheduleTask(data);
     }
 
-    public void deleteScheduledTask(Map<String, String> data) throws SchedulerException {
-        JobKey jobKey = new JobKey("notifyTask", data.get("taskId").toString());
+    private JobKey buildJobKey(Long taskId) {
+        return JobKey.jobKey("notifyTask_" + taskId);
+    }
 
-        if (scheduler.checkExists(jobKey)) {
-            scheduler.deleteJob(jobKey);  // Удаляем задачу из расписания
-        }
+    private TriggerKey buildTriggerKey(Long taskId) {
+        return TriggerKey.triggerKey("notifyTrigger_" + taskId);
     }
 }
-
-*/

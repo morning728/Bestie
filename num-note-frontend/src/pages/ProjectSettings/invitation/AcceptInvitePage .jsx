@@ -36,6 +36,15 @@ const AcceptInvitationPage = ({ isUniversal = false }) => {
             .catch(() => setStatus("error"));
     }, [token]);
 
+      useEffect(() => {
+        if (status === "success") {
+          const timer = setTimeout(() => {
+            navigate("/projects");
+          }, 3000);
+          return () => clearTimeout(timer);
+        }
+      }, [status, navigate]);
+
     if (status === "loading") {
         return (
             <Box p={4}>
@@ -49,7 +58,7 @@ const AcceptInvitationPage = ({ isUniversal = false }) => {
         return (
             <Box p={4}>
                 <Typography variant="h6" gutterBottom>
-                    ✅ Вы успешно присоединились к проекту!
+                    ✅ Вы успешно присоединились к проекту! Вы будете перенаправлены к проектам через несколько секунд...
                 </Typography>
                 <Button onClick={() => navigate("/projects")}>Перейти к проектам</Button>
             </Box>

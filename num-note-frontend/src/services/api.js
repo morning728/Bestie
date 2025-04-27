@@ -57,11 +57,18 @@ const refreshToken = async () => {
 };
 
 // ❗ Очистка и редирект при полной просрочке
-const forceLogout = () => {
-  localStorage.removeItem('token');
-  sessionStorage.clear(); // если ты используешь sessionStorage для pending-invite или redirect
-  window.location.href = '/auth/login'; // редирект на страницу логина
+export const forceLogout = async () => {
+  try {
+    await apiClient.post("/security/v1/auth/logout"); // отправляем запрос на бэк
+  } catch (error) {
+    console.error("Ошибка при логауте", error);
+  } finally {
+    sessionStorage.clear();
+    localStorage.removeItem('token');
+    window.location.href = '/auth/login';
+  }
 };
+
 
 // **Interceptor** для автоматического обновления токена
 apiClient.interceptors.response.use(
@@ -114,6 +121,9 @@ export const registerUser = (username, password, email, role = 'USER') =>
 
 export const loginUser = (username, password) =>
   apiClient.post('/security/v1/auth/authenticate', { username, password });
+
+export const logout = () =>
+  apiClient.get('/security/v1/auth/logout');
 
 // PROJECTS
 export const getMyProjects = () => apiClient.get('/api/v1/projects/my');

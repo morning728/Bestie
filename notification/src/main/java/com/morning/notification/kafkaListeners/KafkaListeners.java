@@ -7,6 +7,7 @@ import com.morning.notification.entity.task.TaskNotificationEvent;
 import com.morning.notification.entity.user.TelegramDataEvent;
 import com.morning.notification.service.NotificationService;
 import com.morning.notification.service.UserService;
+import com.morning.notification.service.quartz.TaskSchedulerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -20,6 +21,7 @@ import java.util.Map;
 public class KafkaListeners {
     private final NotificationService notificationService;
     private final UserService userService;
+    private final TaskSchedulerService taskSchedulerService;
     private ObjectMapper objectMapper = new ObjectMapper();
 
     /*    @KafkaListener(
@@ -95,16 +97,11 @@ public class KafkaListeners {
         try {
             TaskNotificationEvent event = objectMapper.readValue(data, TaskNotificationEvent.class);
             switch (event.getAction()) {
-                case "ASSIGNED_TO_TASK" -> {
-                    notificationService.sendTaskAssignmentNotification(event);
-                    break;
-                }
-                case "STATUS_CHANGE" -> {
-                    notificationService.sendStatusChangeNotification(event);
-                    break;
-                }
-                // Добавляй другие case по мере расширения
-                default -> log.warn("Неизвестный action в task-updates-topic: {}", event.getAction().toString());
+                case "ASSIGNED_TO_TASK" -> notificationService.sendTaskAssignmentNotification(event);
+                case "STATUS_CHANGE" -> notificationService.sendStatusChangeNotification(event);
+                case "CREATE_REMINDER" -> taskSchedulerService.createTaskReminder(event);
+                case "DELETE_REMINDER" -> taskSchedulerService.deleteTaskReminder(event);
+                default -> log.warn("Неизвестный action в task-updates-topic: {}", event.getAction());
             }
 
         } catch (Exception e) {

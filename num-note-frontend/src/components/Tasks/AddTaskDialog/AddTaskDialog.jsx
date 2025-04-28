@@ -120,10 +120,10 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
   const handleDownloadFile = async (id, fileNameFallback) => {
     try {
       const response = await downloadAttachment(id); // responseType: 'blob'
-  
+
       const contentDisposition = response.headers['content-disposition'];
       let fileName = fileNameFallback;
-  
+
       // Пытаемся вытащить имя из заголовка, если оно есть
       if (contentDisposition) {
         const match = contentDisposition.match(/filename="?([^"]+)"?/);
@@ -131,11 +131,11 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
           fileName = decodeURIComponent(match[1]);
         }
       }
-  
+
       const blob = new Blob([response.data], {
         type: response.headers["content-type"] || "application/octet-stream",
       });
-  
+
       const link = document.createElement("a");
       link.href = window.URL.createObjectURL(blob);
       link.download = fileName;
@@ -145,7 +145,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
       alert("Не удалось скачать файл.");
     }
   };
-  
+
 
   const onDrop = (acceptedFiles) => {
     setNewFiles((prev) => [...prev, ...acceptedFiles]);
@@ -191,33 +191,34 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
       alert("Please select both a date and time for the reminder.");
       return;
     }
-  
+
     const taskToSend = {
       ...newTask,
+      reminderText: newTask.reminder ? newTask.reminderText : null,
       reminderDate: newTask.reminder ? newTask.reminderDate : null,
       reminderTime: newTask.reminder ? newTask.reminderTime : null,
     };
-  
+
     try {
       const createdTask = await handleAddTask(taskToSend);
-  
+
       if (!createdTask?.id) throw new Error("Задача не создана");
-  
+
       // 1️⃣ Удаление отмеченных файлов
       await Promise.all(filesMarkedForDeletion.map((id) => deleteAttachment(id)));
-  
+
       // 2️⃣ Загрузка новых
       await Promise.all(
         newFiles.map((file) => uploadAttachment(createdTask.id, file))
       );
-  
+
       handleClose();
     } catch (error) {
       console.error("Ошибка при сохранении задачи или работе с файлами:", error);
       alert("Произошла ошибка при сохранении задачи.");
     }
   };
-  
+
 
   return (
     <Dialog
@@ -407,7 +408,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
           </Box>
 
           {newTask.reminder && (
-            <Box className="date-time-container">
+            <Box className="date-time-container" mt={2}>
               <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <DatePicker
                   disabled={!canManageReminders}
@@ -417,6 +418,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
                   renderInput={(params) => <TextField {...params} fullWidth />}
                 />
               </LocalizationProvider>
+
               <TextField
                 disabled={!canManageReminders}
                 name="reminderTime"
@@ -426,9 +428,24 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
                 value={newTask.reminderTime}
                 onChange={handleChange}
                 InputLabelProps={{ shrink: true }}
+                sx={{ mt: 2 }}
+              />
+
+              {/* Новое поле: reminderText */}
+              <TextField
+                disabled={!canManageReminders}
+                name="reminderText"
+                label={t("reminder_text")}
+                fullWidth
+                multiline
+                rows={3}
+                value={newTask.reminderText}
+                onChange={handleChange}
+                sx={{ mt: 2 }}
               />
             </Box>
           )}
+
         </Box>
         {/* Правая часть — drag & drop + список файлов */}
         <Box sx={{ width: 320, display: 'flex', flexDirection: 'column', maxHeight: 800, gap: 2, mt: 1 }}>

@@ -5,16 +5,20 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TaskNotificationEvent {
-    private String action; // Например: ASSIGNED_TO_TASK, TASK_UPDATED, TASK_DEADLINE_SOON и т. д.
+    private String action; // Например: ASSIGNED_TO_TASK, STATUS_CHANGE, CREATE_REMINDER, DELETE_REMINDER
+    private Long taskId;
     private String taskTitle;
     private String projectTitle;
-    private String username;      // username пользователя, которого касается уведомление
-    private String email;
-    private String telegramId;
-    private String chatId;
+    private String reminderText;
+    private String remindAt;
+    private String username;      // Для одиночных событий
+    private String usernames;     // Для событий типа напоминания (через запятую)
 }
+

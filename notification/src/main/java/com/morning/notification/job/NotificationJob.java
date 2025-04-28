@@ -24,20 +24,19 @@ public class NotificationJob implements Job {
         String taskName = dataMap.getString("taskName");
         String projectName = dataMap.getString("projectName");
         String reminderText = dataMap.getString("reminderText");
-        String remindAt = dataMap.getString("remindAt");
 
-        @SuppressWarnings("unchecked")
-        List<String> users = (List<String>) dataMap.get("users");
+        Object usernamesObj = dataMap.get("usernames");
+        List<String> usernames = usernamesObj instanceof List<?> ? (List<String>) usernamesObj : List.of();
 
         log.info("Выполняется напоминание для задачи: {} [{}], проект: {}", taskName, taskId, projectName);
 
-        if (users == null || users.isEmpty()) {
+        if (usernames.isEmpty()) {
             log.warn("Нет пользователей для отправки напоминания о задаче ID={}", taskId);
             return;
         }
 
         try {
-            notificationService.sendTaskReminder(users, taskName, projectName, reminderText);
+            notificationService.sendTaskReminder(usernames, taskName, projectName, reminderText);
             log.info("Успешно отправлены напоминания о задаче ID={}", taskId);
         } catch (Exception e) {
             log.error("Ошибка при отправке напоминания о задаче ID={}: {}", taskId, e.getMessage(), e);
@@ -45,3 +44,4 @@ public class NotificationJob implements Job {
         }
     }
 }
+

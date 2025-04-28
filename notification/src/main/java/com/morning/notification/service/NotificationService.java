@@ -100,8 +100,8 @@ public class NotificationService {
         }
     }
 
-    public void sendTaskReminder(List<String> users, String taskName, String projectName, String reminderText) {
-        for (String username : users) {
+    public void sendTaskReminder(List<String> usernames, String taskName, String projectName, String reminderText) {
+        for (String username : usernames) {
             String subject = "Напоминание от Bestie!";
             String body = String.format(
                     "Напоминание! Задача \"%s\" в проекте \"%s\": %s",
@@ -111,7 +111,7 @@ public class NotificationService {
             );
 
             NotificationPreferences preferences = userService.getNotificationPreferencesByUsername(username);
-            if (preferences.getTaskDeadlineReminder()) {
+            if (preferences.getTaskReminder()) {
                 sendEmail(preferences, subject, body);
                 telegramService.sendMessage(preferences, body);
             }

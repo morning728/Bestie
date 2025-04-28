@@ -52,7 +52,7 @@ public class UserService {
         preferences.setInviteEnabled(dto.getInviteEnabled());
         preferences.setTaskAssignedEnabled(dto.getTaskAssignedEnabled());
         preferences.setTaskUpdatedEnabled(dto.getTaskUpdatedEnabled());
-        preferences.setTaskDeadlineReminder(dto.getTaskDeadlineReminder());
+        preferences.setTaskReminder(dto.getTaskReminder());
         return notificationPreferencesRepository.save(preferences);
     }
 

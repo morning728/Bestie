@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -149,13 +150,15 @@ public class TaskService {
                     Task task = taskDTO.toTask(); // Конвертация DTO в Task
                     task.setIsArchived(false);
                     return taskRepository.save(task)
-                            .flatMap(savedTask -> buildTaskContext(savedTask)
-                                    .flatMap(ctx ->
-                                            manageTaskTags(savedTask.getId(), token, taskDTO.getTagIds(), true)
-                                                    .then(manageTaskAssignees(ctx, token, taskDTO.getAssigneeIds(), true))
-                                                    .then(manageReminder(ctx, token, taskDTO.getReminderDate(), taskDTO.getReminderTime(), taskDTO.getReminderText()))
-                                                    .thenReturn(savedTask)));
-
+                            .flatMap(savedTask ->
+                                    manageTaskTags(savedTask.getId(), token, taskDTO.getTagIds(), true)
+                                            .then(manageTaskAssignees(savedTask.getId(), token, taskDTO.getAssigneeIds(), true))
+                                            .then(buildTaskContext(savedTask)) // ⬅️ Собираем правильный контекст
+                                            .flatMap(ctx ->
+                                                    manageReminder(ctx, token, taskDTO.getReminderDate(), taskDTO.getReminderTime(), taskDTO.getReminderText())
+                                                            .thenReturn(savedTask)
+                                            )
+                            );
                 });
     }
 
@@ -180,14 +183,15 @@ public class TaskService {
                     updatedTask.setAssigneeIds(updatedTask.getAssigneeIds() == null ? new ArrayList<>() : updatedTask.getAssigneeIds());
 
                     return taskRepository.save(existingTask)
-                            .flatMap(savedTask -> buildTaskContext(savedTask)
-                                    .flatMap(ctx ->
-                                            manageTaskTags(ctx.getTaskId(), token, updatedTask.getTagIds(), false)
-                                                    .then(manageTaskAssignees(ctx, token, updatedTask.getAssigneeIds(), false))
-                                                    .then(manageTaskStatus(ctx, token, updatedTask.getStatusId()))
-                                                    .then(manageReminder(ctx, token, updatedTask.getReminderDate(), updatedTask.getReminderTime(), updatedTask.getReminderText()))
-                                                    .thenReturn(savedTask)
-                                    )
+                            .flatMap(savedTask ->
+                                    manageTaskTags(savedTask.getId(), token, updatedTask.getTagIds(), false)
+                                            .then(manageTaskAssignees(savedTask.getId(), token, updatedTask.getAssigneeIds(), false))
+                                            .then(buildTaskContext(savedTask)) // ⬅️ После всех изменений собираем TaskContext
+                                            .flatMap(ctx ->
+                                                    manageTaskStatus(ctx, token, updatedTask.getStatusId())
+                                                            .then(manageReminder(ctx, token, updatedTask.getReminderDate(), updatedTask.getReminderTime(), updatedTask.getReminderText()))
+                                                            .thenReturn(savedTask)
+                                            )
                             );
                 });
 
@@ -264,23 +268,15 @@ public class TaskService {
      * ✅ Управление напоминанием задачи (создание/обновление/удаление)
      */
     public Mono<Void> manageReminder(TaskContext ctx, String token, LocalDate reminderDate, LocalTime reminderTime, String reminderText) {
-        if (reminderDate == null || reminderTime == null) {
-            return kafkaNotificationService.sendDeleteReminder(ctx.getTaskId());
+        if (reminderDate == null || reminderTime == null || ctx.getAssigneeUsernames().isEmpty()) {
+            return sendReminderByUsernames(ctx, null, null, "DELETE_REMINDER");
         }
 
         LocalDateTime remindAt = LocalDateTime.of(reminderDate, reminderTime);
 
         return validateRequesterHasPermission(ctx.getProjectId(), token, Permission.CAN_MANAGE_REMINDERS)
                 .then(
-                        kafkaNotificationService.sendReminderEvent(
-                                "CREATE",  // или "UPDATE"
-                                ctx.getTaskId(),
-                                ctx.getTaskTitle(),
-                                ctx.getProjectTitle(),
-                                reminderText != null ? reminderText : "Не забудьте о задаче!",
-                                remindAt,
-                                ctx.getAssigneeUsernames()
-                        )
+                        sendReminderByUsernames(ctx, reminderText, remindAt.toString(), "CREATE_REMINDER")
                 );
     }
 
@@ -323,11 +319,11 @@ public class TaskService {
     /**
      * ✅ Управление ответственными задачи (добавление/удаление)
      */
-    public Mono<Void> manageTaskAssignees(TaskContext ctx, String token, List<Long> userIds, Boolean isCreation) {
-        return taskRepository.findById(ctx.getTaskId())
+    public Mono<Void> manageTaskAssignees(Long taskId, String token, List<Long> userIds, Boolean isCreation) {
+        return taskRepository.findById(taskId)
                 .switchIfEmpty(Mono.error(new NotFoundException("Task not found")))
                 .flatMap(task -> validateRequesterHasPermission(task.getProjectId(), token, isCreation ? Permission.CAN_CREATE_TASKS : Permission.CAN_MANAGE_ASSIGNEES)
-                        .thenMany((taskAssigneeRepository.findByTaskId(ctx.getTaskId())
+                        .thenMany((taskAssigneeRepository.findByTaskId(taskId)
                                 .collectList()
                                 .zipWith(projectUserRepository.findUsersByProjectId(task.getProjectId()).collectList()))
                                 .flatMap(objects -> {
@@ -348,26 +344,24 @@ public class TaskService {
                                     // Удаляем старые теги и добавляем новые
                                     return Flux.concat(
                                             Flux.fromIterable(assigneesToRemove)
-                                                    .flatMap(userId -> taskAssigneeRepository.deleteByTaskIdAndAndUserId(ctx.getTaskId(), userId)),
+                                                    .flatMap(userId -> taskAssigneeRepository.deleteByTaskIdAndAndUserId(taskId, userId)),
                                             Flux.fromIterable(assigneesToAdd)
-                                                    .flatMap(userId -> taskAssigneeRepository.addAssigneeToTask(ctx.getTaskId(), userId))
+                                                    .flatMap(userId -> taskAssigneeRepository.addAssigneeToTask(taskId, userId))
                                     ).then(Mono.just(assigneesToAdd)); // ⬅️ Преобразуем Flux в Mono<Void>
                                 })
                                 .flatMap(assigneesToNotify -> {
-                                    if (assigneesToNotify.isEmpty()) {
+                                    if (CollectionUtils.isEmpty(assigneesToNotify)) {
                                         return Mono.empty();
                                     }
-
-                                    // Подгружаем название проекта по ID
-                                    return projectRepository.findProjectTitleById(task.getProjectId())
-                                            .flatMap(projectTitle ->
-                                                    notifyAssigneesAboutActionByIds(
-                                                            assigneesToNotify,
-                                                            task.getTitle(),
-                                                            projectTitle,  // ← вот оно!
-                                                            "ASSIGNED_TO_TASK"
-                                                    )
-                                            );
+                                    return userService.getUsernamesByIds(assigneesToNotify)
+                                            .zipWith(projectRepository.findProjectTitleById(task.getProjectId()))
+                                            .flatMap(usernamesProjectTitle -> {
+                                                return notifyAssigneesAboutActionByUsernames(
+                                                        usernamesProjectTitle.getT1(),
+                                                        TaskContext.builder().taskId(taskId).taskTitle(task.getTitle()).projectTitle(usernamesProjectTitle.getT2()).build(),
+                                                        "ASSIGNED_TO_TASK"
+                                                );
+                                            });
                                 }))
                         .then());
     }
@@ -388,8 +382,7 @@ public class TaskService {
                             .then(
                                     notifyAssigneesAboutActionByUsernames(
                                             ctx.getAssigneeUsernames(),
-                                            ctx.getTaskTitle(),
-                                            ctx.getProjectTitle(),
+                                            ctx,
                                             "STATUS_CHANGE"
                                     )
 
@@ -397,13 +390,30 @@ public class TaskService {
                 });
     }
 
-    public Mono<Void> notifyAssigneesAboutActionByUsernames(List<String> assigneeUsernames, String taskTitle, String projectTitle, String action) {
-        return Flux.fromIterable(assigneeUsernames)
+    public Mono<Void> sendReminderByUsernames(TaskContext ctx, String reminderText, String remindAt, String action) {
+        // Собираем всех пользователей в одну строку через запятую
+        String usernames = String.join(",", ctx.getAssigneeUsernames());
+
+        TaskNotificationEvent event = TaskNotificationEvent.builder()
+                .action(action)
+                .taskId(ctx.getTaskId())
+                .taskTitle(ctx.getTaskTitle())
+                .projectTitle(ctx.getProjectTitle())
+                .reminderText(reminderText)
+                .remindAt(remindAt)
+                .usernames(usernames)
+                .build();
+
+        return kafkaNotificationService.sendTaskNotification(event);
+    }
+
+    public Mono<Void> notifyAssigneesAboutActionByUsernames(List<String> usernames, TaskContext ctx, String action) {
+        return Flux.fromIterable(usernames)
                 .flatMap(username -> {
                     TaskNotificationEvent event = TaskNotificationEvent.builder()
                             .action(action)
-                            .taskTitle(taskTitle)
-                            .projectTitle(projectTitle)
+                            .taskTitle(ctx.getTaskTitle())
+                            .projectTitle(ctx.getProjectTitle())
                             .username(username)
                             .build();
                     return kafkaNotificationService.sendTaskNotification(event);
@@ -411,21 +421,6 @@ public class TaskService {
                 .then();
     }
 
-    public Mono<Void> notifyAssigneesAboutActionByIds(List<Long> assigneeIds, String taskTitle, String projectTitle, String action) {
-        return Flux.fromIterable(assigneeIds)
-                .flatMap(userId ->
-                        userService.getUsernameById(userId) // получаем email, telegramId и т.д.
-                )
-                .flatMap(username -> {
-                    TaskNotificationEvent event = TaskNotificationEvent.builder()
-                            .action(action)
-                            .taskTitle(taskTitle)
-                            .projectTitle(projectTitle)
-                            .username(username)
-                            .build();
-                    return kafkaNotificationService.sendTaskNotification(event);
-                })
-                .then();
-    }
+
 }
 

@@ -158,7 +158,7 @@ const ProfilePage = () => {
             {savingProfile ? <CircularProgress size={24} /> : t("save_profile")}
           </Button>
           {/* Настройки уведомлений */}
-          <Grid item xs={6} sx={{marginTop: 5}}>
+          <Grid item xs={12} sx={{marginTop: 5}}>
             <Typography variant="h6" sx={{ mt: 4 }}>
               {t("notification_preferences")}
             </Typography>

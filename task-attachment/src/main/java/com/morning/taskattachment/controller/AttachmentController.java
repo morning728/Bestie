@@ -25,9 +25,21 @@ public class AttachmentController {
         return ResponseEntity.ok(service.upload(taskId, file));
     }
 
+    @PostMapping("/reports/{projectId}")
+    public ResponseEntity<Attachment> uploadReport(
+            @PathVariable Long projectId,
+            @RequestParam MultipartFile file) throws Exception {
+        return ResponseEntity.ok(service.uploadReport(projectId, file));
+    }
+
     @GetMapping("/task/{taskId}")
     public ResponseEntity<List<Attachment>> getByTask(@PathVariable Long taskId) {
         return ResponseEntity.ok(service.getAllByTask(taskId));
+    }
+
+    @GetMapping("/project/{projectId}")
+    public ResponseEntity<List<Attachment>> getByProject(@PathVariable Long projectId) {
+        return ResponseEntity.ok(service.getAllByProject(projectId));
     }
 
     @GetMapping("/{id}/download")

@@ -28,6 +28,7 @@ public class ContactsController {
         return new ResponseEntity<>(userService.getNotificationPreferencesByUsername(username), HttpStatusCode.valueOf(200));
     }
 
+
     @GetMapping("/preferences/my")
     public ResponseEntity<NotificationPreferences> getMyContactsWithPreferencesByUsername(@RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
         return new ResponseEntity<>(userService.getNotificationPreferencesByToken(token), HttpStatusCode.valueOf(200));

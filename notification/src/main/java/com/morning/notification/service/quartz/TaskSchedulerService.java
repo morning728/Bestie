@@ -1,11 +1,14 @@
 package com.morning.notification.service.quartz;
 
+import com.morning.notification.entity.task.ReminderDTO;
 import com.morning.notification.entity.task.TaskNotificationEvent;
 import com.morning.notification.entity.user.ParsedReminder;
 import com.morning.notification.job.NotificationJob;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -131,6 +134,42 @@ public class TaskSchedulerService {
             deleteReminder(event.getTaskId());
         } catch (SchedulerException e) {
             log.error("Ошибка при удалении напоминания для задачи ID={}", event.getTaskId(), e);
+        }
+    }
+
+    public ReminderDTO getReminderInfo(Long taskId) {
+        try {
+            JobKey jobKey = JobKey.jobKey("notifyTask_" + taskId);
+
+            if (!scheduler.checkExists(jobKey)) {
+                // Напоминание отсутствует
+                ReminderDTO result = ReminderDTO.builder()
+                        .reminder(false)
+                        .reminderDate("")
+                        .reminderTime("")
+                        .reminderText("")
+                        .build();
+                return result;
+            }
+
+            JobDetail jobDetail = scheduler.getJobDetail(jobKey);
+            JobDataMap dataMap = jobDetail.getJobDataMap();
+
+            String remindAtStr = dataMap.getString("remindAt");
+            String reminderText = dataMap.getString("reminderText");
+
+            LocalDateTime remindAt = LocalDateTime.parse(remindAtStr);
+            ReminderDTO result = ReminderDTO.builder()
+                    .reminder(true)
+                    .reminderDate(remindAt.toLocalDate().toString())
+                    .reminderTime(remindAt.toLocalTime().toString())
+                    .reminderText(reminderText != null ? reminderText : "")
+                    .build();
+
+            return result;
+
+        } catch (SchedulerException e) {
+            throw new RuntimeException("Error while getting reminder info", e);
         }
     }
 

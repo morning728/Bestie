@@ -1,5 +1,6 @@
 package com.morning.taskapimain.controller.project;
 
+import com.morning.taskapimain.entity.dto.MiniTaskDTO;
 import com.morning.taskapimain.entity.dto.TaskDTO;
 import com.morning.taskapimain.entity.task.Task;
 import com.morning.taskapimain.entity.task.TaskComment;
@@ -9,6 +10,7 @@ import com.morning.taskapimain.exception.annotation.BadRequestExceptionHandler;
 import com.morning.taskapimain.exception.annotation.CrudExceptionHandler;
 import com.morning.taskapimain.service.TaskService;
 import com.morning.taskapimain.service.security.JwtService;
+import jakarta.ws.rs.PathParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +39,16 @@ public class TaskController {
                                                  @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
         return taskService.createTask(taskDTO, token)
                 .map(ResponseEntity::ok);
+    }
+
+    /**
+     * ✅ По периоду
+     */
+    @GetMapping("/by-period")
+    public Flux<MiniTaskDTO> getTask(@RequestParam(name = "start-date") String startDate,
+                                                     @RequestParam(name = "end-date") String endDate,
+                                                     @RequestHeader(name = HttpHeaders.AUTHORIZATION) String token) {
+        return taskService.getMyTasksByPeriod(token, startDate, endDate);
     }
 
     /**

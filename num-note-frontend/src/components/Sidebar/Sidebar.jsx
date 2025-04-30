@@ -83,7 +83,7 @@ const Sidebar = () => {
             {!isCollapsed && <ListItemText primary={t("calendar")} />}
           </ListItem>
 
-          <ListItem className="sidebar-item" button component={Link} to="/analytics">
+          <ListItem className="sidebar-item" button component={Link} to="/reports">
             <ListItemIcon>
               <BarChartIcon />
             </ListItemIcon>

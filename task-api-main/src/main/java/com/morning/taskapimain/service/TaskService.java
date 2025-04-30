@@ -1,5 +1,6 @@
 package com.morning.taskapimain.service;
 
+import com.morning.taskapimain.entity.dto.MiniTaskDTO;
 import com.morning.taskapimain.entity.dto.TaskDTO;
 import com.morning.taskapimain.entity.kafka.task.TaskNotificationEvent;
 import com.morning.taskapimain.entity.project.Permission;
@@ -23,6 +24,7 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -37,16 +39,13 @@ public class TaskService {
     private final TaskReminderRepository taskReminderRepository;
     private final TaskCommentRepository taskCommentRepository;
     private final ProjectTagRepository projectTagRepository;
-    private final ProjectStatusRepository projectStatusRepository;
     private final TaskTagRepository taskTagRepository;
     private final TaskAssigneeRepository taskAssigneeRepository;
     private final UserRepository userRepository;
     private final UserService userService;
     private final JwtService jwtService;
     private final ProjectUserRepository projectUserRepository;
-    private final DataSourceTransactionManagerAutoConfiguration dataSourceTransactionManagerAutoConfiguration;
     private final KafkaNotificationService kafkaNotificationService;
-    private final ProjectService projectService;
     private final ProjectRepository projectRepository;
 
     /**
@@ -133,6 +132,16 @@ public class TaskService {
         return (taskRepository.findById(taskId))
                 .switchIfEmpty(Mono.error(new NotFoundException("Task not found")));
     }
+
+    public Flux<MiniTaskDTO> getMyTasksByPeriod(String token, String startDate, String endDate) {
+        return userService.getUserByToken(token) // Mono<User>
+                .flatMapMany(user -> taskRepository.findActiveByUserIdAndPeriod(user.getId(),
+                        LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                        LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
+                .map(MiniTaskDTO::fromTask)// Flux<Task>
+                .switchIfEmpty(Mono.error(new NotFoundException("User not found or no tasks")));
+    }
+
 
     /**
      * ✅ Создание задачи (с тегами и статусом)

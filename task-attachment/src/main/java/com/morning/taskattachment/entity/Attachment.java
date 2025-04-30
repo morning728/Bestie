@@ -25,8 +25,11 @@ public class Attachment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "task_id", nullable = false)
+    @Column(name = "task_id", nullable = true)
     private Long taskId;
+
+    @Column(name = "project_id", nullable = true)
+    private Long projectId;
 
     @Column(name = "file_name", nullable = false)
     private String filename;

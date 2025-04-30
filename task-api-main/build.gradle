@@ -20,6 +20,17 @@ ext {
 	set('springCloudVersion', "2023.0.0")
 }
 dependencies {
+	// PDF с поддержкой стилизации
+	implementation 'com.itextpdf:itext7-core:8.0.1'
+
+	// Для рисования графиков и диаграмм
+	implementation 'org.jfree:jfreechart:1.5.4'
+
+	// Для работы с изображениями (если понадобятся)
+	implementation 'com.twelvemonkeys.imageio:imageio-core:3.9.4'
+
+
+
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
 	implementation 'org.springframework.session:spring-session-core'

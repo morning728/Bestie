@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="Gradle: com.twelvemonkeys.common:common-image:3.9.4" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="com.twelvemonkeys.common" artifactId="common-image" version="3.9.4" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.twelvemonkeys.common/common-image/3.9.4/8fc121f4f652cb8ef626ad4dade85b64948df36c/common-image-3.9.4.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

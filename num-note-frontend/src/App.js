@@ -26,6 +26,8 @@ import { ProjectsProvider } from "./context/ProjectsContext";
 import ProjectSettingsPage from './pages/ProjectSettings/ProjectSettingsPage';
 import AcceptInvitePage from './pages/ProjectSettings/invitation/AcceptInvitePage ';
 import ProjectAccessWrapper from './context/ProjectAccessWrapper';
+import ProjectReportsPage from './pages/Projects/ProjectReportsPage';
+import CalendarPage from './pages/Calendar/CalendarPage';
 
 
 
@@ -47,7 +49,7 @@ function App() {
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/accept-invite" element={<AcceptInvitePage />} />
           <Route path="/accept-universal" element={<AcceptInvitePage isUniversal />} />
-
+          
           {/* 👇 Приватный layout со всеми нужными провайдерами */}
           <Route
             path="/*"
@@ -70,6 +72,8 @@ function App() {
                           </ProjectAccessWrapper>
                         }
                       />
+                      <Route path="/calendar" element={<CalendarPage />} />
+                      <Route path="/reports" element={<ProjectReportsPage />} />
                       <Route path="/projects" element={<ProjectsPage />} />
                       <Route path="/profile" element={<ProfilePage />} />
                     </Routes>

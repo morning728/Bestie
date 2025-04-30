@@ -32,8 +32,7 @@ public class UserService {
     private final TaskRepository taskRepository;
     private final JwtService jwtService;
 
-    @Value("${application.security.userInfoPath}")
-    private String userInfoPath;
+
     @Value("${application.security.db}")
     private String securityDatabasePath;
     @Value("${application.security.db-username}")
@@ -47,10 +46,10 @@ public class UserService {
     select username, telegram_id, email from public.auth_user
     """;*/
     // Лучше удалить позже
-    public Connection getConnection() throws SQLException {
+/*    public Connection getConnection() throws SQLException {
         return DriverManager.getConnection(securityDatabasePath,
                 securityDatabaseUsername, securityDatabasePassword);
-    }
+    }*/
 /*    // Лучше удалить позже
     public Mono<Contacts> getUserContactsByUsername(String username) {
 
@@ -205,16 +204,16 @@ public class UserService {
                 .switchIfEmpty(Mono.error(new NotFoundException("User not found")));
     }
 
-/*    public Mono<Contacts> findContactsByUsernameWithWebClient(String usernameToGetProfile, String yourToken) {
+    public Mono<Contacts> findContactsByUsernameWithWebClient(String usernameToGetProfile, String yourToken) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
-                        .path("/users/info")
+                        .path("/notification/v1/contacts")
                         .queryParam("username", usernameToGetProfile)
                         .build())
                 .header("Authorization",  yourToken)
                 .retrieve()
                 .bodyToMono(Contacts.class);
-    }*/
+    }
 
 /*    public Mono<Contacts> findContactsByUserIdWithWebClient(Long userId, String yourToken) {
         return userRepository.findById(userId)

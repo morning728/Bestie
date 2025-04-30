@@ -139,6 +139,9 @@ export const deleteProject = (projectId) =>
 export const getFullProjectInfoById = (projectId) =>
   apiClient.get(`/api/v1/projects/${projectId}/full-info`);
 
+export const getProjectReportById = (projectId) =>
+  apiClient.post(`/api/v1/reports?project_id=${projectId}`);
+
 // MEMBERS
 export const getProjectMembers = (projectId) =>
   apiClient.get(`/api/v1/projects/${projectId}/users`);
@@ -231,6 +234,11 @@ export const deleteProjectResource = (projectId, resourceId) =>
 export const getTasksByProject = (projectId) =>
   apiClient.get(`/api/v1/tasks/project/${projectId}/all`);
 
+export const getMyTasksByPeriod = (startDate, endDate) =>
+  apiClient.get(`/api/v1/tasks/by-period`, {
+    params: { 'start-date': startDate, 'end-date': endDate }
+  });
+
 export const createTask = (taskDTO) =>
   apiClient.post(`/api/v1/tasks`, taskDTO);
 
@@ -242,6 +250,9 @@ export const archiveTask = (taskId) =>
 
 export const restoreTask = (taskId) =>
   apiClient.put(`/api/v1/tasks/${taskId}/restore`);
+
+export const getReminderByTaskId = (taskId) =>
+  apiClient.get(`/notification/v1/reminders/${taskId}`);
 
 // ME
 
@@ -271,6 +282,9 @@ export const uploadAttachment = (taskId, file) => {
 
 export const getAttachmentsByTask = (taskId) =>
   apiClient.get(`/file-api/v1/attachments/task/${taskId}`);
+
+export const getAttachmentsByProject = (projectId) =>
+  apiClient.get(`/file-api/v1/attachments/project/${projectId}`);
 
 export const deleteAttachment = (id) =>
   apiClient.delete(`/file-api/v1/attachments/${id}`);

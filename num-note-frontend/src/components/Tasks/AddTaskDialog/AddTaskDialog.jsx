@@ -25,7 +25,7 @@ import "./AddTaskDialog.css";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DownloadIcon from "@mui/icons-material/Download";
 import IconButton from "@mui/material/IconButton";
-import { uploadAttachment, getAttachmentsByTask, deleteAttachment, downloadAttachment } from "../../../services/api"; // не забудь импорт
+import { uploadAttachment, getAttachmentsByTask, deleteAttachment, downloadAttachment, getReminderByTaskId } from "../../../services/api"; // не забудь импорт
 import { useProjectAccess } from "../../../context/ProjectAccessContext";
 
 const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags, statuses, members }) => {
@@ -61,28 +61,52 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
     reminder: false,
     reminderDate: "",
     reminderTime: "",
+    reminderText: "",
   });
 
   useEffect(() => {
     const init = async () => {
       if (open) {
         if (task && isEditing) {
-          setNewTask({
+          let tempTask = {
             ...task,
             tagIds: task.tags?.map((tag) => tag.id) || [],
             assigneeIds: task.assignees?.map((assignee) => assignee.userId) || [],
-            reminder: task.reminderDate != null && task.reminderTime != null,
-            reminderDate: task.reminderDate || "",
-            reminderTime: task.reminderTime || "",
-          });
+          };
 
-          // 🧠 Загружаем прикрепленные файлы
-          try {
-            const response = await getAttachmentsByTask(task.id);
-            setExistingFiles(response.data); // ⚠️ только сюда кладем полученные с сервера
-          } catch (err) {
-            console.error("Ошибка при загрузке вложений:", err);
+          const [attachmentsResult, reminderResult] = await Promise.allSettled([
+            getAttachmentsByTask(task.id),
+            getReminderByTaskId(task.id),
+          ]);
+
+          if (attachmentsResult.status === "fulfilled") {
+            setExistingFiles(attachmentsResult.value.data);
+          } else {
+            console.error("Ошибка при загрузке вложений:", attachmentsResult.reason);
+            setExistingFiles([]);
           }
+
+          if (reminderResult.status === "fulfilled") {
+            const reminder = reminderResult.value.data;
+            tempTask = {
+              ...tempTask,
+              reminder: reminder?.reminder ?? false,
+              reminderDate: reminder?.reminderDate ?? "",
+              reminderTime: reminder?.reminderTime ?? "",
+              reminderText: reminder?.reminderText ?? "",
+            };
+          } else {
+            console.error("Ошибка при загрузке напоминания:", reminderResult.reason);
+            tempTask = {
+              ...tempTask,
+              reminder: false,
+              reminderDate: "",
+              reminderTime: "",
+              reminderText: "",
+            };
+          }
+
+          setNewTask(tempTask);
         } else {
           setNewTask({
             title: "",
@@ -98,6 +122,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
             reminder: false,
             reminderDate: "",
             reminderTime: "",
+            reminderText: "",
           });
           setExistingFiles([]);
         }

@@ -34,8 +34,15 @@ public class UserService {
     private String verificationLinkStartsWith;
 
     public Contacts getContactsByUsername(String username) {
-        return notificationPreferencesRepository.findContactsByUsername(username)
+        NotificationPreferences preferences = notificationPreferencesRepository.findByUsername(username)
                 .orElse(null);
+        return preferences == null ? null :
+                Contacts.builder()
+                        .username(username)
+                        .chatId(preferences.getChatId())
+                        .telegramId(preferences.getTelegramId())
+                        .email(preferences.getEmail())
+                        .build();
     }
 
     public NotificationPreferences getNotificationPreferencesByUsername(String username) {
@@ -69,7 +76,7 @@ public class UserService {
     public void setEmail(String token, String newEmail) {
         String username = jwtService.extractUsername(token);
         NotificationPreferences user = notificationPreferencesRepository.findByUsername(username).orElseThrow();
-        if(user.getEmail() == newEmail)
+        if (user.getEmail() == newEmail)
             return;
         user.setEmail(newEmail);
         user.setEmailVerified(false);
@@ -110,10 +117,10 @@ public class UserService {
 
     public NotificationPreferences addUser(String username) {
         Optional<NotificationPreferences> user = notificationPreferencesRepository.findByUsername(username);
-        if(user.isEmpty())
+        if (user.isEmpty())
             return notificationPreferencesRepository.save(NotificationPreferences.builder()
-                            .username(username)
-                            .build());
+                    .username(username)
+                    .build());
         return user.get();
     }
 

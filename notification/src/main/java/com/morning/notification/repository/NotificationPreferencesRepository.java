@@ -10,6 +10,4 @@ import java.util.Optional;
 
 public interface NotificationPreferencesRepository extends JpaRepository<NotificationPreferences, Long> {
     Optional<NotificationPreferences> findByUsername(String username);
-    @Query(value =  "SELECT username, telegram_id, email, chat_id from public.notification_preferences where username = :username", nativeQuery = true)
-    Optional<Contacts> findContactsByUsername(String username);
 }

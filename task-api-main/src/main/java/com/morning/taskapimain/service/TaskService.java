@@ -1,28 +1,30 @@
 package com.morning.taskapimain.service;
 
+import com.morning.taskapimain.entity.dto.MiniTaskDTO;
 import com.morning.taskapimain.entity.dto.TaskDTO;
+import com.morning.taskapimain.entity.kafka.task.TaskNotificationEvent;
 import com.morning.taskapimain.entity.project.Permission;
 import com.morning.taskapimain.entity.project.ProjectTag;
-import com.morning.taskapimain.entity.task.Task;
-import com.morning.taskapimain.entity.task.TaskAssignee;
-import com.morning.taskapimain.entity.task.TaskComment;
-import com.morning.taskapimain.entity.task.TaskReminder;
+import com.morning.taskapimain.entity.task.*;
 import com.morning.taskapimain.entity.user.User;
 import com.morning.taskapimain.exception.AccessException;
 import com.morning.taskapimain.exception.NotFoundException;
 import com.morning.taskapimain.repository.*;
 import com.morning.taskapimain.repository.task.*;
+import com.morning.taskapimain.service.kafka.KafkaNotificationService;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -37,14 +39,14 @@ public class TaskService {
     private final TaskReminderRepository taskReminderRepository;
     private final TaskCommentRepository taskCommentRepository;
     private final ProjectTagRepository projectTagRepository;
-    private final ProjectStatusRepository projectStatusRepository;
     private final TaskTagRepository taskTagRepository;
     private final TaskAssigneeRepository taskAssigneeRepository;
     private final UserRepository userRepository;
     private final UserService userService;
     private final JwtService jwtService;
     private final ProjectUserRepository projectUserRepository;
-    private final DataSourceTransactionManagerAutoConfiguration dataSourceTransactionManagerAutoConfiguration;
+    private final KafkaNotificationService kafkaNotificationService;
+    private final ProjectRepository projectRepository;
 
     /**
      * ✅ Проверка, имеет ли пользователь право на действие с задачей
@@ -65,6 +67,23 @@ public class TaskService {
                                 return Mono.error(new AccessException("You don't have permission for this action!"));
                             }
                         })
+                );
+    }
+
+
+    public Mono<TaskContext> buildTaskContext(Task task) {
+        return taskAssigneeRepository.findByTaskId(task.getId())
+                .map(TaskAssignee::getUserId)
+                .collectList()
+                .flatMap(userIds -> userService.getUsernamesByIds(userIds)) // получаем usernames
+                .zipWith(projectRepository.findProjectTitleById(task.getProjectId()))
+                .map(tuple -> TaskContext.builder()
+                        .taskId(task.getId())
+                        .taskTitle(task.getTitle())
+                        .projectId(task.getProjectId())
+                        .projectTitle(tuple.getT2())
+                        .assigneeUsernames(tuple.getT1())
+                        .build()
                 );
     }
 
@@ -91,6 +110,7 @@ public class TaskService {
         return taskRepository.findActiveByProjectId(projectId)
                 .flatMap(task -> getFullTaskInfoById(task.getId()));
     }
+
     /**
      * ✅ Получение всех задач проекта
      */
@@ -113,6 +133,16 @@ public class TaskService {
                 .switchIfEmpty(Mono.error(new NotFoundException("Task not found")));
     }
 
+    public Flux<MiniTaskDTO> getMyTasksByPeriod(String token, String startDate, String endDate) {
+        return userService.getUserByToken(token) // Mono<User>
+                .flatMapMany(user -> taskRepository.findActiveByUserIdAndPeriod(user.getId(),
+                        LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                        LocalDate.parse(endDate, DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
+                .map(MiniTaskDTO::fromTask)// Flux<Task>
+                .switchIfEmpty(Mono.error(new NotFoundException("User not found or no tasks")));
+    }
+
+
     /**
      * ✅ Создание задачи (с тегами и статусом)
      */
@@ -131,11 +161,13 @@ public class TaskService {
                     return taskRepository.save(task)
                             .flatMap(savedTask ->
                                     manageTaskTags(savedTask.getId(), token, taskDTO.getTagIds(), true)
-                                            .then(taskDTO.getAssigneeIds().isEmpty() ?
-                                                    manageTaskAssignees(savedTask.getId(), token, List.of(savedTask.getCreatedBy()), true) :
-                                                    manageTaskAssignees(savedTask.getId(), token, taskDTO.getAssigneeIds(), true))
-                                            .then(manageReminder(savedTask.getId(), token, taskDTO.getReminderDate(), taskDTO.getReminderTime(), true))
-                                            .thenReturn(savedTask));
+                                            .then(manageTaskAssignees(savedTask.getId(), token, taskDTO.getAssigneeIds(), true))
+                                            .then(buildTaskContext(savedTask)) // ⬅️ Собираем правильный контекст
+                                            .flatMap(ctx ->
+                                                    manageReminder(ctx, token, taskDTO.getReminderDate(), taskDTO.getReminderTime(), taskDTO.getReminderText())
+                                                            .thenReturn(savedTask)
+                                            )
+                            );
                 });
     }
 
@@ -159,15 +191,19 @@ public class TaskService {
                     updatedTask.setTagIds(updatedTask.getTagIds() == null ? new ArrayList<>() : updatedTask.getTagIds());
                     updatedTask.setAssigneeIds(updatedTask.getAssigneeIds() == null ? new ArrayList<>() : updatedTask.getAssigneeIds());
 
-
-
                     return taskRepository.save(existingTask)
-                            .flatMap(savedTask -> manageTaskTags(savedTask.getId(), token, updatedTask.getTagIds(), false)
-                                    .then(manageTaskAssignees(savedTask.getId(), token, updatedTask.getAssigneeIds(), false))
-                                    .then(manageReminder(taskId, token, updatedTask.getReminderDate(), updatedTask.getReminderTime(), false))
-                                    .then(manageTaskStatus(taskId, token, updatedTask.getStatusId()))
-                                    .thenReturn(savedTask));
+                            .flatMap(savedTask ->
+                                    manageTaskTags(savedTask.getId(), token, updatedTask.getTagIds(), false)
+                                            .then(manageTaskAssignees(savedTask.getId(), token, updatedTask.getAssigneeIds(), false))
+                                            .then(buildTaskContext(savedTask)) // ⬅️ После всех изменений собираем TaskContext
+                                            .flatMap(ctx ->
+                                                    manageTaskStatus(ctx, token, updatedTask.getStatusId())
+                                                            .then(manageReminder(ctx, token, updatedTask.getReminderDate(), updatedTask.getReminderTime(), updatedTask.getReminderText()))
+                                                            .thenReturn(savedTask)
+                                            )
+                            );
                 });
+
     }
 
     /*    *//**
@@ -240,36 +276,17 @@ public class TaskService {
     /**
      * ✅ Управление напоминанием задачи (создание/обновление/удаление)
      */
-    public Mono<Void> manageReminder(Long taskId, String token, LocalDate reminderDate, LocalTime reminderTime, Boolean isCreation) {
-        return taskRepository.findById(taskId)
-                .switchIfEmpty(Mono.error(new NotFoundException("Task not found")))
-                .flatMap(task -> validateRequesterHasPermission(task.getProjectId(), token,  isCreation ? Permission.CAN_CREATE_TASKS : Permission.CAN_MANAGE_REMINDERS)
-                        .then(
-                                taskReminderRepository.findByTaskId(taskId)
-                                        .switchIfEmpty(
-                                                // Если напоминания не было — создаем
-                                                reminderDate != null && reminderTime != null
-                                                        ? taskReminderRepository.addReminder(taskId, reminderDate, reminderTime)
-                                                        : Mono.empty()
-                                        )
-                                        .flatMap(existing -> {
-                                            // Если даты совпадают — ничего не делаем
-                                            if (Objects.equals(existing.getReminderDate(), reminderDate) &&
-                                                    Objects.equals(existing.getReminderTime(), reminderTime)) {
-                                                return Mono.empty();
-                                            }
+    public Mono<Void> manageReminder(TaskContext ctx, String token, LocalDate reminderDate, LocalTime reminderTime, String reminderText) {
+        if (reminderDate == null || reminderTime == null || ctx.getAssigneeUsernames().isEmpty()) {
+            return sendReminderByUsernames(ctx, null, null, "DELETE_REMINDER");
+        }
 
-                                            // Если новые даты null → удаление
-                                            if (reminderDate == null || reminderTime == null) {
-                                                return taskReminderRepository.deleteReminderByTaskId(taskId);
-                                            }
-                                            System.out.println(existing.toString());
-                                            // Иначе — обновление
-                                            return taskReminderRepository.updateReminder(existing.getId(), reminderDate, reminderTime).then();
-                                        })
+        LocalDateTime remindAt = LocalDateTime.of(reminderDate, reminderTime);
 
-                        )
-                ).then();
+        return validateRequesterHasPermission(ctx.getProjectId(), token, Permission.CAN_MANAGE_REMINDERS)
+                .then(
+                        sendReminderByUsernames(ctx, reminderText, remindAt.toString(), "CREATE_REMINDER")
+                );
     }
 
 
@@ -279,7 +296,7 @@ public class TaskService {
     public Mono<Void> manageTaskTags(Long taskId, String token, List<Long> tagIds, Boolean isCreation) {
         return taskRepository.findById(taskId)
                 .switchIfEmpty(Mono.error(new NotFoundException("Task not found")))
-                .flatMap(task -> validateRequesterHasPermission(task.getProjectId(), token,  isCreation ? Permission.CAN_CREATE_TASKS : Permission.CAN_MANAGE_TASK_TAGS)
+                .flatMap(task -> validateRequesterHasPermission(task.getProjectId(), token, isCreation ? Permission.CAN_CREATE_TASKS : Permission.CAN_MANAGE_TASK_TAGS)
                         .thenMany((taskTagRepository.findTagsByTaskId(taskId)
                                 .collectList()
                                 .zipWith(projectTagRepository.findTagsByProjectId(task.getProjectId()).collectList()))
@@ -339,19 +356,80 @@ public class TaskService {
                                                     .flatMap(userId -> taskAssigneeRepository.deleteByTaskIdAndAndUserId(taskId, userId)),
                                             Flux.fromIterable(assigneesToAdd)
                                                     .flatMap(userId -> taskAssigneeRepository.addAssigneeToTask(taskId, userId))
-                                    ).then(); // ⬅️ Преобразуем Flux в Mono<Void>
-                                })).then())
-                .then(); // ⬅️ Финальный then(), чтобы вернуть Mono<Void>
+                                    ).then(Mono.just(assigneesToAdd)); // ⬅️ Преобразуем Flux в Mono<Void>
+                                })
+                                .flatMap(assigneesToNotify -> {
+                                    if (CollectionUtils.isEmpty(assigneesToNotify)) {
+                                        return Mono.empty();
+                                    }
+                                    return userService.getUsernamesByIds(assigneesToNotify)
+                                            .zipWith(projectRepository.findProjectTitleById(task.getProjectId()))
+                                            .flatMap(usernamesProjectTitle -> {
+                                                return notifyAssigneesAboutActionByUsernames(
+                                                        usernamesProjectTitle.getT1(),
+                                                        TaskContext.builder().taskId(taskId).taskTitle(task.getTitle()).projectTitle(usernamesProjectTitle.getT2()).build(),
+                                                        "ASSIGNED_TO_TASK"
+                                                );
+                                            });
+                                }))
+                        .then());
     }
+
 
     /**
      * ✅ Управление статусом задачи
      */
-    public Mono<Void> manageTaskStatus(Long taskId, String token, Long statusId) {
-        return taskRepository.findById(taskId)
+    public Mono<Void> manageTaskStatus(TaskContext ctx, String token, Long statusId) {
+        return taskRepository.findById(ctx.getTaskId())
                 .switchIfEmpty(Mono.error(new NotFoundException("Task not found")))
-                .flatMap(task -> validateRequesterHasPermission(task.getProjectId(), token, Permission.CAN_MANAGE_TASK_STATUSES))
-                .then(taskRepository.updateTaskStatus(taskId, statusId));
+                .flatMap(task -> {
+                    if (Objects.equals(task.getStatusId(), statusId)) {
+                        return Mono.empty();
+                    }
+                    return validateRequesterHasPermission(task.getProjectId(), token, Permission.CAN_MANAGE_TASK_STATUSES)
+                            .then(taskRepository.updateTaskStatus(task.getId(), statusId))
+                            .then(
+                                    notifyAssigneesAboutActionByUsernames(
+                                            ctx.getAssigneeUsernames(),
+                                            ctx,
+                                            "STATUS_CHANGE"
+                                    )
+
+                            );
+                });
     }
+
+    public Mono<Void> sendReminderByUsernames(TaskContext ctx, String reminderText, String remindAt, String action) {
+        // Собираем всех пользователей в одну строку через запятую
+        String usernames = String.join(",", ctx.getAssigneeUsernames());
+
+        TaskNotificationEvent event = TaskNotificationEvent.builder()
+                .action(action)
+                .taskId(ctx.getTaskId())
+                .taskTitle(ctx.getTaskTitle())
+                .projectTitle(ctx.getProjectTitle())
+                .reminderText(reminderText)
+                .remindAt(remindAt)
+                .usernames(usernames)
+                .build();
+
+        return kafkaNotificationService.sendTaskNotification(event);
+    }
+
+    public Mono<Void> notifyAssigneesAboutActionByUsernames(List<String> usernames, TaskContext ctx, String action) {
+        return Flux.fromIterable(usernames)
+                .flatMap(username -> {
+                    TaskNotificationEvent event = TaskNotificationEvent.builder()
+                            .action(action)
+                            .taskTitle(ctx.getTaskTitle())
+                            .projectTitle(ctx.getProjectTitle())
+                            .username(username)
+                            .build();
+                    return kafkaNotificationService.sendTaskNotification(event);
+                })
+                .then();
+    }
+
+
 }
 

@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="Gradle: com.twelvemonkeys.common:common-lang:3.9.4" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="com.twelvemonkeys.common" artifactId="common-lang" version="3.9.4" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.twelvemonkeys.common/common-lang/3.9.4/c68d7dd18962dda58615d3b5d929a68c8f8a1092/common-lang-3.9.4.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

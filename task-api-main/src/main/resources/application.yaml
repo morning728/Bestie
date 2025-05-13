@@ -28,6 +28,7 @@ eureka:
     service-url:
       defaultZone : http://localhost:8761/eureka
 application:
+  baseUrlPath: http://localhost:8765
   security:
     jwt:
       expiration-email-key: 36000000 # an 10 hour
@@ -37,8 +38,7 @@ application:
     db: jdbc:postgresql://localhost:5432/security?serverTimezone=UTC
     db-username: postgres
     db-password: root
-    userInfoPath: http://localhost:8765/security/v1/users/info
-    baseUrlPath: http://localhost:8765/security/v1
   invitation:
-    url: http://localhost:8765/api/v1/invitation/accept?token=
+    url: http://localhost:3000/accept-invite?token=
+
 

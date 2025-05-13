@@ -38,6 +38,7 @@ const MembersTab = ({ projectId }) => {
 
   const { me, hasPermission, loading } = useProjectAccess();
   const canManageMembers = hasPermission("CAN_MANAGE_MEMBERS");
+  const canManageRoles = hasPermission("CAN_MANAGE_ROLES");
 
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedRole, setSelectedRole] = useState(null);
@@ -189,7 +190,7 @@ const MembersTab = ({ projectId }) => {
                     value={member.roleId}
                     onChange={(e) => changeRole(member.username, e.target.value)}
                     size="small"
-                    disabled={!canManageMembers || member.username === me.username}
+                    disabled={!canManageRoles || member.username === me.username}
                   >
                     {roles.map((role) => (
                       <MenuItem key={role.id} value={role.id}>

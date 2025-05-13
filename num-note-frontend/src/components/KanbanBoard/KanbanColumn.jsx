@@ -8,11 +8,17 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import IconButton from "@mui/material/IconButton";
 
 // В компонент KanbanColumn добавим новые пропсы
-const KanbanColumn = ({ status, tasks, onCardClick, onMoveLeft, onMoveRight, isFirst, isLast }) => {
+const KanbanColumn = ({ status, tasks, onCardClick, onMoveLeft, onMoveRight, isFirst, isLast, droppableProvided }) => {
   const { darkMode } = useContext(ThemeContext);
 
   return (
-    <div className={`kanban-column ${darkMode ? "night" : "day"}`}>
+    <Box className={`kanban-column ${darkMode ? "night" : "day"}`}
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        minHeight: 150, // фикс дёргания
+        position: "relative",
+      }}>
       <div className="kanban-column-header truncate-text" style={{ backgroundColor: status.color }}>
         <Box
           sx={{
@@ -37,12 +43,15 @@ const KanbanColumn = ({ status, tasks, onCardClick, onMoveLeft, onMoveRight, isF
           </IconButton>
         </Box>
       </div>
-      <div className="kanban-column-body">
+      <div className="kanban-column-body"
+        ref={droppableProvided.innerRef}
+        {...droppableProvided.droppableProps}
+      >
         {tasks.map((task, index) => (
           <KanbanCard key={task.id} task={task} index={index} onClick={() => onCardClick(task)} />
         ))}
       </div>
-    </div>
+    </Box>
   );
 };
 

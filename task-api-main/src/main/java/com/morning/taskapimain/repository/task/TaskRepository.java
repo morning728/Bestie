@@ -7,6 +7,8 @@ import org.springframework.data.repository.query.Param;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDate;
+
 public interface TaskRepository extends R2dbcRepository<Task, Long> {
 
     // 🔹 Получение всех активных задач проекта
@@ -19,6 +21,16 @@ public interface TaskRepository extends R2dbcRepository<Task, Long> {
     // 🔹 Получение всех архивных задач проекта
     @Query("SELECT * FROM task WHERE project_id = :projectId AND is_archived = TRUE")
     Flux<Task> findArchivedByProjectId(@Param("projectId") Long projectId);
+
+    // 🔹 Получение всех активных задач пользователя
+    @Query("SELECT t.* FROM task t JOIN task_assignee ta ON t.id = ta.task_id WHERE ta.user_id = :userId AND t.is_archived = FALSE;")
+    Flux<Task> findActiveByUserId(@Param("userId") Long userId);
+
+    // 🔹 Получение всех активных задач пользователя по периоду
+    @Query("SELECT t.* FROM task t JOIN task_assignee ta ON t.id = ta.task_id WHERE ta.user_id = :userId AND" +
+            " t.is_archived = FALSE AND " +
+            "(t.start_date <= :endDate AND t.end_date >= :startDate);")
+    Flux<Task> findActiveByUserIdAndPeriod(@Param("userId") Long userId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 
     // 🔹 Получение задачи по ID
     @Query("SELECT * FROM task WHERE id = :taskId")

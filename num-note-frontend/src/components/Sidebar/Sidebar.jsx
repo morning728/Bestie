@@ -15,6 +15,9 @@ import AssignmentIcon from "@mui/icons-material/Assignment"; // иконка з�
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
 import { useProjectsContext } from "../../context/ProjectsContext";
+import Button from "@mui/material/Button"; // Импортируем Button
+import { useNavigate } from "react-router-dom"; // Для переходов
+import {forceLogout} from "../../services/api.js";
 
 
 
@@ -23,6 +26,8 @@ const Sidebar = () => {
   const { darkMode } = useContext(ThemeContext); // Получаем текущую тему
   const { t, i18n } = useTranslation();
   const { projects, fetchProjects } = useProjectsContext();
+  const navigate = useNavigate();
+  const isAuthenticated = !!localStorage.getItem("token"); // Проверка наличия токена
   useEffect(() => {
     fetchProjects();
   }, []);
@@ -78,7 +83,7 @@ const Sidebar = () => {
             {!isCollapsed && <ListItemText primary={t("calendar")} />}
           </ListItem>
 
-          <ListItem className="sidebar-item" button component={Link} to="/analytics">
+          <ListItem className="sidebar-item" button component={Link} to="/reports">
             <ListItemIcon>
               <BarChartIcon />
             </ListItemIcon>
@@ -129,7 +134,7 @@ const Sidebar = () => {
 
           {/* Вложенные проекты */}
           {projectsExpanded && !isCollapsed && (
-            <Box sx={{ ml: 4, width: "70%"}}>
+            <Box sx={{ ml: 4, width: "70%" }}>
               {projects.map((project) => (
                 <ListItem
                   key={project.id}
@@ -161,9 +166,33 @@ const Sidebar = () => {
 
       {/* Нижняя часть боковой панели */}
       {!isCollapsed && (
-        <Box className="sidebar-footer">
+        <Box className="sidebar-footer" display="flex" flexDirection="column" alignItems="center" gap={1}>
           <Typography variant="body2">{t("welcome")}</Typography>
           <Typography variant="caption">{t("stay_productive")} 🚀</Typography>
+
+          <Box display="flex" flexDirection="column" gap={1} mt={2}>
+            {!isAuthenticated ? (
+              <>
+                <Button variant="outlined" size="small" onClick={() => navigate("/auth/login")}>
+                  {t("login")}
+                </Button>
+                <Button variant="outlined" size="small" onClick={() => navigate("/auth/register")}>
+                  {t("register")}
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="contained"
+                color="error"
+                size="small"
+                onClick={() => {
+                  forceLogout();
+                }}
+              >
+                {t("logout")}
+              </Button>
+            )}
+          </Box>
         </Box>
       )}
     </Box>

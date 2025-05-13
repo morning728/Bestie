@@ -18,6 +18,8 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Gradle: org.projectlombok:lombok:1.18.30" level="project" />
+    <orderEntry type="library" name="Gradle: org.jfree:jfreechart:1.5.4" level="project" />
+    <orderEntry type="library" name="Gradle: com.twelvemonkeys.imageio:imageio-core:3.9.4" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework.boot:spring-boot-starter-webflux:3.2.1" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework.session:spring-session-core:3.2.1" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework.boot:spring-boot-starter-data-r2dbc:3.2.1" level="project" />
@@ -38,6 +40,9 @@
     <orderEntry type="library" name="Gradle: org.springframework.kafka:spring-kafka:3.1.1" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework.cloud:spring-cloud-starter-openfeign:4.1.0" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework.boot:spring-boot-starter-actuator:3.2.1" level="project" />
+    <orderEntry type="library" name="Gradle: com.twelvemonkeys.common:common-image:3.9.4" level="project" />
+    <orderEntry type="library" name="Gradle: com.twelvemonkeys.common:common-io:3.9.4" level="project" />
+    <orderEntry type="library" name="Gradle: com.twelvemonkeys.common:common-lang:3.9.4" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework.boot:spring-boot-starter-json:3.2.1" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework.boot:spring-boot-starter:3.2.1" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework.boot:spring-boot-starter-reactor-netty:3.2.1" level="project" />
@@ -73,6 +78,18 @@
     <orderEntry type="library" name="Gradle: io.github.openfeign:feign-core:13.1" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework.boot:spring-boot-actuator-autoconfigure:3.2.1" level="project" />
     <orderEntry type="library" name="Gradle: io.micrometer:micrometer-jakarta9:1.12.1" level="project" />
+    <orderEntry type="library" name="Gradle: com.itextpdf:barcodes:8.0.1" level="project" />
+    <orderEntry type="library" name="Gradle: com.itextpdf:font-asian:8.0.1" level="project" />
+    <orderEntry type="library" name="Gradle: com.itextpdf:sign:8.0.1" level="project" />
+    <orderEntry type="library" name="Gradle: com.itextpdf:pdfa:8.0.1" level="project" />
+    <orderEntry type="library" name="Gradle: com.itextpdf:forms:8.0.1" level="project" />
+    <orderEntry type="library" name="Gradle: com.itextpdf:hyph:8.0.1" level="project" />
+    <orderEntry type="library" name="Gradle: com.itextpdf:svg:8.0.1" level="project" />
+    <orderEntry type="library" name="Gradle: com.itextpdf:styled-xml-parser:8.0.1" level="project" />
+    <orderEntry type="library" name="Gradle: com.itextpdf:layout:8.0.1" level="project" />
+    <orderEntry type="library" name="Gradle: com.itextpdf:kernel:8.0.1" level="project" />
+    <orderEntry type="library" name="Gradle: com.itextpdf:io:8.0.1" level="project" />
+    <orderEntry type="library" name="Gradle: com.itextpdf:bouncy-castle-connector:8.0.1" level="project" />
     <orderEntry type="library" name="Gradle: com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.15.3" level="project" />
     <orderEntry type="library" name="Gradle: com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.3" level="project" />
     <orderEntry type="library" name="Gradle: com.fasterxml.jackson.module:jackson-module-parameter-names:2.15.3" level="project" />
@@ -122,6 +139,7 @@
     <orderEntry type="library" name="Gradle: org.springframework.security:spring-security-crypto:6.2.1" level="project" />
     <orderEntry type="library" name="Gradle: org.springframework.boot:spring-boot-actuator:3.2.1" level="project" />
     <orderEntry type="library" name="Gradle: io.micrometer:micrometer-core:1.12.1" level="project" />
+    <orderEntry type="library" name="Gradle: com.itextpdf:commons:8.0.1" level="project" />
     <orderEntry type="library" name="Gradle: ch.qos.logback:logback-classic:1.4.14" level="project" />
     <orderEntry type="library" name="Gradle: org.apache.logging.log4j:log4j-to-slf4j:2.21.1" level="project" />
     <orderEntry type="library" name="Gradle: org.slf4j:jul-to-slf4j:2.0.9" level="project" />

@@ -22,11 +22,15 @@ import {
   updateProjectStatus,
   deleteProjectStatus,
 } from "../../../services/api";
+import { useProjectAccess } from "../../../context/ProjectAccessContext.js";
 import "../ProjectSettingsPage.css";
 
 const StatusesTab = ({ projectId }) => {
   const { t } = useTranslation();
   const { darkMode } = useContext(ThemeContext);
+
+  const { me, hasPermission, loading } = useProjectAccess();
+  const can = hasPermission("CAN_EDIT_PROJECT");
 
   const [statuses, setStatuses] = useState([]);
   const [newStatusName, setNewStatusName] = useState("");
@@ -113,6 +117,7 @@ const StatusesTab = ({ projectId }) => {
           label={t("new_status")}
           value={newStatusName}
           onChange={(e) => setNewStatusName(e.target.value)}
+          disabled={!can}
         />
         <TextField
           label={t("position")}
@@ -120,6 +125,7 @@ const StatusesTab = ({ projectId }) => {
           value={newStatusPosition}
           onChange={(e) => setNewStatusPosition(Number(e.target.value))}
           sx={{ width: 100 }}
+          disabled={!can}
         />
 
         <Box
@@ -136,6 +142,7 @@ const StatusesTab = ({ projectId }) => {
             transition: "0.3s",
             "&:hover": { opacity: 0.8 },
           }}
+          disabled={!can}
           onClick={(e) => setColorAnchor(e.currentTarget)}
         >
           🎨
@@ -148,6 +155,7 @@ const StatusesTab = ({ projectId }) => {
             vertical: "bottom",
             horizontal: "left",
           }}
+          disabled={!can}
         >
           <SketchPicker
             color={newStatusColor}
@@ -163,6 +171,7 @@ const StatusesTab = ({ projectId }) => {
           onClick={handleAddStatus}
           startIcon={<AddIcon />}
           sx={{ whiteSpace: "nowrap" }}
+          disabled={!can}
         >
           {t("add")}
         </Button>
@@ -251,8 +260,10 @@ const StatusesTab = ({ projectId }) => {
                           vertical: "bottom",
                           horizontal: "left",
                         }}
+                        disabled={!can}
                       >
                         <SketchPicker
+                          disabled={!can}
                           color={editStatusColor}
                           onChangeComplete={(color) => {
                             setEditStatusColor(color.hex);
@@ -260,19 +271,19 @@ const StatusesTab = ({ projectId }) => {
                           }}
                         />
                       </Popover>
-                      <IconButton onClick={handleSaveStatus} color="success">
+                      <IconButton onClick={handleSaveStatus} color="success" disabled={!can}>
                         <SaveIcon />
                       </IconButton>
                     </Box>
                   ) : (
                     <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                       <Typography variant="subtitle1">{status.name} (P:{status.position})</Typography>
-                      <IconButton onClick={() => handleEditStatus(status)} color="default">
+                      <IconButton onClick={() => handleEditStatus(status)} color="default" disabled={!can}>
                         <EditIcon />
                       </IconButton>
                     </Box>
                   )}
-                  <IconButton onClick={() => handleDeleteStatus(status.id)} color="error">
+                  <IconButton onClick={() => handleDeleteStatus(status.id)} color="error" disabled={!can}>
                     <DeleteIcon />
                   </IconButton>
                 </Paper>

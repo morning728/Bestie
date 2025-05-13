@@ -15,8 +15,8 @@ public class AuthService {
     private final AuthClient authClient;
     private final TokenCacheService tokenCacheService;
 
-    public String authenticateUser(Long chatId, String username, String password) {
-        AuthRequest request = new AuthRequest(chatId, username, password);
+    public String authenticateUser(Long chatId, String telegramId, String username, String password) {
+        AuthRequest request = new AuthRequest(chatId, username, telegramId, password);
         AuthResponse response = authClient.authenticate(request);
 
         if (response != null && response.getToken() != null) {

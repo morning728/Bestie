@@ -22,10 +22,14 @@ import {
   deleteProjectResource,
 } from "../../../services/api";
 import "../ProjectSettingsPage.css";
+import { useProjectAccess } from "../../../context/ProjectAccessContext.js";
 
 const ResourcesTab = ({ projectId }) => {
   const { t } = useTranslation();
   const { darkMode } = useContext(ThemeContext);
+
+  const { me, hasPermission, loading } = useProjectAccess();
+  const can = hasPermission("CAN_EDIT_PROJECT");
 
   const [resources, setResources] = useState([]);
   const [newResource, setNewResource] = useState({ url: "", description: "" });
@@ -102,6 +106,7 @@ const ResourcesTab = ({ projectId }) => {
           value={newResource.url}
           onChange={(e) => setNewResource({ ...newResource, url: e.target.value })}
           sx={{ mb: 2 }}
+          disabled={!can}
         />
         <TextField
           fullWidth
@@ -109,12 +114,14 @@ const ResourcesTab = ({ projectId }) => {
           value={newResource.description}
           onChange={(e) => setNewResource({ ...newResource, description: e.target.value })}
           sx={{ mb: 2 }}
+          disabled={!can}
         />
         <Button
           variant="contained"
           sx={{ backgroundColor: "#9932CC", color: "#fff", fontWeight: "bold" }}
           onClick={handleAddResource}
           startIcon={<AddIcon />}
+          disabled={!can}
         >
           {t("add")}
         </Button>
@@ -147,6 +154,7 @@ const ResourcesTab = ({ projectId }) => {
                   {editingResource === resource.id ? (
                     <Box sx={{ display: "flex", flexGrow: 1, alignItems: "center", gap: 2 }}>
                       <TextField
+                      disabled={!can}
                         fullWidth
                         value={editResource.url}
                         onChange={(e) => setEditResource({ ...editResource, url: e.target.value })}
@@ -155,16 +163,17 @@ const ResourcesTab = ({ projectId }) => {
                         inputRef={inputRef}
                       />
                       <TextField
+                      disabled={!can}
                         fullWidth
                         value={editResource.description}
                         onChange={(e) => setEditResource({ ...editResource, description: e.target.value })}
                         size="small"
                         sx={{ backgroundColor: "#fff", borderRadius: 1 }}
                       />
-                      <IconButton color="success" onClick={() => handleSaveResource(resource.id)}>
+                      <IconButton color="success" onClick={() => handleSaveResource(resource.id)} disabled={!can}>
                         <SaveIcon />
                       </IconButton>
-                      <IconButton color="error" onClick={handleCancelEdit}>
+                      <IconButton color="error" onClick={handleCancelEdit} disabled={!can}>
                         <CloseIcon />
                       </IconButton>
                     </Box>
@@ -181,10 +190,10 @@ const ResourcesTab = ({ projectId }) => {
                         </Typography>
                       </Box>
                       <Box sx={{ display: "flex", gap: 1 }}>
-                        <IconButton sx={{backgroundcolor:"rgba(77, 20, 65, 0.91)" }} onClick={() => startEditingResource(resource)}>
+                        <IconButton sx={{backgroundcolor:"rgba(77, 20, 65, 0.91)" }} onClick={() => startEditingResource(resource)}  disabled={!can}>
                           <EditIcon />
                         </IconButton>
-                        <IconButton color="error" onClick={() => handleDeleteResource(resource.id)}>
+                        <IconButton color="error" onClick={() => handleDeleteResource(resource.id)}  disabled={!can}>
                           <DeleteIcon />
                         </IconButton>
                       </Box>

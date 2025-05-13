@@ -12,6 +12,9 @@ const KanbanCard = ({ task, index, onClick }) => {
           className={`kanban-card ${darkMode ? "night" : "day"}`}
           onClick={() => onClick(task)}
           ref={provided.innerRef}
+          sx={{
+            transition: "transform 0.2s ease, box-shadow 0.2s ease"
+          }}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
         >

@@ -2,7 +2,7 @@ spring:
   config:
     import: optional:classpath:application-secrets.yaml
   application:
-    name: mail-notification
+    name: NOTIFICATION
   kafka:
     bootstrap-servers: localhost:9092
   mail:
@@ -15,29 +15,20 @@ spring:
           starttls:
             enable: true
   datasource:
-    url: jdbc:postgresql://localhost:5432/quartz_db
+    url: jdbc:postgresql://localhost:5432/notification_db
     username: postgres
     password: root
-    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+  flyway:
+    url: jdbc:postgresql://localhost:5432/notification_db
+    locations: classpath:db/migration
+    user: postgres
+    password: root
   quartz:
     config: classpath:quartz.properties
-#    quartz:
-#      job-store-type: jdbc
-#      jdbc:
-#        initialize-schema: never  # Либо never, если схема уже создана!!!!!!!!!!!CREATE TABLES
-#      properties:
-#        org:
-#          quartz:
-#            jobStore:
-#              misfireThreshold: 60000
-#
-#              driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
-#              class: org.quartz.impl.jdbcjobstore.JobStoreTX
-#              dataSource: myDataSource
-#              #tablePrefix: public.QRTZ_      # Префикс таблиц, используемых Quartz
-#              isClustered: false       # Поддержка кластера для многозадачности
-#            threadPool:
-#              threadCount: 5        # Количество потоков для выполнения задач
 logging:
   level:
     org:
@@ -53,8 +44,8 @@ application:
   security:
     jwt:
       secret-email-verification-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5971
+      secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
       expiration-email-key: 3600000 # an hour
-  link-to-verify: http://localhost:8765/request-handler/v1/email
-  link-to-accept-invitation-to-project: http://localhost:8765/request-handler/v1/email
+  link-to-verify: http://localhost:3000/verify-email?token= #http://localhost:8765/notification/v1/contacts/verify-email
   telegram-bot:
     url-to-send: http://localhost:8087/tg-bot/v1

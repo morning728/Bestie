@@ -37,5 +37,5 @@
 .add-task-dialog .MuiDialog-paper {
   display: flex;
   justify-content: center;
-  min-width: 36vw; /* Устанавливаем ширину только для диалогового окна */
+  min-width: 55vw; /* Устанавливаем ширину только для диалогового окна */
 }

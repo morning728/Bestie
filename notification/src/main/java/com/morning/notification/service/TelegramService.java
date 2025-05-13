@@ -1,8 +1,9 @@
 package com.morning.notification.service;
 
-import com.morning.notification.feign.TelegramClient;
+import com.morning.notification.entity.user.NotificationPreferences;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
 
 import java.util.Map;
@@ -10,12 +11,25 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class TelegramService {
-    private final TelegramClient telegramClient;
+    private final WebClient webClient;
 
-    public void sendMessage(String chatId, String text) {
-        telegramClient.sendMessage(Map.of(
+    public void sendMessage(NotificationPreferences preferences, String text) {
+        if (preferences.getChatId() != null && preferences.getTelegramNotification()) {
+            webClient.post()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/send")
+                            .build())
+                    .bodyValue(Map.of(
+                            "chatId", preferences.getChatId(),
+                            "message", text
+                    ))
+                    .retrieve()
+                    .toBodilessEntity()
+                    .subscribe(); // ❗ Просто подписка, без блокировки потока
+        }
+/*        telegramClient.sendMessage(Map.of(
                 "chatId", chatId,
                 "message", text
-        ));
+        ));*/
     }
 }

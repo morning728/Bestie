@@ -48,6 +48,7 @@ public class AttachmentService {
 
         Attachment attachment = Attachment.builder()
                 .taskId(taskId)
+                .projectId(null)
                 .filename(file.getOriginalFilename())
                 .s3Key(objectName)
                 .contentType(file.getContentType())
@@ -68,8 +69,17 @@ public class AttachmentService {
         }
     }
 
+    public Attachment getMetadata(Long id) {
+        return repository.findById(id).orElseThrow(); // возвращаем мета-инфу
+    }
+
+
     public List<Attachment> getAllByTask(Long taskId) {
         return repository.findByTaskId(taskId);
+    }
+
+    public List<Attachment> getAllByProject(Long projectId) {
+        return repository.findByProjectId(projectId);
     }
 
     public void delete(Long id) throws Exception {
@@ -79,5 +89,39 @@ public class AttachmentService {
                 .object(attachment.getS3Key())
                 .build());
         repository.delete(attachment);
+    }
+
+    public Attachment uploadReport(Long projectId, MultipartFile file) throws Exception {
+
+        String objectName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+
+        // Проверяем и создаём bucket при необходимости
+        boolean found = minioClient.bucketExists(BucketExistsArgs.builder().bucket(BUCKET).build());
+        if (!found) {
+            minioClient.makeBucket(MakeBucketArgs.builder().bucket(BUCKET).build());
+        }
+
+        try (InputStream is = file.getInputStream()) {
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(BUCKET)
+                            .object(objectName)
+                            .stream(is, file.getSize(), -1)
+                            .contentType(file.getContentType())
+                            .build()
+            );
+        }
+
+        Attachment attachment = Attachment.builder()
+                .taskId(null)
+                .projectId(projectId)
+                .filename(file.getOriginalFilename())
+                .s3Key(objectName)
+                .contentType(file.getContentType())
+                .fileSize(file.getSize())
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        return repository.save(attachment);
     }
 }

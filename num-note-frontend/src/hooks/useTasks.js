@@ -33,13 +33,20 @@ export const useTasks = (projectId) => {
 
   const addTask = async (taskData) => {
     try {
+      let createdTask = null;
+  
       if (isEditing && selectedTask) {
-        await updateTask(selectedTask.id, taskData);
+        const response = await updateTask(selectedTask.id, taskData);
+        createdTask = response.data; // 💡 получили задачу с id
       } else {
-        await createTask({ ...taskData, projectId });
+        const response = await createTask({ ...taskData, projectId });
+        createdTask = response.data; // 💡 получили задачу с id
       }
+  
+      return createdTask;
     } catch (error) {
       console.error("Ошибка при добавлении/редактировании задачи:", error);
+      return null;
     } finally {
       await fetchTasks();
       handleCloseAddDialog();
@@ -100,10 +107,12 @@ export const useTasks = (projectId) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
     const tagIds = task.tags?.map(tag => tag.id);
+    const assigneeIds = task.assignees?.map(a => a.userId);
     const updatedTask = {
       ...task,
       statusId: newStatusId,
       tagIds: tagIds,
+      assigneeIds: assigneeIds,
     };
 
     try {

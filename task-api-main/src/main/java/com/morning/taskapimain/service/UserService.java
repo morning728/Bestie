@@ -1,11 +1,8 @@
 package com.morning.taskapimain.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.morning.taskapimain.entity.dto.UserDTO;
 import com.morning.taskapimain.entity.user.Contacts;
 import com.morning.taskapimain.entity.user.User;
-import com.morning.taskapimain.entity.dto.ProfileDTO;
 import com.morning.taskapimain.exception.AccessException;
 import com.morning.taskapimain.exception.NotFoundException;
 import com.morning.taskapimain.repository.ProjectRepository;
@@ -15,7 +12,6 @@ import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -24,7 +20,7 @@ import reactor.core.scheduler.Schedulers;
 
 import java.sql.*;
 import java.time.LocalDateTime;
-import java.util.HashMap;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -36,8 +32,7 @@ public class UserService {
     private final TaskRepository taskRepository;
     private final JwtService jwtService;
 
-    @Value("${application.security.userInfoPath}")
-    private String userInfoPath;
+
     @Value("${application.security.db}")
     private String securityDatabasePath;
     @Value("${application.security.db-username}")
@@ -46,16 +41,16 @@ public class UserService {
     private String securityDatabasePassword;
 
 
-    // Лучше удалить позже
+/*    // Лучше удалить позже
     private static final String SELECT_USER_CONTACTS_QUERY =     """
     select username, telegram_id, email from public.auth_user
-    """;
+    """;*/
     // Лучше удалить позже
-    public Connection getConnection() throws SQLException {
+/*    public Connection getConnection() throws SQLException {
         return DriverManager.getConnection(securityDatabasePath,
                 securityDatabaseUsername, securityDatabasePassword);
-    }
-    // Лучше удалить позже
+    }*/
+/*    // Лучше удалить позже
     public Mono<Contacts> getUserContactsByUsername(String username) {
 
         return Mono.fromCallable(() -> {
@@ -82,7 +77,7 @@ public class UserService {
                     return contacts;
                 })
                 .subscribeOn(Schedulers.boundedElastic()); // Выполняем асинхронно
-    }
+    }*/
 
 
     /**
@@ -118,6 +113,28 @@ public class UserService {
     }
 
     /**
+     * ✅ Получение пользователя по ID
+     */
+    public Mono<String> getUsernameById(Long userId) {
+        return userRepository.findUsernameById(userId)
+                .switchIfEmpty(Mono.error(new NotFoundException("User not found")));
+    }
+
+
+    /**
+     * ✅ Получение списка usernames по списку userIds
+     */
+    public Mono<List<String>> getUsernamesByIds(List<Long> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return Mono.just(List.of());
+        }
+
+        return Flux.fromIterable(userIds)
+                .flatMap(this::getUsernameById) // для каждого id запрашиваем username
+                .collectList(); // собираем все в список
+    }
+
+    /**
      * ✅ Проверка существования пользователя по username
      */
     public Mono<Boolean> userExists(String username) {
@@ -130,6 +147,19 @@ public class UserService {
      */
     public Flux<User> getAllUsers() {
         return userRepository.findAll();
+    }
+
+    /**
+     * ✅ Добавление пользователя
+     */
+    public Mono<User> addUser(String token) {
+        String requesterUsername = jwtService.extractUsername(token);
+        return userExists(requesterUsername)
+                .flatMap(exists -> {
+                    return exists ?
+                            Mono.error(new AccessException("User already exists")) :
+                            userRepository.saveWithUsername(requesterUsername);
+                });
     }
 
     /**
@@ -174,16 +204,24 @@ public class UserService {
                 .switchIfEmpty(Mono.error(new NotFoundException("User not found")));
     }
 
-    public Mono<Contacts> findProfileByUsernameWithWebClient(String usernameToGetProfile, String yourToken) {
+    public Mono<Contacts> findContactsByUsernameWithWebClient(String usernameToGetProfile, String yourToken) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
-                        .path("/users/info")
+                        .path("/notification/v1/contacts")
                         .queryParam("username", usernameToGetProfile)
                         .build())
                 .header("Authorization",  yourToken)
                 .retrieve()
                 .bodyToMono(Contacts.class);
     }
+
+/*    public Mono<Contacts> findContactsByUserIdWithWebClient(Long userId, String yourToken) {
+        return userRepository.findById(userId)
+                .map(User::getUsername)
+                .flatMap(username -> {
+                    return findContactsByUsernameWithWebClient(username, yourToken);
+                });
+    }*/
 
 
 }

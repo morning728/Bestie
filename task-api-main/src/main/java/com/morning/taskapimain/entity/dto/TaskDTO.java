@@ -29,6 +29,7 @@ public class TaskDTO {
     private LocalTime startTime;
     private LocalTime endTime;
     private Long projectId;
+    private String reminderText;
     private LocalDate reminderDate;
     private LocalTime reminderTime;
     private Long createdBy;

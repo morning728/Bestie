@@ -2,7 +2,7 @@ package com.morning.security.auth;
 
 import com.morning.security.config.security.JwtEmailService;
 import com.morning.security.config.security.JwtService;
-import com.morning.security.emailSender.KafkaMailProducer;
+import com.morning.security.emailSender.KafkaService;
 import com.morning.security.token.Token;
 import com.morning.security.token.TokenRepository;
 import com.morning.security.token.TokenType;
@@ -10,6 +10,7 @@ import com.morning.security.user.User;
 import com.morning.security.user.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -18,7 +19,10 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Mono;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -39,10 +43,9 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final JwtEmailService jwtEmailService;
-    private final KafkaMailProducer kafkaMailProducer;
+    private final KafkaService kafkaService;
+    private final WebClient webClient;
 
-    @Value("${application.task-api.db-url}")
-    private String dbUrl;
 
     public String register(RegisterRequest request, HttpServletResponse response) throws SQLException {
         var user = User.builder()
@@ -52,21 +55,23 @@ public class AuthenticationService {
                 .role(request.getRole())
                 .verified(false)
                 .build();
+        if(repository.findByUsername(request.getUsername()).isPresent()) {
+            throw new ResponseStatusException(UNAUTHORIZED, "Username is already in use");
+        }
         var savedUser = repository.save(user);
-
-        if (request.getEmail() != null) {
-            kafkaMailProducer.sendMailNotification(request.getUsername(), request.getEmail());
-        }
-        try {
-            addUserToDatabase(request.getUsername()); // Добавляем в `app_user`
-        } catch (Exception e){
-            repository.deleteById(savedUser.getId());
-            throw e;
-        }
 
         var jwtToken = jwtService.generateToken(Map.of("role", "USER"), user);
         var refreshToken = jwtService.generateRefreshToken(user);
+
         saveUserToken(savedUser, jwtToken, null);
+        try {
+            kafkaService.sendUsernameToNotificationService(request.getUsername());
+            sendUsernameToMainApiService(jwtToken); // проверяем ответ
+        } catch (Exception e) {
+            tokenRepository.deleteAllByAuthUserId(savedUser.getId());
+            repository.deleteById(savedUser.getId());
+            throw e;
+        }
 
         setRefreshTokenCookie(response, refreshToken);
 
@@ -92,7 +97,7 @@ public class AuthenticationService {
         return jwtToken;
     }
 
-    public String authenticateTelegram(String username, String password, Long chatId, HttpServletResponse response) {
+    public String authenticateTelegram(String username, String password, Long chatId, String telegramId) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, password)
         );
@@ -104,6 +109,7 @@ public class AuthenticationService {
         if (user.getChatId() == null) {
             user.setChatId(chatId);
             repository.save(user);
+            kafkaService.sendTelegramDataChange(username, telegramId, chatId);
         } else if (!user.getChatId().equals(chatId)) {
             throw new RuntimeException("Этот аккаунт уже привязан к другому Telegram ID!");
         }
@@ -116,6 +122,8 @@ public class AuthenticationService {
 
         return jwtToken;
     }
+
+
 
     public String refreshToken(HttpServletRequest request, HttpServletResponse response) {
         final String refreshToken = getRefreshTokenFromCookie(request);
@@ -193,20 +201,26 @@ public class AuthenticationService {
                 .orElse(null);
     }
 
-    private void addUserToDatabase(String username) throws SQLException {
-        try (Connection connection = DriverManager.getConnection(dbUrl, "postgres", "root")) {
-            String insertQuery = "INSERT INTO \"app_user\" (username, created_at, updated_at, status) VALUES (?, ?, ?, ?)";
-            try (PreparedStatement statement = connection.prepareStatement(insertQuery)) {
-                statement.setString(1, username);
-                statement.setDate(2, new java.sql.Date(Calendar.getInstance().getTime().getTime()));
-                statement.setDate(3, new java.sql.Date(Calendar.getInstance().getTime().getTime()));
-                statement.setString(4, "ACTIVE");
-                int count = statement.executeUpdate();
-                if (count != 1) {
-                    throw new SQLException("User was not added to app_user");
-                }
-            }
-        }
+    private void sendUsernameToMainApiService(String token) {
+        webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/users/register")
+                        .build())
+                .header("Authorization", "Bearer ".concat(token))
+                .retrieve()
+                .onStatus(
+                        status -> !status.is2xxSuccessful(), // Проверка, что НЕ 2xx
+                        clientResponse -> {
+                            // Бросаем ошибку если код не 2xx
+                            return clientResponse.bodyToMono(String.class)
+                                    .defaultIfEmpty("Unknown error")
+                                    .flatMap(errorBody -> Mono.error(new RuntimeException(
+                                            "Failed to send username to main-api-service: " + errorBody
+                                    )));
+                        }
+                )
+                .toBodilessEntity() // Нам не нужен сам ответ, только статус
+                .block(); // Блокируем чтобы отправка точно завершилась
     }
 
     public String getTelegramToken(Long chatId) {
@@ -228,4 +242,46 @@ public class AuthenticationService {
         }
 
     }
+
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        final String token = extractAccessToken(request);
+        if (token == null) {
+            throw new ResponseStatusException(UNAUTHORIZED, "Access token отсутствует");
+        }
+
+        final String username = jwtService.extractUsername(token);
+        if (username == null) {
+            throw new ResponseStatusException(UNAUTHORIZED, "Некорректный access token");
+        }
+
+        var user = repository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(UNAUTHORIZED, "Пользователь не найден"));
+
+        // Отзываем ВСЕ обычные токены пользователя
+        revokeAllNonTelegramUserTokens(user);
+
+        // Удаляем refresh_token куку
+        deleteRefreshTokenCookie(response);
+    }
+
+    private String extractAccessToken(HttpServletRequest request) {
+        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return null;
+        }
+        return authHeader.substring(7);
+    }
+
+    private void deleteRefreshTokenCookie(HttpServletResponse response) {
+        ResponseCookie deleteCookie = ResponseCookie.from("refresh_token", "")
+                .httpOnly(true)
+                .secure(false) // если у тебя HTTPS, поставь true
+                .sameSite("Strict")
+                .path("/")
+                .maxAge(0) // обнуляем куку
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
+    }
+
+
 }

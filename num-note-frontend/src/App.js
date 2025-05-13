@@ -21,10 +21,13 @@ import Header from "./components/Header/Header";
 import Footer from "./components/Footer/Footer";
 import ProfilePage from './pages/Profile/ProfilePage';
 import ProjectsPage from './pages/Projects/ProjectsPage';
+import VerifyEmailPage from './pages/Profile/VerifyEmailPage';
 import { ProjectsProvider } from "./context/ProjectsContext";
 import ProjectSettingsPage from './pages/ProjectSettings/ProjectSettingsPage';
 import AcceptInvitePage from './pages/ProjectSettings/invitation/AcceptInvitePage ';
 import ProjectAccessWrapper from './context/ProjectAccessWrapper';
+import ProjectReportsPage from './pages/Projects/ProjectReportsPage';
+import CalendarPage from './pages/Calendar/CalendarPage';
 
 
 
@@ -43,9 +46,10 @@ function App() {
           {/* 👇 Публичные страницы — без ProjectsProvider */}
           <Route path="/auth/login" element={<LoginPage />} />
           <Route path="/auth/register" element={<RegisterPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/accept-invite" element={<AcceptInvitePage />} />
           <Route path="/accept-universal" element={<AcceptInvitePage isUniversal />} />
-
+          
           {/* 👇 Приватный layout со всеми нужными провайдерами */}
           <Route
             path="/*"
@@ -68,6 +72,8 @@ function App() {
                           </ProjectAccessWrapper>
                         }
                       />
+                      <Route path="/calendar" element={<CalendarPage />} />
+                      <Route path="/reports" element={<ProjectReportsPage />} />
                       <Route path="/projects" element={<ProjectsPage />} />
                       <Route path="/profile" element={<ProfilePage />} />
                     </Routes>

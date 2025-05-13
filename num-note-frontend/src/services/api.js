@@ -57,11 +57,18 @@ const refreshToken = async () => {
 };
 
 // ❗ Очистка и редирект при полной просрочке
-const forceLogout = () => {
-  localStorage.removeItem('token');
-  sessionStorage.clear(); // если ты используешь sessionStorage для pending-invite или redirect
-  window.location.href = '/auth/login'; // редирект на страницу логина
+export const forceLogout = async () => {
+  try {
+    await apiClient.post("/security/v1/auth/logout"); // отправляем запрос на бэк
+  } catch (error) {
+    console.error("Ошибка при логауте", error);
+  } finally {
+    sessionStorage.clear();
+    localStorage.removeItem('token');
+    window.location.href = '/auth/login';
+  }
 };
+
 
 // **Interceptor** для автоматического обновления токена
 apiClient.interceptors.response.use(
@@ -115,6 +122,9 @@ export const registerUser = (username, password, email, role = 'USER') =>
 export const loginUser = (username, password) =>
   apiClient.post('/security/v1/auth/authenticate', { username, password });
 
+export const logout = () =>
+  apiClient.get('/security/v1/auth/logout');
+
 // PROJECTS
 export const getMyProjects = () => apiClient.get('/api/v1/projects/my');
 
@@ -128,6 +138,9 @@ export const deleteProject = (projectId) =>
 
 export const getFullProjectInfoById = (projectId) =>
   apiClient.get(`/api/v1/projects/${projectId}/full-info`);
+
+export const getProjectReportById = (projectId) =>
+  apiClient.post(`/api/v1/reports?project_id=${projectId}`);
 
 // MEMBERS
 export const getProjectMembers = (projectId) =>
@@ -221,6 +234,11 @@ export const deleteProjectResource = (projectId, resourceId) =>
 export const getTasksByProject = (projectId) =>
   apiClient.get(`/api/v1/tasks/project/${projectId}/all`);
 
+export const getMyTasksByPeriod = (startDate, endDate) =>
+  apiClient.get(`/api/v1/tasks/by-period`, {
+    params: { 'start-date': startDate, 'end-date': endDate }
+  });
+
 export const createTask = (taskDTO) =>
   apiClient.post(`/api/v1/tasks`, taskDTO);
 
@@ -233,6 +251,9 @@ export const archiveTask = (taskId) =>
 export const restoreTask = (taskId) =>
   apiClient.put(`/api/v1/tasks/${taskId}/restore`);
 
+export const getReminderByTaskId = (taskId) =>
+  apiClient.get(`/notification/v1/reminders/${taskId}`);
+
 // ME
 
 export const getMe = () =>
@@ -241,6 +262,70 @@ export const getMe = () =>
 export const getMyRole = (projectId) =>
   apiClient.get(`/api/v1/projects/${projectId}/roles/my`);
 
+export const getMeExpanded = () =>
+  apiClient.get(`/api/v1/users/me-expanded`);
+
+// PROFILE (обновление имени и фамилии)
+export const updateUserProfile = (username, updatedUser) => 
+  apiClient.put(`/api/v1/users/${username}`, updatedUser);
+
+// FILES
+
+export const uploadAttachment = (taskId, file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return apiClient.post(`/file-api/v1/attachments/${taskId}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+
+export const getAttachmentsByTask = (taskId) =>
+  apiClient.get(`/file-api/v1/attachments/task/${taskId}`);
+
+export const getAttachmentsByProject = (projectId) =>
+  apiClient.get(`/file-api/v1/attachments/project/${projectId}`);
+
+export const deleteAttachment = (id) =>
+  apiClient.delete(`/file-api/v1/attachments/${id}`);
+
+export const downloadAttachment = (id) =>
+  apiClient.get(`/file-api/v1/attachments/${id}/download`, {
+    responseType: 'blob',
+  });
+
+  // NOTIFICATIONS
+
+// Получить контакты пользователя (email, telegramId и т.д.)
+export const getContactsByUsername = (username) => {
+  return apiClient.get(`/notification/v1/contacts`, {
+    params: { username }
+  });
+};
+
+// Получить контакты + настройки уведомлений пользователя
+export const getMyNotificationPreferences = () => {
+  return apiClient.get(`/notification/v1/contacts/preferences/my`);
+};
+
+// Обновить настройки уведомлений пользователя
+export const updateNotificationPreferences = (notificationPreferencesDTO) => {
+  return apiClient.post(`/notification/v1/contacts/preferences`, notificationPreferencesDTO);
+};
+
+// Отправить запрос на верификацию почты
+export const verifyEmail = (emailToken) => {
+  return apiClient.get(`/notification/v1/contacts/verify-email`, {
+    params: { token: emailToken }
+  });
+};
+
+// Обновить email пользователя
+export const updateEmail = (newEmail) => {
+  return apiClient.get(`/notification/v1/contacts/email`, {
+    params: { 'new-email': newEmail }
+  });
+};
 
 
 

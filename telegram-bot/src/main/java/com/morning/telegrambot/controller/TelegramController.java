@@ -22,7 +22,7 @@ public class TelegramController {
         String chatId = payload.get("chatId");
         String message = payload.get("message");
 
-        bot.sendMessage(Long.valueOf(chatId), message); // обращается к Telegram API
+        bot.sendNotification(Long.valueOf(chatId), message); // обращается к Telegram API
         return ResponseEntity.ok().build();
     }
 }

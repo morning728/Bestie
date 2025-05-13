@@ -4,6 +4,7 @@ import { SketchPicker } from "react-color";
 import { useTranslation } from "react-i18next";
 import "./GeneralSettingsTab.css";
 import { useProjectsContext } from "../../../context/ProjectsContext";
+import { useProjectAccess } from "../../../context/ProjectAccessContext.js";
 
 const priorities = ["Low", "Medium", "High", "Critical"];
 const statuses = ["Planned", "In Progress", "Completed", "On Hold"];
@@ -11,6 +12,9 @@ const icons = ["📁", "🚀", "📊", "⚙️", "📝", "🎯", "🛠️"];
 
 const GeneralSettingsTab = ({ project }) => {
   const { t } = useTranslation();
+
+  const { me, hasPermission, loading } = useProjectAccess();
+  const can = hasPermission("CAN_EDIT_PROJECT");
 
   const [title, setTitle] = useState(project.title);
   const [description, setDescription] = useState(project.description);
@@ -45,6 +49,7 @@ const GeneralSettingsTab = ({ project }) => {
         margin="normal"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
+        disabled={!can}
       />
       <TextField
         label={t("description")}
@@ -54,6 +59,7 @@ const GeneralSettingsTab = ({ project }) => {
         margin="normal"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
+        disabled={!can}
       />
       <Box className="settings-row">
         <TextField
@@ -61,6 +67,7 @@ const GeneralSettingsTab = ({ project }) => {
           label={t("priority")}
           value={priority}
           onChange={(e) => setPriority(e.target.value)}
+          disabled={!can}
         >
           {priorities.map((p) => (
             <MenuItem key={p} value={p}>{p}</MenuItem>
@@ -71,6 +78,7 @@ const GeneralSettingsTab = ({ project }) => {
           label={t("status")}
           value={status}
           onChange={(e) => setStatus(e.target.value)}
+          disabled={!can}
         >
           {statuses.map((s) => (
             <MenuItem key={s} value={s}>{s}</MenuItem>
@@ -81,6 +89,7 @@ const GeneralSettingsTab = ({ project }) => {
           label={t("icon")}
           value={icon}
           onChange={(e) => setIcon(e.target.value)}
+          disabled={!can}
         >
           {icons.map((i) => (
             <MenuItem key={i} value={i}>{i}</MenuItem>
@@ -89,7 +98,7 @@ const GeneralSettingsTab = ({ project }) => {
       </Box>
       <Box className="color-picker-section">
         <Typography>{t("project_color")}</Typography>
-        <SketchPicker color={color} onChange={(c) => setColor(c.hex)} />
+        <SketchPicker disabled={!can} color={color} onChange={(c) => setColor(c.hex)} />
       </Box>
 
       <Button
@@ -97,6 +106,7 @@ const GeneralSettingsTab = ({ project }) => {
         color="primary"
         className="save-btn"
         onClick={handleSave}
+        disabled={!can}
       >
         {t("save_changes")}
       </Button>

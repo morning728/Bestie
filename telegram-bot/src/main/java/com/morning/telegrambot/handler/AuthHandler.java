@@ -18,7 +18,7 @@ public class AuthHandler {
     private final TelegramExceptionTranslator exceptionTranslator;
     private final TokenCacheService tokenCacheService;
 
-    public String handleLogin(Long chatId, String messageText) {
+    public String handleLogin(Long chatId, String telegramUsername, String messageText) {
         try {
             String state = userStateService.getUserState(chatId);
 
@@ -36,7 +36,7 @@ public class AuthHandler {
                 String username = state.split(":", 2)[1];
                 String password = messageText;
 
-                String token = authService.authenticateUser(chatId, username, password);
+                String token = authService.authenticateUser(chatId, telegramUsername, username, password);
                 userStateService.clearUserState(chatId);
 
                 return token != null ? "✅ Успешный вход!" : "❌ Ошибка входа!";

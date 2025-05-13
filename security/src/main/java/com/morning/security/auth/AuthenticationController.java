@@ -5,6 +5,7 @@ import com.morning.security.telegramDTO.TelegramAuthRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,12 +35,18 @@ public class AuthenticationController {
     return ResponseEntity.ok(Map.of("access_token", accessToken));
   }
 
+  @PostMapping("/logout")
+  public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+    authService.logout(request, response);
+    return ResponseEntity.ok().build();
+  }
+
   @PostMapping("/authenticate/telegram")
   public ResponseEntity<Map<String, String>> authenticateTelegram(
           @RequestBody TelegramAuthRequest authRequest,
           HttpServletResponse response) {
 
-    String accessToken = authService.authenticateTelegram(authRequest.getUsername(), authRequest.getPassword(), authRequest.getChatId(), response);
+    String accessToken = authService.authenticateTelegram(authRequest.getUsername(), authRequest.getPassword(), authRequest.getChatId(), authRequest.getTelegramId());
     return ResponseEntity.ok(Map.of("access_token", accessToken));
   }
 

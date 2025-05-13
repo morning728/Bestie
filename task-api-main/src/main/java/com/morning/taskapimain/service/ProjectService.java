@@ -1,9 +1,11 @@
 package com.morning.taskapimain.service;
 
 import com.morning.taskapimain.entity.dto.ProjectDTO;
+import com.morning.taskapimain.entity.dto.TaskDTO;
 import com.morning.taskapimain.entity.dto.UpdateProjectDTO;
 import com.morning.taskapimain.entity.dto.UserWithRoleDTO;
-import com.morning.taskapimain.entity.kafka.InviteEvent;
+import com.morning.taskapimain.entity.kafka.project.DeleteEvent;
+import com.morning.taskapimain.entity.kafka.project.InviteEvent;
 import com.morning.taskapimain.entity.project.*;
 import com.morning.taskapimain.entity.user.Contacts;
 import com.morning.taskapimain.entity.user.User;
@@ -11,14 +13,14 @@ import com.morning.taskapimain.exception.AccessException;
 import com.morning.taskapimain.exception.BadRequestException;
 import com.morning.taskapimain.exception.NotFoundException;
 import com.morning.taskapimain.repository.*;
+import com.morning.taskapimain.repository.task.TaskAssigneeRepository;
+import com.morning.taskapimain.repository.task.TaskRepository;
 import com.morning.taskapimain.service.kafka.KafkaNotificationService;
 import com.morning.taskapimain.service.security.JwtService;
-import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springdoc.webflux.api.MultipleOpenApiWebFluxResource;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.r2dbc.core.DatabaseClient;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -43,6 +45,9 @@ public class ProjectService {
     private final JwtService jwtService;
     private final ProjectJWTService projectJWTService;
     private final KafkaNotificationService kafkaNotificationService;
+    private final TaskRepository taskRepository;
+    private final TaskService taskService;
+    private final TaskAssigneeRepository taskAssigneeRepository;
     private final UserService userService;
 
     @Value("${application.invitation.url}")
@@ -279,11 +284,27 @@ public class ProjectService {
      * ✅ Удаление пользователя из проекта
      */
     public Mono<Void> removeUserFromProject(Long projectId, String username, String token) {
+
+
         return validateRequesterHasPermission(projectId, token, Permission.CAN_MANAGE_MEMBERS)
                 .then(userRepository.findByUsernameAndProjectId(username, projectId)
                         .switchIfEmpty(Mono.error(new NotFoundException("User not found")))
-                        .flatMap(user -> projectUserRepository.removeUserFromProject(projectId, user.getId())));
+                        .flatMap(user -> projectUserRepository.removeUserFromProject(projectId, user.getId()))
+                        .then(projectRepository.findProjectTitleById(projectId))
+                        .flatMap(projectTitle -> {
+                            String deletedByUsername = jwtService.extractUsername(token);
+                            DeleteEvent deleteEvent = DeleteEvent.builder()
+                                    .username(username)
+                                    .projectTitle(projectTitle)
+                                    .deletedBy(deletedByUsername)
+                                    .build()
+                                    .setDefaultAction();
+
+                            return kafkaNotificationService.sendDeleteFromProject(deleteEvent);
+                        })
+                );
     }
+
 
     /**
      * ✅ Смена роли пользователя в проекте
@@ -321,21 +342,21 @@ public class ProjectService {
 
     public Mono<ProjectRole> addRole(Long projectId, ProjectRole projectRole, String token) {
         projectRole.serializePermissions();
-        return validateRequesterHasPermission(projectId, token, Permission.CAN_MANAGE_ROLES)
+        return validateRequesterHasPermission(projectId, token, Permission.CAN_EDIT_PROJECT)
                 .then(projectRoleRepository.addRole(projectId, projectRole.getName(), projectRole.getPermissions()));
     }
 
 
     public Mono<ProjectRole> updateRole(Long projectId, ProjectRole projectRole, String token) {
         projectRole.serializePermissions();
-        return validateRequesterHasPermission(projectId, token, Permission.CAN_MANAGE_ROLES)
+        return validateRequesterHasPermission(projectId, token, Permission.CAN_EDIT_PROJECT)
                 .then(projectRoleRepository.updateRole(projectId, projectRole.getId(), projectRole.getName(), projectRole.getPermissions()));
     }
 
     public Mono<Void> deleteRole(Long projectId, Long projectRoleId, String token) {
         String requesterUsername = jwtService.extractUsername(token);
 
-        return validateRequesterHasPermission(projectId, token, Permission.CAN_MANAGE_ROLES)
+        return validateRequesterHasPermission(projectId, token, Permission.CAN_EDIT_PROJECT)
                 .then(userRepository.findByUsername(requesterUsername)
                         .switchIfEmpty(Mono.error(new NotFoundException("User not found"))))
                 .flatMap(user -> projectRoleRepository.countRolesByProjectId(projectId)
@@ -459,21 +480,16 @@ public class ProjectService {
     }
 
     public Mono<Void> inviteDirectly(String token, Long projectId, String username, Long roleId) {
-        Mono<Contacts> contactsMono = userService.findProfileByUsernameWithWebClient(username, token);
         Mono<User> invitedBy = userRepository.findByUsername(jwtService.extractUsername(token));
         Mono<Project> project = projectRepository.findById(projectId);
         Mono<String> invitationTokenMono = generateInviteToken(token, projectId, username, roleId);
-        return Mono.zip(contactsMono, invitedBy, project, invitationTokenMono)
+        return Mono.zip(invitedBy, project, invitationTokenMono)
                 .flatMap(tuple -> {
-                    Contacts contacts = tuple.getT1();
-                    String invitedByUsername = tuple.getT2().getUsername();
-                    String projectTitle = tuple.getT3().getTitle();
+                    String invitedByUsername = tuple.getT1().getUsername();
+                    String projectTitle = tuple.getT2().getTitle();
                     InviteEvent inviteEvent = InviteEvent.builder()
                             .username(username)
-                            .email(contacts.getEmail() != null ? contacts.getEmail() : "no_data")
-                            .telegramId(contacts.getTelegramId() != null ? contacts.getTelegramId() : "no_data")
-                            .chatId(contacts.getChatId() != null ? contacts.getChatId() : "no_data")
-                            .inviteLink(invitationUrl.concat(tuple.getT4()))
+                            .inviteLink(invitationUrl.concat(tuple.getT3()))
                             .projectTitle(projectTitle)
                             .invitedBy(invitedByUsername)
                             .build()

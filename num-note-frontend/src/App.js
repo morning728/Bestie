@@ -39,6 +39,7 @@ function App() {
     document.title = 'Bestie';
   }, []);
   return (
+    
     <ThemeContextProvider>
       <Router>
         <Routes>

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "authClient", url = "http://localhost:8765/security/v1/auth")
+@FeignClient(name = "authClient", url = "http://api-gateway:8765/security/v1/auth")
 public interface AuthClient {
 
     @PostMapping("/authenticate/telegram")

@@ -3,68 +3,88 @@ version: '3.9'
 services:
   postgres-db:
     image: postgres:16-alpine
-    container_name: postgres-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: root
-      POSTGRES_DB: default_db # просто любая БД, создастся при старте
+      POSTGRES_DB: default_db
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - ./data_main/postgres:/var/lib/postgresql/data
       - ./data_main/initdb:/docker-entrypoint-initdb.d
     networks:
       - app-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2182:2181"
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 512M
+
   kafka:
     image: confluentinc/cp-kafka:7.3.0
-    container_name: kafka
-    ports:
-      - "9092:9092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    depends_on:
-      - zookeeper
-    networks:
-      - app-network
-
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.3.0
-    container_name: zookeeper
     ports:
-      - "2181:2181"
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
+      - "9093:9092"
     networks:
       - app-network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1536M
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 256M
+
   minio:
     image: minio/minio
-    container_name: minio
+    command: server --console-address ":9001" /data
     ports:
-      - "9000:9000"     # Web UI and API
-      - "9001:9001"     # Console
+      - "9000:9000"
+      - "9001:9001"
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
     volumes:
       - ./data_main/minio:/data
-    command: server --console-address ":9001" /data
     networks:
       - app-network
-  redis:
-    image: redis:7-alpine
-    container_name: redis
-    ports:
-      - "6379:6379"
-    networks:
-      - app-network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 768M
+
   eureka-server:
-    build:
-      context: ./eureka-server
-    container_name: eureka-server
+    image: morning728/eureka-server:latest
     ports:
       - "8761:8761"
     networks:
@@ -73,30 +93,54 @@ services:
       - EUREKA_CLIENT_REGISTERWITH_EUREKA=false
       - EUREKA_CLIENT_FETCHREGISTRY=false
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 768M
+
   api-gateway:
-    build:
-      context: ./api-gateway
-    container_name: api-gateway
+    image: morning728/api-gateway:latest
     ports:
       - "8765:8765"
     networks:
       - app-network
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - EUREKA_INSTANCE_HOSTNAME=api-gateway
+      - EUREKA_INSTANCE_PREFER-IP-ADDRESS=false
       - SERVICES_PATH_SECURITY_VALIDATE_USER=http://security:9898/security/v1/validate/user
-      - SPRING_CLOUD_GATEWAY_GLOBALCORS_CORS-CONFIGURATIONS_[/**]_ALLOWEDORIGINS=http://frontend:3000
+      - SPRING_CLOUD_GATEWAY_GLOBALCORS_CORS-CONFIGURATIONS_[/**]_ALLOWEDORIGINS=http://frontend,http://93.157.245.105
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 768M
+
+  frontend:
+    image: morning728/frontend:latest
+    ports:
+      - "3000:80"
+    networks:
+      - app-network
+    environment:
+      - REACT_APP_API_URL=/api
+      - NODE_ENV=production
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
   notification:
-    build:
-      context: ./notification
-    container_name: notification
+    image: morning728/notification:latest
     ports:
       - "8086:8086"
     networks:
       - app-network
-    depends_on:
-      - kafka
-      - eureka-server
     environment:
+      - EUREKA_INSTANCE_HOSTNAME=notification
+      - EUREKA_INSTANCE_PREFER-IP-ADDRESS=false
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - SPRING_KAFKA_BOOTSTRAP-SERVERS=kafka:9092
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/notification_db
@@ -109,43 +153,47 @@ services:
       - APPLICATION_TELEGRAM-BOT_URL-TO-SEND=http://telegram-bot:8087/tg-bot/v1
       - SPRING_MAIL_USERNAME=matveygromykhalin@gmail.com
       - SPRING_MAIL_PASSWORD=kqxzsbrcphycvhuu
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 768M
+
   security:
-    build:
-      context: ./security
-    container_name: security
+    image: morning728/security:latest
     ports:
       - "9898:9898"
     networks:
       - app-network
-    depends_on:
-      - postgres-db
-      - kafka
-      - eureka-server
     environment:
+      - EUREKA_INSTANCE_HOSTNAME=security
+      - EUREKA_INSTANCE_PREFER-IP-ADDRESS=false
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/security_db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/security
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=root
-      - SPRING_LIQUIBASE_URL=jdbc:postgresql://postgres-db:5432/security_db
+      - SPRING_LIQUIBASE_URL=jdbc:postgresql://postgres-db:5432/security
       - SPRING_LIQUIBASE_USER=postgres
       - SPRING_LIQUIBASE_PASSWORD=root
       - SPRING_KAFKA_BOOTSTRAP-SERVERS=kafka:9092
       - APPLICATION_TASK-API_URL=http://api-gateway:8765/api/v1
       - SPRING_MAIL_USERNAME=matveygrom2017@yandex.ru
       - SPRING_MAIL_PASSWORD=psajdfm43
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 768M
+
   task-api-main:
-    build:
-      context: ./task-api-main
-    container_name: task-api-main
+    image: morning728/task-api-main:latest
     ports:
       - "8085:8085"
     networks:
       - app-network
-    depends_on:
-      - postgres-db
-      - kafka
-      - eureka-server
     environment:
+      - EUREKA_INSTANCE_HOSTNAME=task-api-main
+      - EUREKA_INSTANCE_PREFER-IP-ADDRESS=false
       - SPRING_R2DBC_URL=r2dbc:pool:postgres://postgres-db:5432/task_api_db
       - SPRING_R2DBC_USERNAME=postgres
       - SPRING_R2DBC_PASSWORD=root
@@ -156,23 +204,24 @@ services:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka
       - APPLICATION_BASEURLPATH=http://api-gateway:8765
       - APPLICATION_INVITATION_URL=http://frontend:3000/accept-invite?token=
-      - APPLICATION_SECURITY_DB=jdbc:postgresql://postgres-db:5432/security_db
+      - APPLICATION_SECURITY_DB=jdbc:postgresql://postgres-db:5432/security
       - APPLICATION_SECURITY_DB-USERNAME=postgres
       - APPLICATION_SECURITY_DB-PASSWORD=root
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 768M
+
   task-attachment:
-    build:
-      context: ./task-attachment
-    container_name: task-attachment
+    image: morning728/task-attachment:latest
     ports:
       - "8089:8089"
     networks:
       - app-network
-    depends_on:
-      - postgres-db
-      - kafka
-      - eureka-server
-      - minio
     environment:
+      - EUREKA_INSTANCE_HOSTNAME=task-attachment
+      - EUREKA_INSTANCE_PREFER-IP-ADDRESS=false
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/task_attachment_db
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=root
@@ -184,49 +233,45 @@ services:
       - MINIO_ACCESS-KEY=minioadmin
       - MINIO_SECRET-KEY=minioadmin
       - MINIO_BUCKET=attachments
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 768M
 
   telegram-bot:
-    build:
-      context: ./telegram-bot
-    container_name: telegram-bot
+    image: morning728/telegram-bot:latest
     ports:
       - "8087:8087"
     networks:
       - app-network
-    depends_on:
-      - redis
-      - api-gateway
     environment:
       - SPRING_DATA_REDIS_HOST=redis
       - SPRING_DATA_REDIS_PORT=6379
       - TASK-TRACKER_URL=http://api-gateway:8765/api/v1
       - TELEGRAM_BOT_USERNAME=BestieTrackerBot
       - TELEGRAM_BOT_TOKEN=8106292008:AAHO-664cHvmV2hprAHSVxu85ULQthH7HGw
-  frontend:
-    build:
-      context: ./num-note-frontend
-    container_name: frontend
-    ports:
-      - "3000:3000"
-    networks:
-      - app-network
-    environment:
-      - REACT_APP_API_URL=/api
-      - NODE_ENV=production
+    deploy:
+      resources:
+        limits:
+          cpus: '0.4'
+          memory: 512M
+
   nginx:
     image: nginx:alpine
-    container_name: nginx
     ports:
       - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     networks:
       - app-network
-
-
-
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 256M
 
 networks:
   app-network:
-    driver: bridge
-
+    driver: overlay
+    attachable: true

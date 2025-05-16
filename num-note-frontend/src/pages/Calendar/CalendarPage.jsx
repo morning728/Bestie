@@ -35,6 +35,8 @@ const CalendarPage = () => {
     const [hoverDateKey, setHoverDateKey] = useState(null);
     const [hoverPosition, setHoverPosition] = useState({ top: 0, left: 0 });
     const [anchorEl, setAnchorEl] = useState(null);
+    const [isPopoverHovered, setIsPopoverHovered] = useState(false);
+
 
     const [closeTimeout, setCloseTimeout] = useState(null);
     const [calendarTasks, setCalendarTasks] = useState({});
@@ -123,10 +125,14 @@ const CalendarPage = () => {
 
     const handlePopoverDelayedClose = () => {
         const timeout = setTimeout(() => {
-            handlePopoverClose();
-        }, 350); // увеличена задержка
+            // Закрываем только если пользователь не навёлся на сам поповер
+            //if (isPopoverHovered) {
+                handlePopoverClose();
+            //}
+        }, 20);
         setCloseTimeout(timeout);
     };
+
 
     const isToday = (date) => date.isSame(today, "day");
     const tasksForDay = (date) => {
@@ -137,7 +143,7 @@ const CalendarPage = () => {
     return (
         <Box
             className={`main-content ${theme.palette.mode === "dark" ? "night" : "day"}`}
-            sx={{ px: 4, py: 3 }}
+            sx={{ px: 4, py: 3, }}
         >
             <Header />
             <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
@@ -247,11 +253,24 @@ const CalendarPage = () => {
                 disableEnforceFocus
                 disableAutoFocus
                 disableRestoreFocus
+                disableScrollLock
+                transitionDuration={0} // 👈 Убирает анимацию
                 PaperProps={{
-                    onMouseEnter: () => clearTimeout(closeTimeout),
-                    onMouseLeave: handlePopoverDelayedClose,
-                    sx: { p: 2, borderRadius: 2, backgroundColor: "#fff" }
+                    onMouseEnter: () => {
+                        clearTimeout(closeTimeout);
+                        setIsPopoverHovered(true);
+                    },
+                    onMouseLeave: () => {
+                        setIsPopoverHovered(false);
+                        handlePopoverDelayedClose();
+                    },
+                    sx: {
+                        p: 2,
+                        borderRadius: 2,
+                        backgroundColor: "#fff"
+                    }
                 }}
+
             >
                 {hoverDateKey && (
                     <Box>
@@ -271,6 +290,7 @@ const CalendarPage = () => {
                                         "&:hover": {
                                             opacity: 0.9,
                                         },
+
                                     }}
                                 />
                             ))}

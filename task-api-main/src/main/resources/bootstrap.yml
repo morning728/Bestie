@@ -1,8 +1,0 @@
-spring:
-  application:
-    name: TASK-API-MAIN
-  profiles:
-    active: dev # Активный профиль
-  cloud:
-    config:
-      uri: http://localhost:8888 # URL Config Server

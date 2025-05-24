@@ -1,15 +1,34 @@
 .header {
-  transition: background-color 0.3s ease;
+  background-color: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.header.day {
-  background-color: #9932CC;
-}
-
+.header.day,
 .header.night {
-  background-color: #2b2b60;
+  background-color: rgba(255, 255, 255, 0.05);
+  color: inherit;
 }
 
 .lang-change {
   margin: 0 1em;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  color: inherit;
 }
+
+/* Input fields */
+.MuiTextField-root {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #fff;
+}
+
+.MuiTextField-root input,
+.MuiTextField-root label {
+  color: inherit;
+}
+
+

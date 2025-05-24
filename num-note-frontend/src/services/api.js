@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Создаем инстанс axios
 const apiClient = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://93.157.245.105:8765',
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8765',
   headers: {
     'Content-Type': 'application/json',
   },

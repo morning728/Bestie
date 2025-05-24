@@ -251,16 +251,22 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
       onClose={handleClose}
       maxWidth="xl"
       fullWidth
-      className="add-task-dialog"
+      className={`add-task-dialog ${darkMode ? "night" : "day"}`}
     >
 
-      <DialogTitle sx={{ backgroundColor: darkMode ? "#2b2b60" : "white", color: darkMode ? "white" : "black" }}>
+      <DialogTitle sx={{
+        backgroundColor: darkMode ? "#2b2b60" : "#b28cd9",
+        color: darkMode ? "#00f6ff" : "#fff",
+        textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8"
+
+      }}>
         {isEditing ? t("edit_task") : t("add_new_task")}
       </DialogTitle>
       <DialogContent
         sx={{
-          backgroundColor: darkMode ? "#2b2b60" : "white",
-          color: darkMode ? "white" : "black",
+          backgroundColor: darkMode ? "#2b2b60" : "#b28cd9",
+          color: darkMode ? "#00f6ff" : "#fff",
+          textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8",
           display: "flex",
           flexDirection: "row",
           gap: 4,
@@ -388,22 +394,6 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
             <MenuItem value="High">High</MenuItem>
           </TextField>
 
-          {/* <TextField
-        disabled = {!canManageStatuses}
-          select
-          name="statusId"
-          label={t("status")}
-          fullWidth
-          margin="normal"
-          value={newTask.statusId}
-          onChange={handleChange}
-        >
-          {statuses.map((status) => (
-            <MenuItem key={status.id} value={status.id}>
-              {status.name}
-            </MenuItem>
-          ))}
-        </TextField> */}
 
 
           <Autocomplete
@@ -433,28 +423,29 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
           </Box>
 
           {newTask.reminder && (
-            <Box className="date-time-container" mt={2}>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <DatePicker
-                  disabled={!canManageReminders}
-                  label={t("reminder_date")}
-                  value={newTask.reminderDate}
-                  onChange={(date) => handleDateChange("reminderDate", date)}
-                  renderInput={(params) => <TextField {...params} fullWidth />}
-                />
-              </LocalizationProvider>
+            <Box mt={2}>
+              <Box className="date-time-container">
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                  <DatePicker
+                    disabled={!canManageReminders}
+                    label={t("reminder_date")}
+                    value={newTask.reminderDate}
+                    onChange={(date) => handleDateChange("reminderDate", date)}
+                    renderInput={(params) => <TextField {...params} fullWidth />}
+                  />
+                </LocalizationProvider>
 
-              <TextField
-                disabled={!canManageReminders}
-                name="reminderTime"
-                label={t("reminder_time")}
-                type="time"
-                fullWidth
-                value={newTask.reminderTime}
-                onChange={handleChange}
-                InputLabelProps={{ shrink: true }}
-                sx={{ mt: 2 }}
-              />
+                <TextField
+                  disabled={!canManageReminders}
+                  name="reminderTime"
+                  label={t("reminder_time")}
+                  type="time"
+                  fullWidth
+                  value={newTask.reminderTime}
+                  onChange={handleChange}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Box>
 
               {/* Новое поле: reminderText */}
               <TextField
@@ -471,6 +462,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
             </Box>
           )}
 
+
         </Box>
         {/* Правая часть — drag & drop + список файлов */}
         <Box sx={{ width: 320, display: 'flex', flexDirection: 'column', maxHeight: 800, gap: 2, mt: 1 }}>
@@ -478,32 +470,45 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
           <Box
             {...getRootProps()}
             sx={{
-              border: "2px dashed #ccc",
+              border: darkMode ? "2px dashed rgba(0, 246, 255, 0.8)" : "2px dashed rgba(255, 105, 180, 0.8)",
               borderRadius: 2,
               height: 150,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: isDragActive ? "#f0f0f0" : darkMode ? "#333" : "#fafafa",
+              backgroundColor: isDragActive
+                ? darkMode
+                  ? "rgba(0, 246, 255, 0.1)"
+                  : "rgba(255, 105, 180, 0.1)"
+                : darkMode
+                  ? "rgba(0, 0, 0, 0.3)"
+                  : "rgba(255, 255, 255, 0.3)",
               cursor: "pointer",
               transition: "0.3s ease",
               flexShrink: 0,
+              color: darkMode ? "#00f6ff" : "#ff69b4",
+              textShadow: darkMode
+                ? "0 0 6px rgba(0, 246, 255, 0.7)"
+                : "0 0 6px rgba(255, 105, 180, 0.7)",
             }}
           >
             <input {...getInputProps()} />
-            <CloudUploadIcon sx={{ fontSize: 48, color: "#aaa" }} />
+            <CloudUploadIcon sx={{ fontSize: 48, color: darkMode ? "#00f6ff" : "#ff69b4" }} />
             <Typography mt={1} textAlign="center" fontSize={14}>
               {isDragActive ? t("drop_files_here") : t("drag_and_drop_or_click")}
             </Typography>
           </Box>
+
 
           {/* Список файлов */}
           <Box
             sx={{
               flex: 1,
               overflowY: "auto",
-              backgroundColor: darkMode ? "#2b2b60" : "#f9f9f9",
+              backgroundColor: darkMode ? "#2b2b60" : "#b28cd9",
+              color: darkMode ? "#00f6ff" : "#fff",
+              textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8",
               borderRadius: 2,
               p: 2,
               minHeight: 0,
@@ -526,7 +531,9 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
                     alignItems="center"
                     mb={1}
                     sx={{
-                      backgroundColor: darkMode ? "#3a3a70" : "#fff",
+                      backgroundColor: darkMode ? "#2b2b60" : "#b28cd9",
+                      color: darkMode ? "#00f6ff" : "#fff",
+                      textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8",
                       p: 1,
                       borderRadius: 1,
                       boxShadow: 1,
@@ -558,7 +565,9 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
                     alignItems="center"
                     mb={1}
                     sx={{
-                      backgroundColor: darkMode ? "#3a3a70" : "#fff",
+                      backgroundColor: darkMode ? "#2b2b60" : "#b28cd9",
+                      color: darkMode ? "#00f6ff" : "#fff",
+                      textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8",
                       p: 1,
                       borderRadius: 1,
                       boxShadow: 1,
@@ -592,7 +601,11 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
 
 
 
-      <DialogActions sx={{ backgroundColor: darkMode ? "#2b2b60" : "white", color: darkMode ? "white" : "black" }}>
+      <DialogActions sx={{
+        backgroundColor: darkMode ? "#2b2b60" : "#b28cd9",
+        color: darkMode ? "#00f6ff" : "#fff",
+        textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8"
+      }}>
         <Button onClick={handleClose}>{t("cancel")}</Button>
         <Button onClick={handleSave} color="primary" variant="contained" disabled={!canEditTasks}>
           {t("save")}

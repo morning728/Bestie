@@ -1,4 +1,3 @@
-/*
 package com.morning.taskapimain.Init;
 
 import org.springframework.boot.test.util.TestPropertyValues;
@@ -39,4 +38,3 @@ public class PostgresDatabaseContainerInitializer implements ApplicationContextI
     }
 }
 
-*/

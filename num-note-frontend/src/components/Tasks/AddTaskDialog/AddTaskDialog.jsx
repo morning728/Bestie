@@ -252,10 +252,26 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
       maxWidth="xl"
       fullWidth
       className={`add-task-dialog ${darkMode ? "night" : "day"}`}
+      PaperProps={{
+      sx: {
+        background: darkMode
+          ? "linear-gradient(300deg, #1c1c3c, #2b2b60)"
+          : "linear-gradient(to top left, #d16ba5, #c777b9, #ba83ca, #aa8fd8, #9a9ae1, #8aa7ec, #79b3f4, #69bff8);",
+        color: darkMode ? "#00f6ff" : "#d81b60",
+        boxShadow: darkMode
+          ? "0 0 6px #00f6ff, 0 0 24px #00f6ff"
+          : "0 0 6px #ff90e8, 0 0 24px #ff90e8",
+        borderRadius: 3,
+
+        px: 2,
+        py: 1,
+        opacity: darkMode ? "0.93" : "0.8"
+      },
+    }}
     >
 
       <DialogTitle sx={{
-        backgroundColor: darkMode ? "#2b2b60" : "#b28cd9",
+        
         color: darkMode ? "#00f6ff" : "#fff",
         textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8"
 
@@ -264,9 +280,9 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
       </DialogTitle>
       <DialogContent
         sx={{
-          backgroundColor: darkMode ? "#2b2b60" : "#b28cd9",
+          
           color: darkMode ? "#00f6ff" : "#fff",
-          textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8",
+
           display: "flex",
           flexDirection: "row",
           gap: 4,
@@ -416,8 +432,11 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
           {/* Reminder */}
           <Box mt={2}>
             <FormControlLabel
+              sx={{
+                textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8"
+              }}
               disabled={!canManageReminders}
-              control={<Switch checked={newTask.reminder} onChange={handleReminderToggle} />}
+              control={<Switch  checked={newTask.reminder} onChange={handleReminderToggle} />}
               label={t("enable_reminder")}
             />
           </Box>
@@ -506,7 +525,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
             sx={{
               flex: 1,
               overflowY: "auto",
-              backgroundColor: darkMode ? "#2b2b60" : "#b28cd9",
+              
               color: darkMode ? "#00f6ff" : "#fff",
               textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8",
               borderRadius: 2,
@@ -531,7 +550,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
                     alignItems="center"
                     mb={1}
                     sx={{
-                      backgroundColor: darkMode ? "#2b2b60" : "#b28cd9",
+                      
                       color: darkMode ? "#00f6ff" : "#fff",
                       textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8",
                       p: 1,
@@ -565,7 +584,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
                     alignItems="center"
                     mb={1}
                     sx={{
-                      backgroundColor: darkMode ? "#2b2b60" : "#b28cd9",
+                      
                       color: darkMode ? "#00f6ff" : "#fff",
                       textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8",
                       p: 1,
@@ -602,7 +621,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
 
 
       <DialogActions sx={{
-        backgroundColor: darkMode ? "#2b2b60" : "#b28cd9",
+        
         color: darkMode ? "#00f6ff" : "#fff",
         textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8"
       }}>

@@ -134,7 +134,7 @@ const ProjectReportsPage = () => {
         <Box className={`main-content ${darkMode ? "night" : "day"}`}>
             <Header />
             <Box sx={{ maxWidth: "900px", mx: "auto", mt: 4, px: 2 }}>
-                <Typography variant="h4" gutterBottom>
+                <Typography variant="h4" gutterBottom className={`main-title ${darkMode ? "night" : "day"}`}>
                     📁 Отчеты по проектам
                 </Typography>
 
@@ -149,13 +149,13 @@ const ProjectReportsPage = () => {
                                 borderColor: darkMode ? "#3f3f51" : "#ccc",
                                 borderRadius: 2,
                                 mb: 2,
-                                backgroundColor: darkMode ? "#1e1e2f" : "#f8f8fa",
+                                backgroundColor: darkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.2)",
                             }}
                         >
                             <ListItem button onClick={() => toggleProject(project.id)}>
                                 <ListItemText
                                     primary={
-                                        <Typography fontWeight="bold" sx={{ color: darkMode ? "#BB86FC" : "primary.main" }}>
+                                        <Typography fontWeight="bold" sx={{ color: darkMode ? " #00f6ff" : "rgb(251, 41, 146)", }}>
                                             {project.icon || "📌"} {project.title}
                                         </Typography>
                                     }
@@ -165,7 +165,7 @@ const ProjectReportsPage = () => {
                             </ListItem>
 
                             <Collapse in={openProjectIds.includes(project.id)} timeout="auto" unmountOnExit >
-                                <Box sx={{ p: 2, backgroundColor: darkMode ? "#1e1e2f" : "#f8f8fa", }}>
+                                <Box sx={{ p: 2, backgroundColor: darkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.2)", }}>
                                     <Button
                                         variant="contained"
                                         startIcon={<AddIcon />}
@@ -227,54 +227,127 @@ const ProjectReportsPage = () => {
                 </List>
 
                 {/* Подтверждение создания */}
-                <Dialog PaperProps={{
-                    sx: {
-                        backgroundColor: darkMode ? "#2a2a3c" : "#fff",
-                        color: darkMode ? "#f5f5f5" : "inherit"
-                    }
-                }} open={openConfirmCreateDialog} onClose={() => setOpenConfirmCreateDialog(false)}>
-                    <DialogTitle>Создание отчета</DialogTitle>
+                <Dialog
+                    PaperProps={{
+                        sx: {
+                            background: darkMode
+                                ? "linear-gradient(300deg, #1c1c3c, #2b2b60)"
+                                : "linear-gradient(to top left, #d16ba5, #c777b9, #ba83ca, #aa8fd8, #9a9ae1, #8aa7ec, #79b3f4, #69bff8);",
+                            color: darkMode ? "#00f6ff" : "#d81b60",
+                            boxShadow: darkMode
+                                ? "0 0 6px #00f6ff, 0 0 24px #00f6ff"
+                                : "0 0 6px #ff90e8, 0 0 24px #ff90e8",
+                            borderRadius: 3,
+
+                            px: 2,
+                            py: 1,
+                            opacity: darkMode ? "0.9" : "0.8"
+                        },
+                    }}
+                    open={openConfirmCreateDialog}
+                    onClose={() => setOpenConfirmCreateDialog(false)}
+                >
+                    <DialogTitle sx={{ fontWeight: "bold", textShadow: darkMode ? "0 0 8px #00f6ff" : "0 0 8px #ff69b4" }}>
+                        Создание отчета
+                    </DialogTitle>
                     <DialogContent>
                         <Typography>
                             Вы уверены, что хотите создать аналитический PDF-отчет по выбранному проекту?
                         </Typography>
                     </DialogContent>
                     <DialogActions>
-                        <Button onClick={() => setOpenConfirmCreateDialog(false)}>Отмена</Button>
-                        <Button onClick={handleCreateReport} variant="contained" color="primary">
+                        <Button sx={{
+
+                            color: darkMode ? "#ff4d4d" : "#f44336",
+
+                        }} onClick={() => setOpenConfirmCreateDialog(false)}>Отмена</Button>
+                        <Button
+                            onClick={handleCreateReport}
+                            variant="contained"
+                            sx={{
+                                backgroundColor: darkMode ? "#00f6ff" : "#ff69b4",
+                                color: "#000",
+                                "&:hover": {
+                                    backgroundColor: darkMode ? "#00e6e6" : "#ff90e8",
+                                },
+                            }}
+                        >
                             Подтвердить
                         </Button>
                     </DialogActions>
                 </Dialog>
 
                 {/* Подтверждение удаления */}
-                <Dialog PaperProps={{
-                    sx: {
-                        backgroundColor: darkMode ? "#2a2a3c" : "#fff",
-                        color: darkMode ? "#f5f5f5" : "inherit"
-                    }
-                }} open={openConfirmDeleteDialog} onClose={() => setOpenConfirmDeleteDialog(false)}>
-                    <DialogTitle>Удаление отчета</DialogTitle>
+                <Dialog
+                    PaperProps={{
+                        sx: {
+                            background: darkMode
+                                ? "linear-gradient(300deg, #1c1c3c, #2b2b60)"
+                                : "linear-gradient(to top left, #d16ba5, #c777b9, #ba83ca, #aa8fd8, #9a9ae1, #8aa7ec, #79b3f4, #69bff8);",
+                            color: darkMode ? "#00f6ff" : "#d81b60",
+                            boxShadow: darkMode
+                                ? "0 0 6px #00f6ff, 0 0 24px #00f6ff"
+                                : "0 0 6px #ff90e8, 0 0 24px #ff90e8",
+                            borderRadius: 3,
+
+                            px: 2,
+                            py: 1,
+                            opacity: darkMode ? "0.9" : "0.8"
+                        },
+                    }}
+                    open={openConfirmDeleteDialog}
+                    onClose={() => setOpenConfirmDeleteDialog(false)}
+                >
+                    <DialogTitle sx={{ fontWeight: "bold", textShadow: darkMode ? "0 0 8px #ff4d4d" : "0 0 8px #f06292" }}>
+                        Удаление отчета
+                    </DialogTitle>
                     <DialogContent>
                         <Typography>
                             Вы уверены, что хотите удалить аналитический PDF-отчет по выбранному проекту?
                         </Typography>
                     </DialogContent>
                     <DialogActions>
-                        <Button onClick={() => setOpenConfirmDeleteDialog(false)}>Отмена</Button>
-                        <Button onClick={handleDeleteReport} variant="contained" color="warning">
+                        <Button sx={{
+
+                            color: darkMode ? "#ff4d4d" : "#f44336",
+
+                        }} onClick={() => setOpenConfirmDeleteDialog(false)} >Отмена</Button>
+                        <Button
+                            onClick={handleDeleteReport}
+                            variant="contained"
+                            sx={{
+                                backgroundColor: darkMode ? "#ff4d4d" : "#f44336",
+                                color: "#000",
+                                "&:hover": {
+                                    backgroundColor: darkMode ? "#ff6666" : "#e57373",
+                                },
+                            }}
+                        >
                             Подтвердить
                         </Button>
                     </DialogActions>
                 </Dialog>
-
-                {/* Snackbar уведомления */}
                 <Snackbar
                     open={snackbarOpen}
                     autoHideDuration={5000}
                     onClose={() => setSnackbarOpen(false)}
                     message={snackbarMessage}
+                    sx={{opacity: darkMode ? "0.9" : "0.9"}}
+                    ContentProps={{
+                        sx: {
+                            backgroundColor: darkMode ? "#2b2b60" : "#fce4ec",
+                            color: darkMode ? "#00f6ff" : "#d81b60",
+                            border: `1px solid ${darkMode ? "#00f6ff" : "#ff69b4"}`,
+                            boxShadow: darkMode
+                                ? "0 0 8px #00f6ff"
+                                : "0 0 8px #ff69b4",
+                            fontWeight: 500,
+                            textAlign: "center",
+                    
+                        },
+                    }}
                 />
+
             </Box>
         </Box>
     );

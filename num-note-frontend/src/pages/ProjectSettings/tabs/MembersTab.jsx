@@ -1,5 +1,6 @@
 // components/MemberTab.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
+import { ThemeContext } from "../../../ThemeContext";
 import {
   Box,
   Typography,
@@ -35,6 +36,8 @@ const MembersTab = ({ projectId }) => {
     createUniversalLink,
     copyToClipboard,
   } = useMembers(projectId);
+  const { darkMode } = useContext(ThemeContext);
+
 
   const { me, hasPermission, loading } = useProjectAccess();
   const canManageMembers = hasPermission("CAN_MANAGE_MEMBERS");
@@ -68,8 +71,11 @@ const MembersTab = ({ projectId }) => {
   if (loading) return <Typography>Загрузка данных доступа...</Typography>;
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h6" gutterBottom>
+    <Box sx={{ p: 3,
+          color: darkMode ? "#00f6ff" : "#fff",
+
+        }}>
+      <Typography variant="h6" gutterBottom sx={{textShadow: darkMode ? "0 0 6px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px rgb(199, 50, 182), 0 0 24pxrgb(199, 48, 136)",}}>
         Пригласить участника
       </Typography>
 
@@ -107,7 +113,7 @@ const MembersTab = ({ projectId }) => {
         </Button>
       </Box>
 
-      <Typography variant="h6" gutterBottom>
+      <Typography variant="h6" gutterBottom sx={{textShadow: darkMode ? "0 0 6px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px rgb(199, 50, 182), 0 0 24pxrgb(199, 48, 136)",}}>
         Универсальная ссылка
       </Typography>
 
@@ -146,7 +152,7 @@ const MembersTab = ({ projectId }) => {
         </Box>
       )}
 
-      <Typography variant="h6" gutterBottom>
+      <Typography variant="h6" gutterBottom sx={{textShadow: darkMode ? "0 0 6px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px rgb(199, 50, 182), 0 0 24pxrgb(199, 48, 136)",}}>
         Участники проекта
       </Typography>
 
@@ -176,7 +182,7 @@ const MembersTab = ({ projectId }) => {
                     : {}
                 }
               >
-                <TableCell sx={{ width: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <TableCell sx={{ width: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', }}>
                   {member.username}
                 </TableCell>
                 <TableCell sx={{ width: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

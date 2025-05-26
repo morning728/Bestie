@@ -19,7 +19,7 @@ const TaskCard = ({ task, tags: allTags, statuses, onClick }) => {
       onClick={onClick}
       sx={{
         borderLeft: `5px solid ${taskTags[0]?.color || "#c0c0c0"}`,
-        backgroundColor: "rgba(255, 255, 255, 0.1)",
+        backgroundColor: darkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.2)",
         boxShadow: darkMode
           ? "0 0 8px rgba(0, 246, 255, 0.3)"
           : "0 0 8px rgba(255, 105, 180, 0.3), 0 0 8px rgba(121, 179, 244, 0.4)",

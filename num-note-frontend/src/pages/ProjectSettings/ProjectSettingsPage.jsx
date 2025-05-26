@@ -21,6 +21,8 @@ const ProjectSettingsPage = () => {
   const { projectId } = useParams();
   const [tabIndex, setTabIndex] = useState(0);
   const [project, setProject] = useState(null);
+  const tabCount = 6; // или сколько у тебя вкладок
+  const gradientPosition = `${100 - (tabIndex / (tabCount - 1)) * 100}%`;
 
   useEffect(() => {
     getFullProjectInfoById(projectId).then((res) => setProject(res.data));
@@ -31,14 +33,49 @@ const ProjectSettingsPage = () => {
   if (!project) return <Typography>{t("loading")}</Typography>;
 
   return (
-    <Box className={`settings-page ${darkMode ? "night" : "day"}`}>
+    <Box className={`main-content ${darkMode ? "night" : "day"}`}>
       <Header />
       <Box className="settings-container">
         <Tabs
           value={tabIndex}
           onChange={handleTabChange}
-          variant="scrollable"
-          className="settings-tabs"
+          variant="fullWidth" // <— ключевой параметр
+          sx={{
+            position: "relative",
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: "3px",
+              backgroundImage: darkMode
+                ? "radial-gradient(circle at center,rgb(83, 233, 239) 0%, transparent 60%)"
+                : "radial-gradient(circle at center,rgb(251, 41, 146) 0%, transparent 60%)",
+              backgroundRepeat: "no-repeat",
+              backgroundSize: "200% 100%",
+              backgroundPosition: `${gradientPosition} 100%`,
+              transition: "background-position 0.4s ease-in-out",
+            },
+            ".MuiTabs-indicator": {
+              display: "none",
+            },
+            ".MuiTab-root": {
+              color: darkMode ? "#aaa" : "rgb(251, 41, 146)",
+              fontWeight: 500,
+              textTransform: "none",
+              mx: 1,
+              px: 2,
+              transition: "color 0.3s",
+            },
+            ".Mui-selected": {
+              color: darkMode ? "#00f6ff !important" : "#d81b60 !important", // Явно!
+              textShadow: darkMode
+                ? "0 0 8px #00f6ff"
+                : "0 0 8px rgb(177, 7, 143)",
+            },
+
+          }}
         >
           <Tab label={t("general")} />
           <Tab label={t("members")} />

@@ -40,13 +40,7 @@
   letter-spacing: 1px;
 }
 
-.footer {
-  background-color: #260033;
-  color: white;
-  padding: 1rem;
-  text-align: center;
-  box-shadow: 0 0 10px #ff00ff;
-}
+
 
 @media (max-width: 768px) {
   .main-content {

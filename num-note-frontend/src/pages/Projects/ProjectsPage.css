@@ -90,3 +90,50 @@
     padding: 1rem;
   }
 }
+
+.main-content.day {
+  background: linear-gradient(to bottom right, #d16ba5, #c777b9, #ba83ca, #aa8fd8, #9a9ae1, #8aa7ec, #79b3f4, #69bff8);
+  color: #2c2c54;
+}
+
+.main-content.night {
+  background: linear-gradient(to bottom right, #0a0a2a 0%, #0a0a2a 50%, #1a2a5c 100%);
+  color: #f8f8ff;
+}
+
+.main-title.day {
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 700;
+  text-shadow: 0 0 12px #ff90e8, 0 0 24px #ff90e8;
+  letter-spacing: 1px;
+}
+
+.main-title.night {
+  color: #00f6ff;
+  font-size: 2rem;
+  font-weight: 700;
+  text-shadow: 0 0 12px #00f6ff, 0 0 24px #00f6ff;
+  letter-spacing: 1px;
+}
+
+
+
+@media (max-width: 768px) {
+  .main-content {
+    padding: 1rem;
+  }
+}
+
+/* Светлая тема */
+.day button.MuiButton-root {
+  background: linear-gradient(to right, #ff69b4, #ffc0cb);
+  color: #2c2c54;
+  box-shadow: 0 0 10px rgba(255, 105, 180, 0.6);
+}
+
+.day button.MuiButton-root:hover {
+  background: linear-gradient(to right, #ff85c1, #ffe4ec);
+  box-shadow: 0 0 15px rgba(255, 105, 180, 1);
+  transform: scale(1.05);
+}

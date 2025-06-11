@@ -28,4 +28,15 @@
   .existing-roles-title {
     margin-top: 20px;
   }
-  
+  /* Светлая тема */
+.day button.MuiButton-root {
+  background: linear-gradient(to right, #ff69b4, #ffc0cb);
+  color: #2c2c54;
+  box-shadow: 0 0 10px rgba(255, 105, 180, 0.6);
+}
+
+.day button.MuiButton-root:hover {
+  background: linear-gradient(to right, #ff85c1, #ffe4ec);
+  box-shadow: 0 0 15px rgba(255, 105, 180, 1);
+  transform: scale(1.05);
+}

@@ -23,16 +23,35 @@ const ProjectDetailsDialog = ({ open, project, handleClose, onEdit, onDelete, on
   if (!project) return null;
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+    <Dialog PaperProps={{
+      sx: {
+        background: darkMode
+          ? "linear-gradient(300deg, #1c1c3c, #2b2b60)"
+          : "linear-gradient(to top left, #d16ba5, #c777b9, #ba83ca, #aa8fd8, #9a9ae1, #8aa7ec, #79b3f4, #69bff8);",
+        color: darkMode ? "#00f6ff" : "#d81b60",
+        boxShadow: darkMode
+          ? "0 0 6px #00f6ff, 0 0 24px #00f6ff"
+          : "0 0 6px #ff90e8, 0 0 24px #ff90e8",
+        borderRadius: 3,
+
+        px: 2,
+        py: 1,
+        opacity: darkMode ? "0.93" : "0.8"
+      },
+    }} open={open} onClose={handleClose} fullWidth maxWidth="sm" className={` ${darkMode ? "night" : "day"}`}>
       <DialogTitle
         sx={{
-          backgroundColor: darkMode ? "#2b2b60" : "white",
-          color: darkMode ? "white" : "black",
+          
+          color: darkMode ? "#00f6ff" : "#fff",
+          textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12pxrgb(220, 75, 191), 0 0 24px #ff90e8",
+
         }}>{project.icon} {project.title}</DialogTitle>
-      <DialogContent className="project-details-dialog"
+      <DialogContent className={`project-details-dialog ${darkMode ? "night" : "day"}`}
         sx={{
-          backgroundColor: darkMode ? "#2b2b60" : "white",
-          color: darkMode ? "white" : "black",
+          
+          color: darkMode ? "#00f6ff" : "#fff",
+          textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12pxrgb(220, 75, 191), 0 0 24px #ff90e8",
+
         }}>
         <Typography variant="subtitle1" gutterBottom>{t("description")}:</Typography>
         <Typography variant="body2" paragraph>{project.description}</Typography>
@@ -45,10 +64,19 @@ const ProjectDetailsDialog = ({ open, project, handleClose, onEdit, onDelete, on
 
         <Box mt={2}>
           <Typography variant="subtitle1">{t("members")}:</Typography>
-          <Box className="members-box">
+          <Box className="members-box" sx={{
+            color: darkMode ? "#00f6ff" : "#fff",
+            textShadow: "none",
+
+          }}>
             {project.members && project.members.length > 0 ? (
               project.members.map((member) => (
                 <Chip
+                  sx={{
+                    color: darkMode ? "#00f6ff" : "#fff",
+                    textShadow: "none",
+
+                  }}
                   key={member.userId}
                   label={`${member.firstName} ${member.lastName}`}
                   deleteIcon={<HighlightOffIcon />}
@@ -64,8 +92,10 @@ const ProjectDetailsDialog = ({ open, project, handleClose, onEdit, onDelete, on
       </DialogContent>
       <DialogActions
         sx={{
-          backgroundColor: darkMode ? "#2b2b60" : "white",
-          color: darkMode ? "white" : "black",
+          
+          color: darkMode ? "#00f6ff" : "#fff",
+          textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12pxrgb(220, 75, 191), 0 0 24px #ff90e8",
+
         }}>
         <Button onClick={handleClose}>{t("close")}</Button>
         <Button onClick={() => onEdit(project.id)} color="primary">{t("edit")}</Button>

@@ -28,6 +28,7 @@ import AcceptInvitePage from './pages/ProjectSettings/invitation/AcceptInvitePag
 import ProjectAccessWrapper from './context/ProjectAccessWrapper';
 import ProjectReportsPage from './pages/Projects/ProjectReportsPage';
 import CalendarPage from './pages/Calendar/CalendarPage';
+import LandingPage from './pages/Landing/LandingPage';
 
 
 
@@ -45,6 +46,7 @@ function App() {
         <Routes>
 
           {/* 👇 Публичные страницы — без ProjectsProvider */}
+          
           <Route path="/auth/login" element={<LoginPage />} />
           <Route path="/auth/register" element={<RegisterPage />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
@@ -77,6 +79,7 @@ function App() {
                       <Route path="/reports" element={<ProjectReportsPage />} />
                       <Route path="/projects" element={<ProjectsPage />} />
                       <Route path="/profile" element={<ProfilePage />} />
+                      <Route path="/" element={<LandingPage />} />
                     </Routes>
                   </Box>
                 </Box>

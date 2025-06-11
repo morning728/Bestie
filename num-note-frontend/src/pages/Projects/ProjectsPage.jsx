@@ -50,7 +50,7 @@ const ProjectsPage = () => {
   );
 
   return (
-    <Box className={`project-content ${darkMode ? "night" : "day"}`}>
+    <Box className={`main-content ${darkMode ? "night" : "day"}`}>
       <Header />
       <Box
         mt={2}
@@ -61,7 +61,7 @@ const ProjectsPage = () => {
         }}
       >
         <Typography
-          className={`project-title ${darkMode ? "night" : "day"}`}
+          className={`main-title ${darkMode ? "night" : "day"}`}
           variant="h4"
           gutterBottom
         >

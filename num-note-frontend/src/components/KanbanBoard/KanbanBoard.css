@@ -1,114 +1,130 @@
+/* Kanban Board Updated Styles */
+
 .kanban-board {
-    display: flex;
-    min-height: 80vh;
-    gap: 16px;
-    padding: 16px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-behavior: smooth;
-    scrollbar-width: none;
-    /* Firefox */
-    -ms-overflow-style: none;
-    /* IE/Edge */
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
+  display: flex;
+  min-height: 80vh;
+  gap: 16px;
+  padding: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  background-color: transparent; /* ✅ прозрачный фон */
 }
 
-
 .kanban-board::-webkit-scrollbar {
-    display: none;
-    /* Chrome, Safari, Opera */
+  display: none;
 }
 
 .kanban-column {
-    border-radius: 8px;
-    width: 300px;
-    /* фиксированная ширина */
-    min-width: 300px;
-    /* обязательно, чтобы не сжимались */
-    flex-shrink: 0;
-    /* не сжимать колонку */
-    display: flex;
-    flex-direction: column;
+  border-radius: 8px;
+  width: 300px;
+  min-width: 300px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* backdrop-filter: blur(8px); */
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .kanban-column-header {
-    padding: 12px;
-    font-weight: bold;
-    color: #fff;
-    text-align: center;
-    border-radius: 8px 8px 0 0;
+  padding: 12px;
+  font-weight: bold;
+  text-align: center;
+  border-radius: 8px 8px 0 0;
+  color: inherit;
+}
+
+/* Светлая тема — более светлый текст заголовков колонок */
+.kanban-column.day .kanban-column-header {
+  color: #f5f5f5; /* или #ffffff, если нужно ещё ярче */
 }
 
 .kanban-column-body {
-    min-height: 200px;
-    padding: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    overflow-y: visible; /* ⬅️ ИСПРАВЛЕНО */
-    overflow-x: hidden;
-    flex-grow: 1; /* ⬅️ Растягиваем колонку по высоте */
-  }
-  
+  min-height: 200px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: visible;
+  overflow-x: hidden;
+  flex-grow: 1;
+}
 
 .kanban-card {
-    padding: 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease;
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
 }
 
 .kanban-card:hover {
-    transform: scale(1.02);
+  transform: scale(1.02);
 }
 
 .kanban-tags {
-    margin-top: 8px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .kanban-tag {
-    font-size: 12px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    color: white;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: white;
 }
 
 .truncate-text {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.kanban-board.day,
+/* Light theme */
+.kanban-board.day {
+background-color: transparent;
+}
+
 .kanban-column.day {
-    background-color: #f5f5f5;
+  background-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 4px 12px rgba(255, 105, 180, 0.3);
 }
 
 .kanban-card.day {
-    background-color: #f9f7f7
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #2c2c54;
+  box-shadow: 0 0 8px rgba(255, 105, 180, 0.3);
 }
 
+.kanban-card.day:hover {
+  box-shadow: 0 0 12px 4px rgba(255, 105, 180, 0.6), 0 0 20px 8px rgba(121, 179, 244, 0.4);
+}
+
+/* Dark theme */
 .kanban-board.night {
-    background-color: #2c2c54;
-    /* основной фон */
+background-color: transparent;
 }
 
 .kanban-column.night {
-    background-color: #2c2c54;
-    /* чуть светлее фона, как в боковом меню */
-    border-radius: 8px;
+  background-color: rgba(44, 44, 84, 0.6);
+  box-shadow: 0 4px 12px rgba(0, 246, 255, 0.2);
+  color: #f5f5f5;
 }
 
 .kanban-card.night {
-    background-color: #34345c;
-    /* ближе к цвету карточек в центре */
-    color: #ffffff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  background-color: rgba(52, 52, 92, 0.8);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 246, 255, 0.3);
+}
+
+.kanban-card.night:hover {
+  box-shadow: 0 0 12px rgba(0, 246, 255, 0.8);
 }

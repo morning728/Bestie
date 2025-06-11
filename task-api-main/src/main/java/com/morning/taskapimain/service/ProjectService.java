@@ -1,26 +1,23 @@
 package com.morning.taskapimain.service;
 
 import com.morning.taskapimain.entity.dto.ProjectDTO;
-import com.morning.taskapimain.entity.dto.TaskDTO;
 import com.morning.taskapimain.entity.dto.UpdateProjectDTO;
 import com.morning.taskapimain.entity.dto.UserWithRoleDTO;
 import com.morning.taskapimain.entity.kafka.project.DeleteEvent;
 import com.morning.taskapimain.entity.kafka.project.InviteEvent;
 import com.morning.taskapimain.entity.project.*;
-import com.morning.taskapimain.entity.user.Contacts;
 import com.morning.taskapimain.entity.user.User;
 import com.morning.taskapimain.exception.AccessException;
 import com.morning.taskapimain.exception.BadRequestException;
 import com.morning.taskapimain.exception.NotFoundException;
 import com.morning.taskapimain.repository.*;
-import com.morning.taskapimain.repository.task.TaskAssigneeRepository;
-import com.morning.taskapimain.repository.task.TaskRepository;
 import com.morning.taskapimain.service.kafka.KafkaNotificationService;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -29,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Flow;
 
 @Service
 @RequiredArgsConstructor
@@ -45,10 +43,7 @@ public class ProjectService {
     private final JwtService jwtService;
     private final ProjectJWTService projectJWTService;
     private final KafkaNotificationService kafkaNotificationService;
-    private final TaskRepository taskRepository;
-    private final TaskService taskService;
-    private final TaskAssigneeRepository taskAssigneeRepository;
-    private final UserService userService;
+
 
     @Value("${application.invitation.url}")
     private String invitationUrl;
@@ -497,5 +492,7 @@ public class ProjectService {
                     return kafkaNotificationService.sendInviteToProject(inviteEvent);
                 });
     }
+
+
 
 }

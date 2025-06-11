@@ -11,6 +11,7 @@ import com.morning.taskapimain.repository.UserRepository;
 import com.morning.taskapimain.service.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -26,6 +27,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class UserService {
+    @Qualifier("webClient")
     private final WebClient webClient;
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;

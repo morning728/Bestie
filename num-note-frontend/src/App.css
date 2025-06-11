@@ -50,5 +50,20 @@
   transition: margin-left 0.3s ease;
 }
 
+:root {
+  --dialog-color: #2c2c54;
+  --accent-color: #ff69b4;
+  --button-gradient: linear-gradient(to right, #ff69b4, #ffc0cb);
+  --button-gradient-hover: linear-gradient(to right, #ff85c1, #ffe4ec);
+}
+
+.night {
+  --dialog-color: #fff;
+  --accent-color: #00f6ff;
+  --button-gradient: linear-gradient(to right, #00f6ff, #4dfaff);
+  --button-gradient-hover: linear-gradient(to right, #4dfaff, #00f6ff);
+}
+
+
 
 

@@ -2,11 +2,13 @@ import React, { useRef, useContext, useState, useEffect } from "react";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import KanbanColumn from "./KanbanColumn";
 import "./KanbanBoard.css";
+import { useTranslation } from "react-i18next";
 import { updateProjectStatus } from "../../services/api"; // если не импортировал
 import { ThemeContext } from "../../ThemeContext";
 
 const KanbanBoard = ({ tasks, statuses, onCardClick, onStatusChange }) => {
     const [localStatuses, setLocalStatuses] = useState([]);
+    const { t } = useTranslation();
 
     useEffect(() => {
         setLocalStatuses([...statuses]);
@@ -139,7 +141,8 @@ const KanbanBoard = ({ tasks, statuses, onCardClick, onStatusChange }) => {
                         {(provided) => (
                             <KanbanColumn
                                 key="no-status"
-                                status={{ id: "no-status", name: "Без статуса", color: "#999999" }}
+                                status={{ id: "no-status", name: t("kanban_no_status"), color: "#999999" }}
+
                                 tasks={tasks.filter((task) => task.statusId == null)}
                                 onCardClick={onCardClick}
                                 droppableProvided={provided}

@@ -105,13 +105,17 @@ const StatusesTab = ({ projectId }) => {
   };
 
   return (
-    <Box className={darkMode ? "settings-tab-content dark" : "settings-tab"} sx={{ p: 3 }}>
-      <Typography variant="h6" gutterBottom>
+    <Box className={darkMode ? "settings-tab-content dark" : "settings-tab"} sx={{
+      p: 3,
+      color: darkMode ? "#00f6ff" : "#fff",
+
+    }}>
+      <Typography variant="h6" gutterBottom sx={{textShadow: darkMode ? "0 0 6px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px rgb(199, 50, 182), 0 0 24pxrgb(199, 48, 136)",}}>
         {t("statuses")}
       </Typography>
 
       {/* Добавление нового статуса */}
-      <Paper sx={{ p: 3, mb: 3, display: "flex", alignItems: "center", gap: 2 }}>
+      <Paper sx={{ p: 3, mb: 3, display: "flex", alignItems: "center", gap: 2, backgroundColor: darkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.2)", }}>
         <TextField
           fullWidth
           label={t("new_status")}
@@ -179,7 +183,7 @@ const StatusesTab = ({ projectId }) => {
 
       {/* Отображение существующих статусов */}
       <Box>
-        <Typography variant="subtitle1" sx={{ mb: 2 }}>
+        <Typography variant="subtitle1" sx={{mb: 2,textShadow: darkMode ? "0 0 6px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px rgb(199, 50, 182), 0 0 24pxrgb(199, 48, 136)",}}>
           {t("existing_statuses")}
         </Typography>
         <Grid container spacing={2}>

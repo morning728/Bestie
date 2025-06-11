@@ -12,7 +12,7 @@ const Header = () => {
     <AppBar position="static" className={`header ${darkMode ? "night" : "day"}`}>
       <Toolbar>
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          Smart Calendar
+          Bestie
         </Typography>
 
         <Select

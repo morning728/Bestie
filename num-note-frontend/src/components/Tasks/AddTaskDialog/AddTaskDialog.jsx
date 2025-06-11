@@ -25,10 +25,12 @@ import "./AddTaskDialog.css";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DownloadIcon from "@mui/icons-material/Download";
 import IconButton from "@mui/material/IconButton";
-import { uploadAttachment, getAttachmentsByTask, deleteAttachment, downloadAttachment, getReminderByTaskId } from "../../../services/api"; // не забудь импорт
+import { Tooltip } from "@mui/material";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline"
+import { uploadAttachment, getAttachmentsByTask, deleteAttachment, downloadAttachment, getReminderByTaskId, decomposeTask } from "../../../services/api"; // не забудь импорт
 import { useProjectAccess } from "../../../context/ProjectAccessContext";
 
-const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags, statuses, members }) => {
+const AddTaskDialog = ({ open, handleClose, handleAddTask, handleDecompose, task, isEditing, tags, statuses, members }) => {
   const { darkMode } = useContext(ThemeContext);
   const { t } = useTranslation();
   const defaultDate = format(new Date(), "yyyy-MM-dd");
@@ -36,6 +38,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
   const [existingFiles, setExistingFiles] = useState([]); // с сервера
   const [newFiles, setNewFiles] = useState([]); // новые
   const [filesMarkedForDeletion, setFilesMarkedForDeletion] = useState([]);
+  const [subtaskCount, setSubtaskCount] = useState(2);
 
 
 
@@ -244,6 +247,29 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
     }
   };
 
+  const handleDecomposeTask = async () => {
+    const taskToSend = {
+      ...newTask,
+      reminderText: null,
+      reminderDate: null,
+      reminderTime: null,
+    };
+
+    try {
+      const response = await handleDecompose(taskToSend, subtaskCount);
+      handleClose();
+      alert(`Задачи с секунды на секунду будут добавлены!`);
+    } catch (error) {
+      if (error.response) {
+        alert(`Ошибка при декомпозиции: ${error.response.data}`);
+      } else {
+        console.log("Ошибка при отправке запроса:", error);
+        alert("Сетевая ошибка при декомпозиции задачи.");
+      }
+    }
+  };
+
+
 
   return (
     <Dialog
@@ -251,16 +277,38 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
       onClose={handleClose}
       maxWidth="xl"
       fullWidth
-      className="add-task-dialog"
+      className={`add-task-dialog ${darkMode ? "night" : "day"}`}
+      PaperProps={{
+        sx: {
+          background: darkMode
+            ? "linear-gradient(300deg, #1c1c3c, #2b2b60)"
+            : "linear-gradient(to top left, #d16ba5, #c777b9, #ba83ca, #aa8fd8, #9a9ae1, #8aa7ec, #79b3f4, #69bff8);",
+          color: darkMode ? "#00f6ff" : "#d81b60",
+          boxShadow: darkMode
+            ? "0 0 6px #00f6ff, 0 0 24px #00f6ff"
+            : "0 0 6px #ff90e8, 0 0 24px #ff90e8",
+          borderRadius: 3,
+
+          px: 2,
+          py: 1,
+          opacity: darkMode ? "0.93" : "0.8"
+        },
+      }}
     >
 
-      <DialogTitle sx={{ backgroundColor: darkMode ? "#2b2b60" : "white", color: darkMode ? "white" : "black" }}>
+      <DialogTitle sx={{
+
+        color: darkMode ? "#00f6ff" : "#fff",
+        textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8"
+
+      }}>
         {isEditing ? t("edit_task") : t("add_new_task")}
       </DialogTitle>
       <DialogContent
         sx={{
-          backgroundColor: darkMode ? "#2b2b60" : "white",
-          color: darkMode ? "white" : "black",
+
+          color: darkMode ? "#00f6ff" : "#fff",
+
           display: "flex",
           flexDirection: "row",
           gap: 4,
@@ -388,22 +436,6 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
             <MenuItem value="High">High</MenuItem>
           </TextField>
 
-          {/* <TextField
-        disabled = {!canManageStatuses}
-          select
-          name="statusId"
-          label={t("status")}
-          fullWidth
-          margin="normal"
-          value={newTask.statusId}
-          onChange={handleChange}
-        >
-          {statuses.map((status) => (
-            <MenuItem key={status.id} value={status.id}>
-              {status.name}
-            </MenuItem>
-          ))}
-        </TextField> */}
 
 
           <Autocomplete
@@ -426,6 +458,9 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
           {/* Reminder */}
           <Box mt={2}>
             <FormControlLabel
+              sx={{
+                textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8"
+              }}
               disabled={!canManageReminders}
               control={<Switch checked={newTask.reminder} onChange={handleReminderToggle} />}
               label={t("enable_reminder")}
@@ -433,28 +468,29 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
           </Box>
 
           {newTask.reminder && (
-            <Box className="date-time-container" mt={2}>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <DatePicker
-                  disabled={!canManageReminders}
-                  label={t("reminder_date")}
-                  value={newTask.reminderDate}
-                  onChange={(date) => handleDateChange("reminderDate", date)}
-                  renderInput={(params) => <TextField {...params} fullWidth />}
-                />
-              </LocalizationProvider>
+            <Box mt={2}>
+              <Box className="date-time-container">
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                  <DatePicker
+                    disabled={!canManageReminders}
+                    label={t("reminder_date")}
+                    value={newTask.reminderDate}
+                    onChange={(date) => handleDateChange("reminderDate", date)}
+                    renderInput={(params) => <TextField {...params} fullWidth />}
+                  />
+                </LocalizationProvider>
 
-              <TextField
-                disabled={!canManageReminders}
-                name="reminderTime"
-                label={t("reminder_time")}
-                type="time"
-                fullWidth
-                value={newTask.reminderTime}
-                onChange={handleChange}
-                InputLabelProps={{ shrink: true }}
-                sx={{ mt: 2 }}
-              />
+                <TextField
+                  disabled={!canManageReminders}
+                  name="reminderTime"
+                  label={t("reminder_time")}
+                  type="time"
+                  fullWidth
+                  value={newTask.reminderTime}
+                  onChange={handleChange}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Box>
 
               {/* Новое поле: reminderText */}
               <TextField
@@ -471,6 +507,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
             </Box>
           )}
 
+
         </Box>
         {/* Правая часть — drag & drop + список файлов */}
         <Box sx={{ width: 320, display: 'flex', flexDirection: 'column', maxHeight: 800, gap: 2, mt: 1 }}>
@@ -478,32 +515,45 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
           <Box
             {...getRootProps()}
             sx={{
-              border: "2px dashed #ccc",
+              border: darkMode ? "2px dashed rgba(0, 246, 255, 0.8)" : "2px dashed rgba(255, 105, 180, 0.8)",
               borderRadius: 2,
               height: 150,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: isDragActive ? "#f0f0f0" : darkMode ? "#333" : "#fafafa",
+              backgroundColor: isDragActive
+                ? darkMode
+                  ? "rgba(0, 246, 255, 0.1)"
+                  : "rgba(255, 105, 180, 0.1)"
+                : darkMode
+                  ? "rgba(0, 0, 0, 0.3)"
+                  : "rgba(255, 255, 255, 0.3)",
               cursor: "pointer",
               transition: "0.3s ease",
               flexShrink: 0,
+              color: darkMode ? "#00f6ff" : "#ff69b4",
+              textShadow: darkMode
+                ? "0 0 6px rgba(0, 246, 255, 0.7)"
+                : "0 0 6px rgba(255, 105, 180, 0.7)",
             }}
           >
             <input {...getInputProps()} />
-            <CloudUploadIcon sx={{ fontSize: 48, color: "#aaa" }} />
+            <CloudUploadIcon sx={{ fontSize: 48, color: darkMode ? "#00f6ff" : "#ff69b4" }} />
             <Typography mt={1} textAlign="center" fontSize={14}>
               {isDragActive ? t("drop_files_here") : t("drag_and_drop_or_click")}
             </Typography>
           </Box>
+
 
           {/* Список файлов */}
           <Box
             sx={{
               flex: 1,
               overflowY: "auto",
-              backgroundColor: darkMode ? "#2b2b60" : "#f9f9f9",
+
+              color: darkMode ? "#00f6ff" : "#fff",
+              textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8",
               borderRadius: 2,
               p: 2,
               minHeight: 0,
@@ -526,7 +576,9 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
                     alignItems="center"
                     mb={1}
                     sx={{
-                      backgroundColor: darkMode ? "#3a3a70" : "#fff",
+
+                      color: darkMode ? "#00f6ff" : "#fff",
+                      textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8",
                       p: 1,
                       borderRadius: 1,
                       boxShadow: 1,
@@ -558,7 +610,9 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
                     alignItems="center"
                     mb={1}
                     sx={{
-                      backgroundColor: darkMode ? "#3a3a70" : "#fff",
+
+                      color: darkMode ? "#00f6ff" : "#fff",
+                      textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8",
                       p: 1,
                       borderRadius: 1,
                       boxShadow: 1,
@@ -592,11 +646,86 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
 
 
 
-      <DialogActions sx={{ backgroundColor: darkMode ? "#2b2b60" : "white", color: darkMode ? "white" : "black" }}>
-        <Button onClick={handleClose}>{t("cancel")}</Button>
-        <Button onClick={handleSave} color="primary" variant="contained" disabled={!canEditTasks}>
-          {t("save")}
-        </Button>
+      <DialogActions
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          color: darkMode ? "#00f6ff" : "#fff",
+
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <TextField
+            label="Подзадач"
+            type="number"
+            size="small"
+            variant="outlined"
+            InputProps={{ inputProps: { min: 2, max: 7 } }}
+            value={subtaskCount}
+            onChange={(e) => setSubtaskCount(Number(e.target.value))}
+            sx={{
+              width: 100,
+              "& .MuiInputBase-input": {
+                color: darkMode ? "#00f6ff" : "#fff",
+              },
+              "& .MuiInputLabel-root": {
+                color: darkMode ? "#00f6ff" : "#ff90e8",
+              },
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: darkMode ? "#00f6ff" : "#ff90e8",
+                },
+              },
+            }}
+          />
+
+          <Tooltip
+            title={
+              <Box sx={{ fontSize: 13, maxWidth: 300 }}>
+                Метод разбивает задачу на несколько подзадач (от 2 до 7) с помощью GigaChat.
+                Ответственные, теги, статус и приоритет переносятся из исходной задачи.
+                Новые подзадачи получат индивидуальные названия, описания и периоды выполнения.
+                <br />
+                <br />
+                ⚠️ Функционал находится в стадии тестирования. Возможны неточные или странные формулировки.
+              </Box>
+            }
+            arrow
+          >
+            <IconButton size="small" sx={{ color: "inherit" }}>
+              <HelpOutlineIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+
+          <Button
+            variant="outlined"
+            onClick={handleDecomposeTask}
+            disabled={subtaskCount < 2 || subtaskCount > 7 || !canEditTasks}
+            sx={{
+              color: "inherit",
+              borderColor: "currentColor",
+              textShadow: "inherit",
+              "&:hover": {
+                backgroundColor: "rgba(255, 255, 255, 0.08)",
+              },
+            }}
+          >
+            Разбить задачу
+          </Button>
+        </Box>
+
+        <Box>
+          <Button onClick={handleClose} sx={{marginRight:"1em"}}>{t("cancel")}</Button>
+          <Button
+            onClick={handleSave}
+            color="primary"
+            variant="contained"
+            disabled={!canEditTasks}
+          >
+            {t("save")}
+          </Button>
+        </Box>
       </DialogActions>
     </Dialog>
   );

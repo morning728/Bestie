@@ -127,9 +127,9 @@ const CalendarPage = () => {
         const timeout = setTimeout(() => {
             // Закрываем только если пользователь не навёлся на сам поповер
             //if (isPopoverHovered) {
-                handlePopoverClose();
+            handlePopoverClose();
             //}
-        }, 20);
+        }, 30);
         setCloseTimeout(timeout);
     };
 
@@ -143,16 +143,21 @@ const CalendarPage = () => {
     return (
         <Box
             className={`main-content ${theme.palette.mode === "dark" ? "night" : "day"}`}
-            sx={{ px: 4, py: 3, }}
+            sx={{
+                px: 4,
+                py: 3,
+
+
+            }}
         >
             <Header />
             <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
-                <Typography variant="h4" fontWeight="bold" display="flex" alignItems="center" gap={1}>
-                    <CalendarIcon fontSize="large" /> Календарь задач
+                <Typography variant="h4" fontWeight="bold" display="flex" alignItems="center" gap={1} className={`main-title ${darkMode ? "night" : "day"}`}>
+                    <CalendarIcon fontSize="large" /> {t("calendar_title")}
                 </Typography>
                 <Box>
                     <IconButton onClick={handlePrevMonth}><PrevIcon /></IconButton>
-                    <Typography variant="h6" component="span" mx={2}>
+                    <Typography variant="h6" component="span" mx={2} sx={{ color: darkMode ? " #00f6ff" : "rgb(251, 41, 146)", textShadow: darkMode ? "0 0 6px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px rgb(199, 50, 182), 0 0 24pxrgb(199, 48, 136)", }} >
                         {currentMonth.format("MMMM YYYY")}
                     </Typography>
                     <IconButton onClick={handleNextMonth}><NextIcon /></IconButton>
@@ -167,9 +172,9 @@ const CalendarPage = () => {
                     textAlign: "center",
                 }}
             >
-                {["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((day) => (
-                    <Typography key={day} variant="subtitle2" fontWeight="bold">
-                        {day}
+                {["mon", "tue", "wed", "thu", "fri", "sat", "sun"].map((key) => (
+                    <Typography key={key} variant="subtitle2" fontWeight="bold">
+                        {t(`calendar_weekday_${key}`)}
                     </Typography>
                 ))}
 
@@ -189,21 +194,38 @@ const CalendarPage = () => {
                                     p: 1,
                                     minHeight: 80,
                                     backgroundColor: isToday(date)
-                                        ? "#9932CC20"
+                                        ? theme.palette.mode === "dark"
+                                            ? "rgba(0, 246, 255, 0.1)"
+                                            : "rgba(255, 105, 180, 0.15)"
                                         : isCurrentMonth
-                                            ? theme.palette.background.paper
-                                            : "#f0f0f0",
+                                            ? (theme.palette.mode === "dark"
+                                                ? "rgba(255, 255, 255, 0.1)"
+                                                : "rgba(255, 255, 255, 0.3)")
+                                            : (theme.palette.mode === "dark"
+                                                ? "rgba(255, 255, 255, 0.3)"
+                                                : "rgba(255, 255, 255, 0.5)"),
                                     borderRadius: 2,
-                                    border: isToday(date) ? "2px solid #9932CC" : "1px solid #ccc",
-                                    color: isCurrentMonth ? "inherit" : "#aaa",
+                                    border: isToday(date)
+                                        ? `2px solid ${theme.palette.mode === "dark" ? "#00f6ff" : "#ff69b4"}`
+                                        : "1px solid #999",
+                                    color: isCurrentMonth
+                                        ? "inherit"
+                                        : theme.palette.mode === "dark"
+                                            ? "rgba(255, 255, 255, 0.44)"
+                                            : "rgba(0, 0, 0, 0.36)",
                                     cursor: hasTasks ? "pointer" : "default",
                                     position: "relative",
                                     display: "flex",
                                     alignItems: "center",
                                     justifyContent: "center",
+                                    transition: "box-shadow 0.3s",
                                     "&:hover": {
-                                        boxShadow: hasTasks ? "0 0 0 2px #9932CC33" : undefined,
+                                        boxShadow: hasTasks
+                                            ? `0 0 12px ${theme.palette.mode === "dark" ? "#00f6ff55" : "#ff90e855"}`
+                                            : undefined,
                                     },
+                                    ///
+
                                 }}
                             >
                                 <Typography fontWeight="bold">{date.date()}</Typography>
@@ -267,7 +289,14 @@ const CalendarPage = () => {
                     sx: {
                         p: 2,
                         borderRadius: 2,
-                        backgroundColor: "#fff"
+                        background: darkMode
+                            ? "linear-gradient(300deg, rgba(28,28,60,0.95), rgba(43,43,96,0.95))"
+                            : "linear-gradient(to top left, rgba(209,107,165,0.95), rgba(199,119,185,0.9), rgba(186,131,202,0.9), rgba(154,154,225,0.9), rgba(121,179,244,0.9), rgba(105,191,248,0.95))",
+
+                        color: darkMode ? "#00f6ff" : "rgba(143, 13, 86, 0.95)",
+                        boxShadow: darkMode
+                            ? "0 0 10px #00f6ff"
+                            : "0 0 10px #ff90e8",
                     }
                 }}
 
@@ -275,7 +304,7 @@ const CalendarPage = () => {
                 {hoverDateKey && (
                     <Box>
                         <Typography fontWeight="bold" gutterBottom>
-                            {dayjs(hoverDateKey).format("D MMMM")} — Проектов: {calendarTasks[hoverDateKey]?.length || 0}
+                             {dayjs(hoverDateKey).format("D MMMM")} — {t("calendar_projects_count")}: {calendarTasks[hoverDateKey]?.length || 0}
                         </Typography>
                         <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                             {(calendarTasks[hoverDateKey] || []).map((task, idx) => (
@@ -287,10 +316,19 @@ const CalendarPage = () => {
                                         backgroundColor: task.color,
                                         color: "#fff",
                                         cursor: "pointer",
+                                        borderRadius: "8px",
+                                        fontWeight: 500,
+                                        fontSize: "0.75rem",
+
                                         "&:hover": {
                                             opacity: 0.9,
+                                            transform: "scale(1.03)",
+                                            transition: "transform 0.2s ease",
+                                            boxShadow: `0 0 8px ${task.color}`,
+                                            backgroundColor: theme.palette.mode === "dark"
+                                                ? " #00f6ff"
+                                                : "rgb(241, 122, 213)",
                                         },
-
                                     }}
                                 />
                             ))}

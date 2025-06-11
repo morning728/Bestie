@@ -124,13 +124,13 @@ const ProfilePage = () => {
   }
 
   return (
-    <Box className={`profile-page ${darkMode ? "dark" : "light"}`}>
+    <Box className={`main-content ${darkMode ? "night" : "day"}`}>
       <Header />
-      <Typography variant="h4" gutterBottom className="profile-title">
+      <Typography variant="h4" gutterBottom className={`main-title ${darkMode ? "night" : "day"}`}>
         {t("profile")}
       </Typography>
 
-      <Grid container spacing={3} mt={2}>
+      <Grid container spacing={3} mt={0} >
         {/* Имя и фамилия */}
         <Grid item xs={12} md={6}>
           <TextField
@@ -139,6 +139,7 @@ const ProfilePage = () => {
             onChange={(e) => setFirstName(e.target.value)}
             fullWidth
             margin="normal"
+            disabled
           />
           <TextField
             label={t("last_name")}
@@ -146,6 +147,7 @@ const ProfilePage = () => {
             onChange={(e) => setLastName(e.target.value)}
             fullWidth
             margin="normal"
+            disabled
           />
           <Button
             variant="contained"
@@ -202,7 +204,7 @@ const ProfilePage = () => {
         {/* Email-блок */}
         <Grid item xs={12} md={6}>
           <TextField
-            label={t("email")}
+            label={t("telegram")}
             value={preferences.telegramId ? preferences.telegramId : "Login Via @BestieTrackerBot"}
             onChange={(e) => setEmailInput(e.target.value)}
             fullWidth
@@ -263,7 +265,7 @@ const ProfilePage = () => {
           {/* Показываем сообщение после успешной отправки письма */}
           {emailSent && (
             <Typography mt={2} color="success.main">
-              📧 Письмо для подтверждения отправлено. Проверьте почту и папку Спам!
+               {t("email_sent_message")}
             </Typography>
           )}
         </Grid>

@@ -95,8 +95,12 @@ const ResourcesTab = ({ projectId }) => {
   };
 
   return (
-    <Box className={darkMode ? "settings-tab-content dark" : "settings-tab"}>
-      <Typography variant="h6" gutterBottom>{t("resources")}</Typography>
+    <Box className={darkMode ? "settings-tab-content dark" : "settings-tab"} sx={{
+      color: darkMode ? "#00f6ff" : "#fff",
+
+    }}>
+      <Typography variant="h6" gutterBottom sx={{textShadow: darkMode ? "0 0 6px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px rgb(199, 50, 182), 0 0 24pxrgb(199, 48, 136)",}}>
+        {t("resources")}</Typography>
 
       {/* Добавление нового ресурса */}
       <Box className="resource-input">
@@ -129,7 +133,8 @@ const ResourcesTab = ({ projectId }) => {
 
       {/* Список ресурсов */}
       <Box mt={3}>
-        <Typography variant="subtitle1">{t("existing_resources")}</Typography>
+        <Typography variant="subtitle1" sx={{textShadow: darkMode ? "0 0 6px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px rgb(199, 50, 182), 0 0 24pxrgb(199, 48, 136)",}}>
+          {t("existing_resources")}</Typography>
         <Grid container spacing={2}>
           {resources.length > 0 ? (
             resources.map((resource) => (
@@ -141,8 +146,8 @@ const ResourcesTab = ({ projectId }) => {
                     alignItems: "center",
                     padding: 2,
                     background: editingResource === resource.id
-                      ? darkMode ? "#3A3D5B" : "#B15FC8"
-                      : darkMode ? "#2B2D42" : "#9932CC",
+                      ? darkMode ? "#3A3D5B" : "rgba(121, 179, 244, 0.5)"
+                      : darkMode ? "#2B2D42" : "rgba(121, 179, 244, 0.2)",
                     color: "#fff",
                     borderRadius: "12px",
                     transition: "all 0.3s ease",
@@ -154,7 +159,7 @@ const ResourcesTab = ({ projectId }) => {
                   {editingResource === resource.id ? (
                     <Box sx={{ display: "flex", flexGrow: 1, alignItems: "center", gap: 2 }}>
                       <TextField
-                      disabled={!can}
+                        disabled={!can}
                         fullWidth
                         value={editResource.url}
                         onChange={(e) => setEditResource({ ...editResource, url: e.target.value })}
@@ -163,7 +168,7 @@ const ResourcesTab = ({ projectId }) => {
                         inputRef={inputRef}
                       />
                       <TextField
-                      disabled={!can}
+                        disabled={!can}
                         fullWidth
                         value={editResource.description}
                         onChange={(e) => setEditResource({ ...editResource, description: e.target.value })}
@@ -190,10 +195,10 @@ const ResourcesTab = ({ projectId }) => {
                         </Typography>
                       </Box>
                       <Box sx={{ display: "flex", gap: 1 }}>
-                        <IconButton sx={{backgroundcolor:"rgba(77, 20, 65, 0.91)" }} onClick={() => startEditingResource(resource)}  disabled={!can}>
+                        <IconButton sx={{ backgroundcolor: "rgba(77, 20, 65, 0.91)" }} onClick={() => startEditingResource(resource)} disabled={!can}>
                           <EditIcon />
                         </IconButton>
-                        <IconButton color="error" onClick={() => handleDeleteResource(resource.id)}  disabled={!can}>
+                        <IconButton color="error" onClick={() => handleDeleteResource(resource.id)} disabled={!can}>
                           <DeleteIcon />
                         </IconButton>
                       </Box>

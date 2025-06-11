@@ -8,7 +8,8 @@ import {
   getProjectTags,
   getProjectStatuses,
   restoreTask,
-  getProjectMembers
+  getProjectMembers,
+  decomposeTask
 } from "../services/api";
 
 export const useTasks = (projectId) => {
@@ -34,7 +35,7 @@ export const useTasks = (projectId) => {
   const addTask = async (taskData) => {
     try {
       let createdTask = null;
-  
+
       if (isEditing && selectedTask) {
         const response = await updateTask(selectedTask.id, taskData);
         createdTask = response.data; // 💡 получили задачу с id
@@ -42,7 +43,7 @@ export const useTasks = (projectId) => {
         const response = await createTask({ ...taskData, projectId });
         createdTask = response.data; // 💡 получили задачу с id
       }
-  
+
       return createdTask;
     } catch (error) {
       console.error("Ошибка при добавлении/редактировании задачи:", error);
@@ -51,6 +52,22 @@ export const useTasks = (projectId) => {
       await fetchTasks();
       handleCloseAddDialog();
     }
+  };
+
+  const decomposeTaskAndRefresh = (taskData, count) => {
+    handleCloseAddDialog();
+
+    // Можешь здесь показать Snackbar или alert, если хочешь
+
+    decomposeTask({ ...taskData, projectId }, count)
+      .then(() => {
+        fetchTasks();
+      })
+      .catch((error) => {
+        alert("Ошибка при декомпозиции", error);
+        // но не даём ошибке уйти в глобальный обработчик
+      });
+
   };
 
   const editTask = (task) => {
@@ -135,6 +152,7 @@ export const useTasks = (projectId) => {
     openAddDialog,
     openDetailsDialog,
     addTask,
+    decomposeTaskAndRefresh,
     editTask,
     archiveTask,
     restoreArchivedTask,

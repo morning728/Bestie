@@ -28,8 +28,8 @@ const TagsTab = ({ projectId }) => {
   const { t } = useTranslation();
   const { darkMode } = useContext(ThemeContext);
 
-    const { me, hasPermission, loading } = useProjectAccess();
-    const can = hasPermission("CAN_EDIT_PROJECT");
+  const { me, hasPermission, loading } = useProjectAccess();
+  const can = hasPermission("CAN_EDIT_PROJECT");
 
   const [tags, setTags] = useState([]);
   const [newTagName, setNewTagName] = useState("");
@@ -102,13 +102,17 @@ const TagsTab = ({ projectId }) => {
   };
 
   return (
-    <Box className={darkMode ? "settings-tab-content dark" : "settings-tab"} sx={{ p: 3 }}>
-      <Typography variant="h6" gutterBottom>
+    <Box className={darkMode ? "settings-tab-content dark" : "settings-tab"} sx={{
+      p: 3,
+      color: darkMode ? "#00f6ff" : "#fff",
+
+    }}>
+      <Typography variant="h6" gutterBottom sx={{textShadow: darkMode ? "0 0 6px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px rgb(199, 50, 182), 0 0 24pxrgb(199, 48, 136)",}}>
         {t("tags")}
       </Typography>
 
       {/* Блок добавления нового тега */}
-      <Paper sx={{ p: 3, mb: 3, display: "flex", alignItems: "center", gap: 2 }}>
+      <Paper sx={{ p: 3, mb: 3, display: "flex", alignItems: "center", gap: 2, backgroundColor: darkMode ? "rgba(255, 255, 255, 0.1)" : "rgba(255, 255, 255, 0.2)", }}>
         <TextField
           fullWidth
           label={t("new_tag")}
@@ -168,7 +172,7 @@ const TagsTab = ({ projectId }) => {
 
       {/* Список существующих тегов */}
       <Box>
-        <Typography variant="subtitle1" sx={{ mb: 2 }}>
+        <Typography variant="subtitle1" sx={{ mb: 2 ,textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px rgb(199, 50, 182), 0 0 24pxrgb(199, 48, 136)",}}>
           {t("existing_tags")}
         </Typography>
         {tags.length > 0 ? (
@@ -180,7 +184,7 @@ const TagsTab = ({ projectId }) => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                background: `linear-gradient(135deg, ${tag.color},rgb(44, 43, 43))`,
+                background: darkMode ? `linear-gradient(135deg, ${tag.color},rgb(44, 43, 43))` : `linear-gradient(135deg, ${tag.color},rgb(255, 243, 243))`,
                 color: "#fff",
                 borderRadius: "12px",
                 transition: "0.3s",

@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useContext } from "react";
+import { ThemeContext } from "../../ThemeContext";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { verifyEmail } from "../../services/api";
 import {
@@ -13,6 +14,7 @@ const VerifyEmailPage = () => {
   const navigate = useNavigate();
   const didRun = useRef(false);
   const [status, setStatus] = useState("loading");
+  const { darkMode } = useContext(ThemeContext);
 
   const token = searchParams.get("token");
 
@@ -36,7 +38,7 @@ const VerifyEmailPage = () => {
 
   if (status === "loading") {
     return (
-      <Box p={4}>
+      <Box p={4} className={`main-content ${darkMode ? "night" : "day"}`}>
         <CircularProgress />
         <Typography mt={2}>Подтверждаем вашу почту...</Typography>
       </Box>
@@ -45,8 +47,8 @@ const VerifyEmailPage = () => {
 
   if (status === "success") {
     return (
-      <Box p={4}>
-        <Typography variant="h6" gutterBottom>
+      <Box p={4} className={`main-content ${darkMode ? "night" : "day"}`}>
+        <Typography variant="h6" gutterBottom className={`main-title ${darkMode ? "night" : "day"}`}>
           ✅ Ваш Email успешно подтверждён!
         </Typography>
         <Typography mt={2}>
@@ -61,14 +63,14 @@ const VerifyEmailPage = () => {
 
   if (status === "invalid") {
     return (
-      <Box p={4}>
+      <Box p={4} className={`main-content ${darkMode ? "night" : "day"}`}>
         <Typography color="error">❌ Ссылка недействительна или отсутствует токен.</Typography>
       </Box>
     );
   }
 
   return (
-    <Box p={4}>
+    <Box p={4} className={`main-content ${darkMode ? "night" : "day"}`}>
       <Typography color="error">❌ Не удалось подтвердить почту. Попробуйте ещё раз.</Typography>
       <Button onClick={() => navigate("/")}>На главную</Button>
     </Box>

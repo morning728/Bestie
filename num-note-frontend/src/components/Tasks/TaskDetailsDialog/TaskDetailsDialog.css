@@ -1,13 +1,79 @@
 .task-details-dialog {
-    padding: 24px;
-    width: 400px;
-  }
+  padding: 24px;
+  min-width: 420px;
+  border-radius: 12px;
+  background: transparent; /* 👈 Убирает фон */
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+  color: var(--dialog-color);
+}
+
+
+.day .task-details-dialog {
+  box-shadow: 0 0 30px rgba(255, 105, 180, 0.3);
+}
+
+
+.task-details-dialog .MuiTypography-h5 {
+  font-size: 1.6rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: var(--accent-color);
+  text-shadow: 0 0 8px var(--accent-color), 0 0 16px var(--accent-color);
+}
+
+.task-details-dialog .MuiTypography-body2 {
+  color: var(--dialog-color);
+}
+
+.task-details-dialog .MuiButton-root {
+  min-width: 110px;
+  transition: all 0.3s ease;
+  text-shadow: none;
+}
+
+.task-details-dialog .MuiButton-containedPrimary {
   
-  .task-details-dialog .MuiTypography-body1 {
-    margin-top: 16px;
-  }
+  color: black;
+  box-shadow: 0 0 8px var(--accent-color);
+}
+
+.task-details-dialog .MuiButton-containedPrimary:hover {
   
-  .task-details-dialog .MuiButton-contained {
-    width: 30%;
-  }
+  box-shadow: 0 0 15px var(--accent-color);
+}
+
+.task-details-dialog .MuiButton-containedSecondary {
   
+  color: black;
+  box-shadow: 0 0 8px #ff69b4;
+}
+
+.task-details-dialog .MuiButton-containedSecondary:hover {
+  
+  box-shadow: 0 0 12px #ff69b4;
+}
+
+.task-details-dialog .MuiButton-outlined {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.task-details-dialog .MuiButton-outlined:hover {
+  
+  box-shadow: 0 0 8px var(--accent-color);
+}
+.task-title.day {
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-shadow: 0 0 12px #ff90e8, 0 0 24px #ff90e8;
+  letter-spacing: 1px;
+}
+
+.task-title.night {
+  color: #00f6ff;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-shadow: 0 0 12px #00f6ff, 0 0 24px #00f6ff;
+  letter-spacing: 1px;
+}

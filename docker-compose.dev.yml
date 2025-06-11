@@ -118,19 +118,19 @@ services:
           memory: 768M
 
   frontend:
-    image: morning728/frontend:latest
+    image: morning728/frontend:0.0.5
     ports:
       - "3000:80"
     networks:
       - app-network
     environment:
-      - REACT_APP_API_URL=/api
+      - REACT_APP_API_URL=http://93.157.245.105:8765
       - NODE_ENV=production
     deploy:
       resources:
         limits:
           cpus: '0.5'
-          memory: 512M
+          memory: 1512M
 
   notification:
     image: morning728/notification:latest

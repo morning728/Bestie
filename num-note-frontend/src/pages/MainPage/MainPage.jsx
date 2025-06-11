@@ -69,6 +69,7 @@ const MainPage = () => {
     openAddDialog,
     openDetailsDialog,
     addTask,
+    decomposeTaskAndRefresh,
     editTask,
     archiveTask,
     restoreArchivedTask,
@@ -191,7 +192,7 @@ const MainPage = () => {
                 renderInput={(params) => <TextField {...params} fullWidth margin="normal" />}
               />
               {startDate && (
-                <IconButton onClick={() => setStartDate(null)} sx={{ color: "#A020F0" }}>
+                <IconButton onClick={() => setStartDate(null)} >
                   <ClearIcon />
                 </IconButton>
               )}
@@ -206,7 +207,7 @@ const MainPage = () => {
                 renderInput={(params) => <TextField {...params} fullWidth margin="normal" />}
               />
               {endDate && (
-                <IconButton onClick={() => setEndDate(null)} sx={{ color: "#A020F0" }}>
+                <IconButton onClick={() => setEndDate(null)} >
                   <ClearIcon />
                 </IconButton>
               )}
@@ -253,6 +254,7 @@ const MainPage = () => {
         open={openAddDialog.isOpen}
         handleClose={handleCloseAddDialog}
         handleAddTask={addTask}
+        handleDecompose={decomposeTaskAndRefresh}
         task={selectedTask}
         isEditing={isEditing}
         tags={tags}

@@ -60,7 +60,7 @@ const Sidebar = () => {
           <Typography variant="h5">
             {/* Логотип с переходом на главную страницу */}
             <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
-              Smart Calendar
+              Bestie
             </Link>
           </Typography>
         </Box>
@@ -111,13 +111,13 @@ const Sidebar = () => {
             </ListItemIcon>
             {!isCollapsed && (
               <>
-                <ListItemText
+                <ListItemText 
                   primary={
                     <Link
                       to="/projects"
                       style={{
                         textDecoration: "none",
-                        color: darkMode ? "#ccc" : "#2c2c54",
+                        color: darkMode ? "#00f6ff" : "#6a1b9a",
 
                       }}
                     >
@@ -148,7 +148,7 @@ const Sidebar = () => {
                     primary={project.title}
                     primaryTypographyProps={{
                       fontSize: "0.85rem",
-                      color: darkMode ? "#ccc" : "#2c2c54",
+                      color: darkMode ? "#00f6ff" : "#6a1b9a",
                       noWrap: true, // ❗️ Это добавляет ellipsis
                       title: project.title // ✨ Tooltip
                     }}

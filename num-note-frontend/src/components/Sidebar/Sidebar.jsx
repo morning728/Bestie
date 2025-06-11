@@ -60,7 +60,7 @@ const Sidebar = () => {
           <Typography variant="h5">
             {/* Логотип с переходом на главную страницу */}
             <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
-              Smart Calendar
+              Bestie
             </Link>
           </Typography>
         </Box>

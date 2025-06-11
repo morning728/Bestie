@@ -17,12 +17,14 @@ import {
   TableBody,
   Select,
 } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { useMembers } from "../../../hooks/useMembers.js";
 import { useProjectAccess } from "../../../context/ProjectAccessContext.js";
 
 const MembersTab = ({ projectId }) => {
+  const { t } = useTranslation();
   const {
     members,
     roles,
@@ -76,7 +78,7 @@ const MembersTab = ({ projectId }) => {
 
         }}>
       <Typography variant="h6" gutterBottom sx={{textShadow: darkMode ? "0 0 6px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px rgb(199, 50, 182), 0 0 24pxrgb(199, 48, 136)",}}>
-        Пригласить участника
+        {t("members_invite_user")}
       </Typography>
 
       <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
@@ -85,13 +87,14 @@ const MembersTab = ({ projectId }) => {
           getOptionLabel={(option) => option.username}
           onInputChange={(_, value) => searchUsersHandler(value)}
           onChange={(_, value) => setSelectedUser(value)}
-          renderInput={(params) => <TextField {...params} label="Пользователь" />}
+          renderInput={(params) => <TextField {...params} label={t("members_user")} />}
           sx={{ width: 300 }}
           disabled={!canManageMembers}
         />
         <TextField
           select
-          label="Роль"
+          label={t("members_role")}
+
           value={selectedRole?.id || ""}
           onChange={(e) =>
             setSelectedRole(roles.find((r) => r.id === +e.target.value))
@@ -106,22 +109,22 @@ const MembersTab = ({ projectId }) => {
           ))}
         </TextField>
         <Button disabled={!canManageMembers} variant="outlined" onClick={handleGenerateInvite}>
-          Ссылка-приглашение
+          {t("members_invite_link")}
         </Button>
         <Button disabled={!canManageMembers} variant="contained" onClick={handleDirectInvite}>
-          Пригласить напрямую
+          {t("members_invite_direct")}
         </Button>
       </Box>
 
       <Typography variant="h6" gutterBottom sx={{textShadow: darkMode ? "0 0 6px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px rgb(199, 50, 182), 0 0 24pxrgb(199, 48, 136)",}}>
-        Универсальная ссылка
+        {t("members_universal_link")}
       </Typography>
 
       <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
         <TextField
           disabled={!canManageMembers}
           select
-          label="Роль для универсальной ссылки"
+          label={t("members_universal_role")}
           value={universalRole?.id || ""}
           onChange={(e) =>
             setUniversalRole(roles.find((r) => r.id === +e.target.value))
@@ -135,7 +138,7 @@ const MembersTab = ({ projectId }) => {
           ))}
         </TextField>
         <Button disabled={!canManageMembers} variant="outlined" onClick={handleUniversalLink}>
-          Создать универсальную ссылку
+           {t("members_create_universal")}
         </Button>
       </Box>
 
@@ -153,17 +156,17 @@ const MembersTab = ({ projectId }) => {
       )}
 
       <Typography variant="h6" gutterBottom sx={{textShadow: darkMode ? "0 0 6px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px rgb(199, 50, 182), 0 0 24pxrgb(199, 48, 136)",}}>
-        Участники проекта
+        {t("members_project_members")}
       </Typography>
 
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell sx={{ width: 200 }}>Username</TableCell>
-            <TableCell sx={{ width: 150 }}>Имя</TableCell>
-            <TableCell sx={{ width: 150 }}>Фамилия</TableCell>
-            <TableCell sx={{ width: 200 }}>Роль</TableCell>
-            <TableCell sx={{ width: 120 }} align="right">Действия</TableCell>
+            <TableCell sx={{ width: 200 }}>{t("members_column_username")}</TableCell>
+            <TableCell sx={{ width: 150 }}>{t("members_column_firstname")}</TableCell>
+            <TableCell sx={{ width: 150 }}>{t("members_column_lastname")}</TableCell>
+            <TableCell sx={{ width: 200 }}>{t("members_column_role")}</TableCell>
+            <TableCell sx={{ width: 120 }} align="right">{t("members_column_actions")}</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>

@@ -139,6 +139,7 @@ const ProfilePage = () => {
             onChange={(e) => setFirstName(e.target.value)}
             fullWidth
             margin="normal"
+            disabled
           />
           <TextField
             label={t("last_name")}
@@ -146,6 +147,7 @@ const ProfilePage = () => {
             onChange={(e) => setLastName(e.target.value)}
             fullWidth
             margin="normal"
+            disabled
           />
           <Button
             variant="contained"
@@ -263,7 +265,7 @@ const ProfilePage = () => {
           {/* Показываем сообщение после успешной отправки письма */}
           {emailSent && (
             <Typography mt={2} color="success.main">
-              📧 Письмо для подтверждения отправлено. Проверьте почту и папку Спам!
+               {t("email_sent_message")}
             </Typography>
           )}
         </Grid>

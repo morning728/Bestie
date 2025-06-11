@@ -129,7 +129,7 @@ const CalendarPage = () => {
             //if (isPopoverHovered) {
             handlePopoverClose();
             //}
-        }, 20);
+        }, 30);
         setCloseTimeout(timeout);
     };
 
@@ -153,7 +153,7 @@ const CalendarPage = () => {
             <Header />
             <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
                 <Typography variant="h4" fontWeight="bold" display="flex" alignItems="center" gap={1} className={`main-title ${darkMode ? "night" : "day"}`}>
-                    <CalendarIcon fontSize="large" /> Календарь задач
+                    <CalendarIcon fontSize="large" /> {t("calendar_title")}
                 </Typography>
                 <Box>
                     <IconButton onClick={handlePrevMonth}><PrevIcon /></IconButton>
@@ -172,9 +172,9 @@ const CalendarPage = () => {
                     textAlign: "center",
                 }}
             >
-                {["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"].map((day) => (
-                    <Typography key={day} variant="subtitle2" fontWeight="bold">
-                        {day}
+                {["mon", "tue", "wed", "thu", "fri", "sat", "sun"].map((key) => (
+                    <Typography key={key} variant="subtitle2" fontWeight="bold">
+                        {t(`calendar_weekday_${key}`)}
                     </Typography>
                 ))}
 
@@ -293,7 +293,7 @@ const CalendarPage = () => {
                             ? "linear-gradient(300deg, rgba(28,28,60,0.95), rgba(43,43,96,0.95))"
                             : "linear-gradient(to top left, rgba(209,107,165,0.95), rgba(199,119,185,0.9), rgba(186,131,202,0.9), rgba(154,154,225,0.9), rgba(121,179,244,0.9), rgba(105,191,248,0.95))",
 
-                        color: darkMode ? "#00f6ff" : "#ff69b4",
+                        color: darkMode ? "#00f6ff" : "rgba(143, 13, 86, 0.95)",
                         boxShadow: darkMode
                             ? "0 0 10px #00f6ff"
                             : "0 0 10px #ff90e8",
@@ -304,7 +304,7 @@ const CalendarPage = () => {
                 {hoverDateKey && (
                     <Box>
                         <Typography fontWeight="bold" gutterBottom>
-                            {dayjs(hoverDateKey).format("D MMMM")} — Проектов: {calendarTasks[hoverDateKey]?.length || 0}
+                             {dayjs(hoverDateKey).format("D MMMM")} — {t("calendar_projects_count")}: {calendarTasks[hoverDateKey]?.length || 0}
                         </Typography>
                         <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                             {(calendarTasks[hoverDateKey] || []).map((task, idx) => (

@@ -25,10 +25,12 @@ import "./AddTaskDialog.css";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DownloadIcon from "@mui/icons-material/Download";
 import IconButton from "@mui/material/IconButton";
-import { uploadAttachment, getAttachmentsByTask, deleteAttachment, downloadAttachment, getReminderByTaskId } from "../../../services/api"; // не забудь импорт
+import { Tooltip } from "@mui/material";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline"
+import { uploadAttachment, getAttachmentsByTask, deleteAttachment, downloadAttachment, getReminderByTaskId, decomposeTask } from "../../../services/api"; // не забудь импорт
 import { useProjectAccess } from "../../../context/ProjectAccessContext";
 
-const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags, statuses, members }) => {
+const AddTaskDialog = ({ open, handleClose, handleAddTask, handleDecompose, task, isEditing, tags, statuses, members }) => {
   const { darkMode } = useContext(ThemeContext);
   const { t } = useTranslation();
   const defaultDate = format(new Date(), "yyyy-MM-dd");
@@ -36,6 +38,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
   const [existingFiles, setExistingFiles] = useState([]); // с сервера
   const [newFiles, setNewFiles] = useState([]); // новые
   const [filesMarkedForDeletion, setFilesMarkedForDeletion] = useState([]);
+  const [subtaskCount, setSubtaskCount] = useState(2);
 
 
 
@@ -244,6 +247,29 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
     }
   };
 
+  const handleDecomposeTask = async () => {
+    const taskToSend = {
+      ...newTask,
+      reminderText: null,
+      reminderDate: null,
+      reminderTime: null,
+    };
+
+    try {
+      const response = await handleDecompose(taskToSend, subtaskCount);
+      handleClose();
+      alert(`Задачи с секунды на секунду будут добавлены!`);
+    } catch (error) {
+      if (error.response) {
+        alert(`Ошибка при декомпозиции: ${error.response.data}`);
+      } else {
+        console.log("Ошибка при отправке запроса:", error);
+        alert("Сетевая ошибка при декомпозиции задачи.");
+      }
+    }
+  };
+
+
 
   return (
     <Dialog
@@ -253,25 +279,25 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
       fullWidth
       className={`add-task-dialog ${darkMode ? "night" : "day"}`}
       PaperProps={{
-      sx: {
-        background: darkMode
-          ? "linear-gradient(300deg, #1c1c3c, #2b2b60)"
-          : "linear-gradient(to top left, #d16ba5, #c777b9, #ba83ca, #aa8fd8, #9a9ae1, #8aa7ec, #79b3f4, #69bff8);",
-        color: darkMode ? "#00f6ff" : "#d81b60",
-        boxShadow: darkMode
-          ? "0 0 6px #00f6ff, 0 0 24px #00f6ff"
-          : "0 0 6px #ff90e8, 0 0 24px #ff90e8",
-        borderRadius: 3,
+        sx: {
+          background: darkMode
+            ? "linear-gradient(300deg, #1c1c3c, #2b2b60)"
+            : "linear-gradient(to top left, #d16ba5, #c777b9, #ba83ca, #aa8fd8, #9a9ae1, #8aa7ec, #79b3f4, #69bff8);",
+          color: darkMode ? "#00f6ff" : "#d81b60",
+          boxShadow: darkMode
+            ? "0 0 6px #00f6ff, 0 0 24px #00f6ff"
+            : "0 0 6px #ff90e8, 0 0 24px #ff90e8",
+          borderRadius: 3,
 
-        px: 2,
-        py: 1,
-        opacity: darkMode ? "0.93" : "0.8"
-      },
-    }}
+          px: 2,
+          py: 1,
+          opacity: darkMode ? "0.93" : "0.8"
+        },
+      }}
     >
 
       <DialogTitle sx={{
-        
+
         color: darkMode ? "#00f6ff" : "#fff",
         textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8"
 
@@ -280,7 +306,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
       </DialogTitle>
       <DialogContent
         sx={{
-          
+
           color: darkMode ? "#00f6ff" : "#fff",
 
           display: "flex",
@@ -436,7 +462,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
                 textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8"
               }}
               disabled={!canManageReminders}
-              control={<Switch  checked={newTask.reminder} onChange={handleReminderToggle} />}
+              control={<Switch checked={newTask.reminder} onChange={handleReminderToggle} />}
               label={t("enable_reminder")}
             />
           </Box>
@@ -525,7 +551,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
             sx={{
               flex: 1,
               overflowY: "auto",
-              
+
               color: darkMode ? "#00f6ff" : "#fff",
               textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8",
               borderRadius: 2,
@@ -550,7 +576,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
                     alignItems="center"
                     mb={1}
                     sx={{
-                      
+
                       color: darkMode ? "#00f6ff" : "#fff",
                       textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8",
                       p: 1,
@@ -584,7 +610,7 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
                     alignItems="center"
                     mb={1}
                     sx={{
-                      
+
                       color: darkMode ? "#00f6ff" : "#fff",
                       textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8",
                       p: 1,
@@ -620,15 +646,86 @@ const AddTaskDialog = ({ open, handleClose, handleAddTask, task, isEditing, tags
 
 
 
-      <DialogActions sx={{
-        
-        color: darkMode ? "#00f6ff" : "#fff",
-        textShadow: darkMode ? "0 0 12px #00f6ff, 0 0 24px #00f6ff" : "0 0 12px #ff90e8, 0 0 24px #ff90e8"
-      }}>
-        <Button onClick={handleClose}>{t("cancel")}</Button>
-        <Button onClick={handleSave} color="primary" variant="contained" disabled={!canEditTasks}>
-          {t("save")}
-        </Button>
+      <DialogActions
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          color: darkMode ? "#00f6ff" : "#fff",
+
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <TextField
+            label="Подзадач"
+            type="number"
+            size="small"
+            variant="outlined"
+            InputProps={{ inputProps: { min: 2, max: 7 } }}
+            value={subtaskCount}
+            onChange={(e) => setSubtaskCount(Number(e.target.value))}
+            sx={{
+              width: 100,
+              "& .MuiInputBase-input": {
+                color: darkMode ? "#00f6ff" : "#fff",
+              },
+              "& .MuiInputLabel-root": {
+                color: darkMode ? "#00f6ff" : "#ff90e8",
+              },
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: darkMode ? "#00f6ff" : "#ff90e8",
+                },
+              },
+            }}
+          />
+
+          <Tooltip
+            title={
+              <Box sx={{ fontSize: 13, maxWidth: 300 }}>
+                Метод разбивает задачу на несколько подзадач (от 2 до 7) с помощью GigaChat.
+                Ответственные, теги, статус и приоритет переносятся из исходной задачи.
+                Новые подзадачи получат индивидуальные названия, описания и периоды выполнения.
+                <br />
+                <br />
+                ⚠️ Функционал находится в стадии тестирования. Возможны неточные или странные формулировки.
+              </Box>
+            }
+            arrow
+          >
+            <IconButton size="small" sx={{ color: "inherit" }}>
+              <HelpOutlineIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+
+          <Button
+            variant="outlined"
+            onClick={handleDecomposeTask}
+            disabled={subtaskCount < 2 || subtaskCount > 7 || !canEditTasks}
+            sx={{
+              color: "inherit",
+              borderColor: "currentColor",
+              textShadow: "inherit",
+              "&:hover": {
+                backgroundColor: "rgba(255, 255, 255, 0.08)",
+              },
+            }}
+          >
+            Разбить задачу
+          </Button>
+        </Box>
+
+        <Box>
+          <Button onClick={handleClose} sx={{marginRight:"1em"}}>{t("cancel")}</Button>
+          <Button
+            onClick={handleSave}
+            color="primary"
+            variant="contained"
+            disabled={!canEditTasks}
+          >
+            {t("save")}
+          </Button>
+        </Box>
       </DialogActions>
     </Dialog>
   );

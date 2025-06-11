@@ -9,6 +9,7 @@ import com.morning.taskapimain.service.TaskService;
 import com.morning.taskapimain.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.scheduling.annotation.Async;
@@ -33,6 +34,7 @@ public class ReportService {
     private final ProjectUserRepository projectUserRepository;
     private final UserService userService;
     private final ReportBuilder reportBuilder;
+    @Qualifier("webClient")
     private final WebClient webClient;
 
     @Async

@@ -7,6 +7,8 @@ import "./RegisterPage.css";
 import { Paper } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom"; // добавь импорт
+import { Tooltip, IconButton } from "@mui/material";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 
 const RegisterPage = () => {
   const { darkMode } = useContext(ThemeContext);
@@ -98,6 +100,36 @@ const RegisterPage = () => {
                 {t("login_button")}
               </Link>
             </Typography>
+            <Box display="flex" alignItems="center" justifyContent="center" mt={2}>
+              <Typography variant="body2" color="textSecondary">
+                Регистрируясь, вы принимаете{" "}
+                <span style={{ textDecoration: "underline", cursor: "pointer" }}>
+                  условия обработки персональных данных
+                </span>
+              </Typography>
+              <Tooltip
+                title={
+                  <Box sx={{ maxWidth: 400 }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Согласие на обработку персональных данных
+                    </Typography>
+                    <Typography variant="body2">
+                      Я даю согласие на обработку моих персональных данных в соответствии
+                      с Федеральным законом № 152-ФЗ. Обработка включает сбор, хранение,
+                      использование, обезличивание и удаление данных. Данные используются
+                      для аутентификации, уведомлений и поддержки. Срок действия согласия —
+                      бессрочный, до отзыва. Отзыв возможен по запросу.
+                    </Typography>
+                  </Box>
+                }
+                arrow
+                placement="top"
+              >
+                <IconButton size="small" sx={{ ml: 1 }}>
+                  <HelpOutlineIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
             {error && <Typography color="error" mt={2}>{error}</Typography>}
           </form>
         </Paper>

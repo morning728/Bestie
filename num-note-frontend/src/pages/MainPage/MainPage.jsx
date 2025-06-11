@@ -69,6 +69,7 @@ const MainPage = () => {
     openAddDialog,
     openDetailsDialog,
     addTask,
+    decomposeTaskAndRefresh,
     editTask,
     archiveTask,
     restoreArchivedTask,
@@ -253,6 +254,7 @@ const MainPage = () => {
         open={openAddDialog.isOpen}
         handleClose={handleCloseAddDialog}
         handleAddTask={addTask}
+        handleDecompose={decomposeTaskAndRefresh}
         task={selectedTask}
         isEditing={isEditing}
         tags={tags}

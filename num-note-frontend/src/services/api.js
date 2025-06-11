@@ -1,9 +1,10 @@
 // src/services/api.js
 import axios from 'axios';
+const mainUrl ="http://93.157.245.105:8765" //"http://93.157.245.105:8765";
 
 // Создаем инстанс axios
 const apiClient = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8765',
+  baseURL:  mainUrl,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -42,7 +43,7 @@ apiClient.interceptors.request.use(
 const refreshToken = async () => {
   try {
     const response = await axios.post(
-      "http://localhost:8765/security/v1/auth/refresh",
+      `${mainUrl}/security/v1/auth/refresh`,
       {},
       { withCredentials: true }
     );
@@ -254,6 +255,10 @@ export const restoreTask = (taskId) =>
 export const getReminderByTaskId = (taskId) =>
   apiClient.get(`/notification/v1/reminders/${taskId}`);
 
+export const decomposeTask = (taskDTO, count) =>
+  apiClient.post(`/api/v1/gigachat`, taskDTO, {
+    params: { count },
+  });
 // ME
 
 export const getMe = () =>

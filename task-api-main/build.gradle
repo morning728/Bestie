@@ -78,6 +78,8 @@ dependencies {
 	testImplementation "org.testcontainers:postgresql:${testcontainersVersion}"
 	testImplementation "org.testcontainers:junit-jupiter:${testcontainersVersion}"
 
+	testImplementation 'org.mockito:mockito-core'
+	testImplementation 'org.mockito:mockito-junit-jupiter'
 	testImplementation "org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}"
 	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}"
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
